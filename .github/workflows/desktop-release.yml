@@ -40,9 +40,33 @@ jobs:
         run: |
           $env:AETHERION_TEST_DATA = Join-Path $env:RUNNER_TEMP ("aetherion-smoke-" + [Guid]::NewGuid())
           $env:AETHERION_SOFTWARE_RENDERING = '1'
-          $process = Start-Process -FilePath './dist/win-unpacked/Gallorin.exe' -ArgumentList '--smoke-test' -PassThru -WindowStyle Hidden
-          if (-not $process.WaitForExit(180000)) { $process.Kill(); throw "Desktop smoke test timed out." }
-          if ($process.ExitCode -ne 0 -or -not (Test-Path (Join-Path $env:AETHERION_TEST_DATA 'desktop-smoke.json'))) { throw "Desktop smoke test failed." }
+          $env:ELECTRON_ENABLE_LOGGING = '1'
+          New-Item -ItemType Directory -Force -Path $env:AETHERION_TEST_DATA | Out-Null
+          "AETHERION_TEST_DATA=$env:AETHERION_TEST_DATA" >> $env:GITHUB_ENV
+          $stdout = Join-Path $env:AETHERION_TEST_DATA 'smoke-stdout.log'
+          $stderr = Join-Path $env:AETHERION_TEST_DATA 'smoke-stderr.log'
+          $process = Start-Process -FilePath './dist/win-unpacked/Gallorin.exe' -ArgumentList '--smoke-test' -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          $null = $process.Handle
+          $timedOut = -not $process.WaitForExit(180000)
+          if ($timedOut) { $process.Kill() }
+          # Print the app's own output and desktop.log so failures name the failing check.
+          foreach ($file in @($stdout, $stderr, (Join-Path $env:AETHERION_TEST_DATA 'browser/desktop.log'))) {
+            if (Test-Path $file) { Write-Host "::group::$(Split-Path $file -Leaf)"; Get-Content $file | Write-Host; Write-Host '::endgroup::' }
+          }
+          if ($timedOut) { throw "Desktop smoke test timed out." }
+          if ($process.ExitCode -ne 0 -or -not (Test-Path (Join-Path $env:AETHERION_TEST_DATA 'desktop-smoke.json'))) { throw "Desktop smoke test failed (exit code $($process.ExitCode))." }
+      - name: Upload smoke test diagnostics
+        if: failure() && env.AETHERION_TEST_DATA != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Gallorin-smoke-diagnostics
+          path: |
+            ${{ env.AETHERION_TEST_DATA }}/*.png
+            ${{ env.AETHERION_TEST_DATA }}/*.log
+            ${{ env.AETHERION_TEST_DATA }}/*.json
+            ${{ env.AETHERION_TEST_DATA }}/browser/desktop.log
+          retention-days: 14
+          if-no-files-found: warn
       - name: Publish validated release
         if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh
