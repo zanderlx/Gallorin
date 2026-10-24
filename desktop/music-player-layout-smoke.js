@@ -17,8 +17,8 @@ async function verifyCompact(narrow){
  if(bar.classList.contains('is-compact')){toggle.click();await wait(400);}
  const expanded=bar.getBoundingClientRect().height,before=await window.gallorinMusic.state();
  toggle.click();await wait(90);
- const intermediate=bar.getBoundingClientRect().height;
- if(!(intermediate<expanded&&intermediate>(narrow?88:56)))throw Error('Player did not animate its height');
+ const intermediate=bar.getBoundingClientRect().height,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(!reduced&&!(intermediate<expanded&&intermediate>(narrow?88:56)))throw Error('Player did not animate its height');
  await wait(340);
  const after=await window.gallorinMusic.state(),box=bar.getBoundingClientRect();
  if(Math.abs(box.height-(narrow?88:56))>1)throw Error('Compact player height incorrect');
