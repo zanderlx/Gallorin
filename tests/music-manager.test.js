@@ -38,7 +38,7 @@ test('empty playlists show no implicit default rows or reset controls and import
 test('music page exposes global folder and per-folder playlist bulk controls',()=>{
  const html=musicManagerPage({tracks:[],assignments:{},fadeSeconds:2},[]);
  assert.equal((html.match(/data-music-toggle-all/g)||[]).length,1);
- assert.equal((html.match(/data-music-toggle-folder/g)||[]).length,8);
+ assert.equal((html.match(/data-music-toggle-folder/g)||[]).length,6);
  assert.ok(html.indexOf('data-music-toggle-all')<html.indexOf('data-music-group'));
 });
 
@@ -46,4 +46,12 @@ test('Background Music starts with closed playlists',()=>{
  const html=musicManagerPage({tracks:[],assignments:{},fadeSeconds:2},[]);
  assert.ok(html.includes('<h1>Background Music</h1>'));
  assert.ok(!/<details class="music-playlist"[^>]*\sopen(?:>|\s)/.test(html));
+});
+
+test('settings music folders and playlists are hidden from music management',()=>{
+ const html=musicManagerPage({tracks:[],assignments:{'user-interface':['menu'],developer:['menu']},fadeSeconds:2},[]);
+ for(const id of ['user-interface','developer','dev/music','dev/settings','dev/appearance']){
+  assert.ok(!html.includes('data-music-group="'+id+'"'));
+  assert.ok(!html.includes('data-playlist="'+id+'"'));
+ }
 });
