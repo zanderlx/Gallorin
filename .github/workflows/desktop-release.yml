@@ -1,5 +1,6 @@
-name: "Release v1.1.1"
-run-name: "Release v1.1.1"
+name: Release
+# Expressions cannot strip the gallorin- prefix, so runs show "Release gallorin-v<version>".
+run-name: Release ${{ github.ref_name }}
 on:
   push:
     tags: ['gallorin-v*']
