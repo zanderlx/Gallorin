@@ -1,6 +1,6 @@
 # Deployment checks
 
-1. Work on a feature branch and open a PR into main.
+1. Work on a dev/ development or testing branch and open a PR into main.
 2. Review the prepared version, README/banner, and changelog with the owner.
 3. Required validation builds Windows, checks versions/assets, runs unit tests, and smoke-tests both motion settings using temporary saves.
 4. Merge only after Required validation passes and the owner authorizes it.

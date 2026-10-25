@@ -28,7 +28,7 @@
 
 # Enforced deployment workflow
 
-- Work on codex/ feature branches; use a pull request into main. Never bypass main protection or required validation.
+- Work on dev/ feature branches; use a pull request into main. Never bypass main protection or required validation.
 - CI must pass unit tests, release consistency, installer/manifest integrity, and packaged smoke tests in both normal and reduced-motion modes.
 - Keep smoke data isolated in temporary directories. Retain failure diagnostics.
 - Preserve the mandatory personal documentation/version review checkpoint above. PR templates do not replace explicit user approval.
