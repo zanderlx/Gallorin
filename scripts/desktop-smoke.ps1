@@ -1,5 +1,7 @@
-param([string]$Executable = './dist/win-unpacked/Gallorin.exe')
+param([string]$Executable = './dist/win-unpacked/Gallorin.exe', [switch]$TestSplash)
 $ErrorActionPreference = 'Stop'
+$smokeArguments = @('--smoke-test')
+if ($TestSplash) { $smokeArguments += '--test-splash' }
 # Separate temporary saves and Chromium profiles for every motion mode.
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ('gallorin-smoke-' + [Guid]::NewGuid())
 New-Item -ItemType Directory -Path $root | Out-Null
@@ -12,7 +14,7 @@ foreach ($motion in @('normal', 'reduced')) {
   New-Item -ItemType Directory -Path $env:AETHERION_TEST_DATA | Out-Null
   $stdout = Join-Path $env:AETHERION_TEST_DATA 'stdout.log'
   $stderr = Join-Path $env:AETHERION_TEST_DATA 'stderr.log'
-  $process = Start-Process -FilePath $Executable -ArgumentList '--smoke-test' -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+  $process = Start-Process -FilePath $Executable -ArgumentList $smokeArguments -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
   $null = $process.Handle
   $timedOut = -not $process.WaitForExit(180000)
   if ($timedOut) { $process.Kill(); $process.WaitForExit() }
