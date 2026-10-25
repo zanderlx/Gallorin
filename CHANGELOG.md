@@ -14,6 +14,7 @@ Restore bundled palette additions for existing installations.
 
 - **Compendium**
   - Existing installations receive missing bundled palettes without replacing local palette customizations.
+  - Restored palettes: Ash, Beaver, Bisorse 1, Blueberry, Calaverita 1, Fae 1–5, Flora 1–3, Gargoyle 1, Ginger, Girafetti 1–2, Hauntmare 1–6, Jester, Kelpie 1, Lemon, Nephyrian 1, Orange, Pink Lemonade, Serpentine 1–4, Sovremeign 1, Strawberry, Tawny, Umber, Vaporwave, Vegetable, and Vibrant Pastel.
 
 ## [1.2.0] - Patient Equines Yearn Toward Overgrown Nature - 2026-10-25
 
