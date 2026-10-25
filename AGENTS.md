@@ -28,7 +28,7 @@
 
 # Enforced deployment workflow
 
-- Work on dev/ feature branches; use a pull request into main. Never bypass main protection or required validation.
+- Use categorized task branches (feature/, bugfix/, hotfix/, docs/, refactor/, test/, chore/) and a pull request into main. Never bypass main protection or required validation.
 - CI must pass unit tests, release consistency, installer/manifest integrity, and packaged smoke tests in both normal and reduced-motion modes.
 - Keep smoke data isolated in temporary directories. Retain failure diagnostics.
 - Preserve the mandatory personal documentation/version review checkpoint above. PR templates do not replace explicit user approval.
@@ -48,4 +48,14 @@
 - During local iteration, run focused tests for the changed behavior first. Expand coverage for shared systems and cross-cutting changes.
 - Run the inexpensive full unit suite before merging. Do not repeatedly rebuild installers or run the complete desktop walkthrough for each small local edit.
 - Run local packaged smoke tests for relevant desktop/integration changes or final verification; retain full mandatory CI checks on PRs, main, and releases.
-- Avoid duplicate development-push CI runs: PR validation covers new commits on open PRs. For a dev branch without a PR, use manual validation when needed.
+- Avoid duplicate development-push CI runs: PR validation covers new commits on open PRs. For a task branch without a PR, use manual validation when needed.
+
+# Branch and PR organization
+
+- Use feature/ for new game/app features, bugfix/ for normal app defects, hotfix/ for urgent production fixes, docs/ for documentation-only work, refactor/ for behavior-preserving restructuring, test/ for test-only work, and chore/ for CI/workflows, build configuration, and dependency maintenance.
+- Prefer descriptive names without ticket IDs unless the user supplies an actual ticket. Examples: feature/horse-training, bugfix/stable-import, chore/actions-runtime.
+- Keep unrelated player-facing changes and infrastructure maintenance in separate branches and PRs. A technical build/workflow fix belongs in chore/; a test-only defect belongs in test/.
+- Keep a feature's necessary tests and documentation in that same feature PR; do not split dependent work merely by file type.
+- Choose the prefix by the main purpose of the change. Hotfixes still require a PR, passing checks, and release approval; the name does not authorize direct pushes or bypasses.
+- Delete completed task branches after merge (GitHub automatically removes the remote branch); verify local work is preserved before removing the local branch.
+- Unlink completed PR attachments from the Codex chat after merge or closure.

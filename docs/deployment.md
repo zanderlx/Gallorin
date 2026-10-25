@@ -1,6 +1,6 @@
 # Deployment checks
 
-1. Work on a dev/ development or testing branch and open a PR into main.
+1. Work on a categorized task branch and open a PR into main.
 2. Review the proposed changes with the owner. For app updates, also review the prepared version, README/banner, and changelog.
 3. Required validation builds Windows, checks versions/assets, runs unit tests, and smoke-tests both motion settings using temporary saves.
 4. Merge only after Required validation passes and the owner authorizes it.
@@ -24,5 +24,19 @@ Workflow changes take effect only after they are pushed and merged. Required val
 
 - PRs targeting main run full Windows validation. New commits to an open PR rerun it automatically.
 - Merges/pushes to main run full validation of the integrated result.
-- Pushing a dev/ branch without a PR no longer starts a duplicate build. Open a PR or manually dispatch Validate changes when CI testing is needed.
+- Pushing a task branch without a PR no longer starts a duplicate build. Open a PR or manually dispatch Validate changes when CI testing is needed.
 - Release tags still run the full packaged release validation and require owner approval before publication.
+
+## Branch names and PR scope
+
+| Prefix | Purpose |
+| --- | --- |
+| feature/ | New game or app feature |
+| bugfix/ | Normal app bug fix |
+| hotfix/ | Urgent production fix, still reviewed through a PR |
+| docs/ | Documentation-only work |
+| refactor/ | Restructuring without behavior changes |
+| test/ | Automated test changes only |
+| chore/ | Workflows, builds, dependencies, and other maintenance |
+
+Separate unrelated app work from technical maintenance into different PRs. Keep the tests and documentation required by a feature with that feature. Use descriptive names; ticket IDs are optional. Completed PR branches are deleted after merge.
