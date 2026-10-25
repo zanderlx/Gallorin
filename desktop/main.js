@@ -99,7 +99,7 @@ async function start() {
   const audioWindow=new BrowserWindow({show:false,webPreferences:{...options,autoplayPolicy:'no-user-gesture-required',backgroundThrottling:false}});
   await audioWindow.loadFile(join(root,'desktop/audio.html'));
   const audioCommand=value=>audioWindow.webContents.executeJavaScript('window.musicTransport.command('+JSON.stringify(value)+')');
-  const updateAudio=async()=>{await audioCommand({type:'volume',value:audioPreferences.volume/100});await audioCommand({type:'mute',value:audioPreferences.muted});await audioCommand({type:'sfx-volume',value:audioPreferences.soundEffectsVolume/100});};
+  const updateAudio=async(changed=audioPreferences)=>{if('volume' in changed)await audioCommand({type:'volume',value:audioPreferences.volume/100});if('muted' in changed)await audioCommand({type:'mute',value:audioPreferences.muted});if('soundEffectsVolume' in changed)await audioCommand({type:'sfx-volume',value:audioPreferences.soundEffectsVolume/100});};
   ipcMain.handle('music-state',event=>event.sender===main.webContents?audioWindow.webContents.executeJavaScript('window.musicTransport.snapshot()'):null);
   ipcMain.handle('music-command',async(event,value)=>{
     if(event.sender!==main.webContents||!value||!['select','effect','metadata','playlist','next','previous','play','pause','stop','seek','volume','sfx-volume','fade','mute'].includes(value.type))return null;
@@ -117,7 +117,7 @@ async function start() {
   await updateAudio();
   ipcMain.handle('audio-state',event=>event.sender===main.webContents ? audioPreferences : null);
   let audioWrite=Promise.resolve();
-  ipcMain.handle('audio-set',async(event,value)=>{if(event.sender!==main.webContents || !Number.isFinite(value.volume))return;audioPreferences=normalizeAudio(value,audioPreferences);await updateAudio();audioWrite=audioWrite.then(()=>writeFile(audioFile,JSON.stringify(audioPreferences))).catch(log);await audioWrite;return audioPreferences;});
+  ipcMain.handle('audio-set',async(event,value)=>{if(event.sender!==main.webContents || !value || typeof value!=='object')return;audioPreferences=normalizeAudio(value,audioPreferences);await updateAudio(value);audioWrite=audioWrite.then(()=>writeFile(audioFile,JSON.stringify(audioPreferences))).catch(log);await audioWrite;return audioPreferences;});
   ipcMain.handle('music-settings',async event=>event.sender===main.webContents?(await (await fetch(origin+'/api/music')).json()):null);
   ipcMain.handle('music-fade',async(event,fadeSeconds)=>{
     if(event.sender!==main.webContents)return null;

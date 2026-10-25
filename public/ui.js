@@ -49,7 +49,7 @@ const workbench = groups.find(g => g.title === 'Developer Settings');
 workbench.items = [['dev/horse-updates','Horse Updates'],['dev/edit-mode','Edit Mode'],['dev/settings','Game Settings'],['dev/saves','Save Management'],['dev/roadmap','Remaining Features']];
 groups.push(
   {title:'Compendium',icon:'book',items:[['dev/species','Species'],['dev/traits','Traits'],['dev/colors','Palettes'],['dev/eyes','Eye Colors'],['dev/personalities','Personalities'],['dev/mutations','Mutations'],['dev/rarities','Rarities'],['dev/locations','Zones'],['dev/atmospheres','Zone Atmospheres'],['dev/items','Items & Potions'],['dev/themes','Item Themes']]},
-  {title:'User Interface',icon:'spark',items:[['dev/appearance','Appearance & Themes'],['dev/profile','My Profile'],['dev/music','Music']]}
+  {title:'User Interface',icon:'spark',items:[['dev/appearance','Appearance & Themes'],['dev/profile','My Profile'],['dev/music','Music & Sound Effects']]}
 );
 groups.splice(groups.indexOf(workbench),1);
 groups.push(workbench);

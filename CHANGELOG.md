@@ -16,6 +16,11 @@ More control over encounters, sound events, and Compendium settings.
   - Independent rarity Border and Glow controls; Glow requires an enabled border.
   - Seventeen categorized palettes, including Orange and Lemon.
 
+- **Music & Sound Effects**
+  - Sound Events table with fixed event names and dropdowns for assigning one sound effect per event; effects can be shared across events.
+  - Horse Sold event, assigned Loot Coin Small by default.
+  - Bundled Loot Coin Small and Benkirb Shine 7 268909 sound effects.
+
 ### Updated
 
 - **Compendium**
@@ -23,6 +28,12 @@ More control over encounters, sound events, and Compendium settings.
   - Unified eye-color, mutation, and palette editor footers, with conditional Save/Cancel controls on the right and auxiliary actions on the left.
   - Improved spacing around rarity swatches and editor controls.
   - Updated the Lettuce palette using the supplied colors.
+
+- **Music & Sound Effects**
+  - Renamed the navigation entry to Music & Sound Effects.
+  - Separated event assignments from the All Sound Effects library, with importing, previews, metadata editing, sorting, and confirmed library deletion.
+  - Assigned Benkirb Shine 7 268909 to Cosmic Horse Spawn by default.
+  - Default sound-effect volume is 50%; music and effects retain independent controls and saved preferences.
 
 ### Fixed
 

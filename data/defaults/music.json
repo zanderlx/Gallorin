@@ -61,6 +61,20 @@
       "file": "universfield-magic-twinkle-244951.mp3",
       "durationSeconds": 2.832,
       "kind": "effect"
+    },
+    {
+      "id": "73a2ea7c-076d-4a03-a2db-97d1f33b612e",
+      "name": "Benkirb Shine 7 268909",
+      "file": "benkirb-shine-7-268909.mp3",
+      "kind": "effect",
+      "durationSeconds": 6
+    },
+    {
+      "id": "5284fe28-c440-4e12-901c-0ac2d2fb8cf8",
+      "name": "Loot Coin Small",
+      "file": "loot-coin-small.mp3",
+      "durationSeconds": 0.7053061224489796,
+      "kind": "effect"
     }
   ],
   "assignments": {
@@ -75,10 +89,13 @@
       "93c7c7fc-c6da-4cf1-b8ce-69fd02e0d277"
     ],
     "effect/cosmic-spawn": [
-      "b3f0c272-1922-47e7-9ef3-d30dd0399e96"
+      "73a2ea7c-076d-4a03-a2db-97d1f33b612e"
     ],
     "town": [
       "9eb1bb80-f34a-4aeb-b2c6-6a0fa3c97d3b"
+    ],
+    "effect/horse-sold": [
+      "5284fe28-c440-4e12-901c-0ac2d2fb8cf8"
     ]
   },
   "fadeSeconds": 2

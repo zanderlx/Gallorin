@@ -93,6 +93,7 @@ async function action(type, payload) {
   const previousState=state;
   state = result.state;
   if(route.startsWith('wilds/'))void musicPlayer.spawnEffects(previousState,state,route.split('/')[1]).catch(error=>notify(error.message,true));
+  if(type==='sell')void musicPlayer.playEvent('effect/horse-sold').catch(error=>notify(error.message,true));
   showGoldChange(goldChange);
   if (result.catalog) catalog = result.catalog;
   return state;

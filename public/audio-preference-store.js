@@ -8,7 +8,7 @@ export function createAudioPreferenceStore({initial,save,onChange=()=>{}}){
   sync(value,version=revision){if(!pending&&version===revision){state=audioPreferences(value,state);publish();}return {...state};},
   set(value){
    state=audioPreferences(value,state);revision++;const snapshot=publish();pending++;
-   const job=queue.then(()=>save(snapshot));queue=job.catch(()=>{});
+   const job=queue.then(()=>save(snapshot,{...value}));queue=job.catch(()=>{});
    return job.finally(()=>{pending--;});
   },
   flush:()=>queue
