@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.1.0 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
+![Gallorin v1.1.1 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.1.0: The Melodies of Gallorin
+# Gallorin v1.1.1: The Melodies of Gallorin
 
 **Desktop horse collection game · Windows**
 

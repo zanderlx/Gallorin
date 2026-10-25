@@ -6,6 +6,23 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.1.1] - The Melodies of Gallorin - Unreleased
+
+Deployment safeguards for more reliable Windows releases.
+
+### Added
+
+- Required pull-request validation with unit tests, version checks, and packaged Windows smoke tests in normal and reduced-motion modes.
+- Installer and updater manifest checks for matching versions, filenames, checksums, and file sizes.
+- A manual owner-approval step after validation and before publishing a release.
+- Pull-request checklist and development/release workflow documentation.
+
+### Changed
+
+- Release builds must come from commits merged into main and publish the same validated installer artifacts.
+- Smoke tests use separate temporary saves for each motion setting and retain diagnostic logs and screenshots.
+- Main branch protection requires pull requests, passing checks, and resolved conversations, and blocks force pushes and deletion.
+
 ## [1.1.0] - The Melodies of Gallorin - 2026-10-24
 
 A location-aware soundtrack, independent sound effects, and a compact player bring music across Gallorin.
