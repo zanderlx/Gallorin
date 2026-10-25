@@ -96,6 +96,9 @@
     ],
     "effect/horse-sold": [
       "5284fe28-c440-4e12-901c-0ac2d2fb8cf8"
+    ],
+    "effect/respawn-ready": [
+      "b3f0c272-1922-47e7-9ef3-d30dd0399e96"
     ]
   },
   "fadeSeconds": 2

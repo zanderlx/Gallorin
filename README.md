@@ -19,6 +19,7 @@
 - Manage location playlists and a separate sound-effect library, with event assignments, crossfades, and a compact player.
 - Control music and sound-effect volumes independently.
 - Generate horses with an expanded set of categorized color palettes.
+- Configure optional Wilds search cooldowns with a persistent countdown and completion sound.
 - Adjust themes, page text, profiles, economy, and spawning settings.
 - Save locally with exports and automatic backups.
 

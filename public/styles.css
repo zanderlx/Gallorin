@@ -29,9 +29,9 @@ strong{font-weight:600}
 .muted{color:var(--muted)}
 .gold-text{color:var(--gold)}
 .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:43px;padding:10px 16px;border:1px solid transparent;border-radius:5px;font-size:14px;font-weight:600;line-height:1.4;transition:background .2s,border-color .2s,transform .2s;white-space:nowrap}
-.button:hover{transform:translateY(-1px)}
+.button:hover:not(:disabled){transform:translateY(-1px)}
 .button.primary{color:#f7e6c4;background:linear-gradient(125deg,#80424a,#603039);border-color:#a06a64;box-shadow:inset 0 1px 0 #ffffff0a,0 3px 10px #0002}
-.button.primary:hover{background:#8a4a50;border-color:#bf8b77}
+.button.primary:hover:not(:disabled){background:#8a4a50;border-color:#bf8b77}
 .button.secondary{background:#332b23;border-color:#65513b;color:#ead6ad}
 .button.secondary:hover{background:#403428;border-color:#98784a}
 .button .icon{width:17px;height:17px}
@@ -297,9 +297,13 @@ dialog::backdrop{background:#0b0b0bd4;backdrop-filter:blur(5px)}
 #confirm h2{padding:23px 25px 12px;font-size:32px}
 #confirm p{padding:0 25px;font-size:15px;line-height:1.9}
 #confirm .form-actions{padding:0 25px}
-#toast{position:fixed;z-index:50;bottom:24px;right:24px;left:auto;transform:translateY(20px);opacity:0;pointer-events:none;padding:14px 22px;border:1px solid #8a7851;background:#302b21;color:#f1dfba;border-radius:6px;box-shadow:0 5px 30px #0005;font-size:14px;transition:opacity .2s,transform .2s;max-width:calc(100vw - 40px)}
-#toast.visible{opacity:1;transform:translateY(0)}
-#toast.error{background:#532d2e;border-color:#c6867d}
+#notification-stack{position:fixed;z-index:50;bottom:24px;right:24px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;max-width:calc(100vw - 40px);pointer-events:none}
+#notification-stack #toast{display:contents;position:static}
+.notification-toast{padding:14px 22px;border:1px solid #8a7851;background:#302b21;color:#f1dfba;border-radius:6px;box-shadow:0 5px 30px #0005;font-size:14px;max-width:100%;overflow-wrap:anywhere;animation:notification-in .2s ease-out}
+.notification-toast.error{background:#532d2e;border-color:#c6867d}
+@keyframes notification-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.notification-toast{animation:none}}
+
 #economy-form input[type="number"],#settings-form input[type="number"]{appearance:textfield;-moz-appearance:textfield;text-align:center}
 #economy-form input[type="number"]::-webkit-inner-spin-button,#economy-form input[type="number"]::-webkit-outer-spin-button,#settings-form input[type="number"]::-webkit-inner-spin-button,#settings-form input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .scrim{display:none}
@@ -353,3 +357,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
 #sidebar nav details[data-nav-expanded=false]>summary .chevron{transform:rotate(0deg)}
 #sidebar nav details[data-nav-expanded=true]>summary .chevron{transform:rotate(180deg)}
 @media(prefers-reduced-motion:reduce){#sidebar .chevron{transition:none}}
+
+#encounter-cooldown{padding:12px 18px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;box-shadow:0 5px 30px #0005;font-size:13px;max-width:100%}
+.search-button:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(1)}
+
+/* Leave page-end controls clear of countdown and notification overlays. */
+#main{padding-bottom:100px}
+
+/* Avoid interpolating a gradient background to a transparent color on hover. */
+#main .wilds-search-row .search-button{background:var(--burgundy);box-shadow:none;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+#main .wilds-search-row .search-button:hover{background:var(--burgundy);transform:none}
+#main .wilds-search-row .search-button:hover:not(:disabled){background:var(--burgundy);filter:none;border-color:var(--gold);transform:translateY(-2px);box-shadow:0 0 10px color-mix(in srgb,var(--gold),transparent 82%)}
+@media(prefers-reduced-motion:reduce){#main .wilds-search-row .search-button{transition:none}#main .wilds-search-row .search-button:hover{transform:none}}

@@ -12,6 +12,10 @@ More control over encounters, sound events, and Compendium settings.
 
 ### Added
 
+- **Wilds & Game Settings**
+  - Configurable search cooldown with a persistent cross-zone countdown, disabled search button, and explanatory tooltip.
+  - Taming or selling during cooldown leaves empty spaces instead of generating replacement horses.
+
 - **Compendium**
   - Independent rarity Border and Glow controls; Glow requires an enabled border.
   - Seventeen categorized palettes, including Orange and Lemon.
@@ -20,8 +24,12 @@ More control over encounters, sound events, and Compendium settings.
   - Sound Events table with fixed event names and dropdowns for assigning one sound effect per event; effects can be shared across events.
   - Horse Sold event, assigned Loot Coin Small by default.
   - Bundled Loot Coin Small and Benkirb Shine 7 268909 sound effects.
+  - Horse Respawn Timer Finished event, assigned Universfield Magic Twinkle by default.
 
 ### Updated
+
+- **Wilds & Game Settings**
+  - Refined Search the Wilds hover feedback with a stable background, small lift, and subtle glow.
 
 - **Compendium**
   - Renamed Rarity Settings to Rarity Manager and simplified its cards.
@@ -35,10 +43,17 @@ More control over encounters, sound events, and Compendium settings.
   - Assigned Benkirb Shine 7 268909 to Cosmic Horse Spawn by default.
   - Default sound-effect volume is 50%; music and effects retain independent controls and saved preferences.
 
+- **Layout & Notifications**
+  - Notifications and the respawn countdown stack at the bottom right above the music player.
+  - Added bottom clearance across pages so controls can scroll above notifications.
+
 ### Fixed
 
 - **Compendium**
   - Color pickers no longer open when clicking outside the actual swatch.
+
+- **Layout & Notifications**
+  - Removed unintended Changelog markup from empty-state messages.
 
 ## [1.1.1] - 2026-10-24
 

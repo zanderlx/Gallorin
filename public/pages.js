@@ -13,7 +13,7 @@ export function wildPage(location, state, locations = [location], catalog) {
   </div><span class="hero-mark" aria-hidden="true">✧</span></section>
   <section class="encounters" aria-label="Wild horses">
   <div class="horse-grid">${horses.map(h => card(h, state, 'wild', catalog)).join('')}</div>
-  ${horses.length === 0 ? emptyState('A little further down the trail…', 'Search the wilds below to discover your next companions.', null, null, 'leaf') : ''}
+  ${horses.length === 0 ? emptyState('No current horses in the area', '', null, null, 'leaf') : ''}
   <div class="wilds-search-row"><span class="wilds-search-ornament" aria-hidden="true">${icon('leaf')}<span>✧</span></span><button class="button primary search-button" data-action="search">${icon('refresh')} Search the Wilds</button><span class="wilds-search-ornament mirror" aria-hidden="true">${icon('leaf')}<span>✧</span></span></div>
   </section>`;
 }

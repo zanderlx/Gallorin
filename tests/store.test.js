@@ -528,3 +528,31 @@ test('taming and selling refill only their slot; reload and visit preserve all o
  await loaded.action('search',{locationId:'aetherion'});
  assert.ok(loaded.state.encounters.aetherion.every(h=>!sold.some(old=>old.id===h.id)));
 });
+
+test('search cooldown persists, blocks zone bypasses, and suppresses capture/sale replacements',async t=>{
+ const {directory,store}=await fixture(t);
+ await store.action('settings',{...store.state.settings,searchCooldownEnabled:true,searchCooldownSeconds:90});
+ await store.action('search',{locationId:'aetherion'});
+ const ids=store.state.encounters.aetherion.map(h=>h.id);
+ await assert.rejects(store.action('search',{locationId:'aetherion'}),/cooldown/);
+ await assert.rejects(store.action('search',{locationId:'hallowhoof'}),/cooldown/);
+ await store.action('visit',{locationId:'hallowhoof'});assert.equal(store.state.encounters.hallowhoof.length,0);
+ await store.action('catch',{id:ids[0]});assert.equal(store.state.encounters.aetherion.length,2);
+ for(const id of ids.slice(1))await store.action('sell',{id});
+ assert.equal(store.state.encounters.aetherion.length,0);
+ const restored=await new GameStore(directory,catalog,defaults).init();
+ assert.equal(restored.state.searchAvailableAt,store.state.searchAvailableAt);
+ await assert.rejects(restored.action('search',{locationId:'aetherion'}),/cooldown/);
+ restored.state.searchAvailableAt=Date.now()-1;
+ await restored.action('search',{locationId:'aetherion'});assert.equal(restored.state.encounters.aetherion.length,3);
+ await restored.action('settings',{...restored.state.settings,searchCooldownEnabled:false});
+ assert.equal(restored.state.searchAvailableAt,0);
+ await restored.action('settings',{...restored.state.settings,searchCooldownEnabled:true});
+ assert.equal(restored.state.searchAvailableAt,0);
+ await restored.action('search',{locationId:'aetherion'});
+ await restored.action('settings',{...restored.state.settings,searchCooldownEnabled:false});
+ await restored.action('search',{locationId:'aetherion'});
+ const id=restored.state.encounters.aetherion[0].id;
+ await restored.action('catch',{id});assert.equal(restored.state.encounters.aetherion.length,3);
+ await assert.rejects(restored.action('settings',{...restored.state.settings,searchCooldownSeconds:0}),/cooldown/);
+});

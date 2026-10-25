@@ -15,7 +15,7 @@
   & .nav-items a[aria-current] { background:var(--panel);color:var(--gold);box-shadow:inset 2px 0 var(--gold) }
   & .nav-items a[aria-current]:before { color:var(--gold) }
   & .button.primary { background:var(--burgundy);color:var(--button-text);border-color:var(--burgundy);box-shadow:none }
-  & .button.primary:hover { filter:brightness(.95) }
+  & .button.primary:hover:not(:disabled) { filter:brightness(.95) }
   & .button.secondary { background:var(--panel-deep);color:var(--gold);border-color:var(--border) }
   & .button.secondary:hover { background:var(--panel);border-color:var(--gold) }
   & .text-button,& .text-link,& .eyebrow,& .gender { color:var(--gold) }
