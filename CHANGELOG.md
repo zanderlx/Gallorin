@@ -6,19 +6,19 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.1.1] - The Melodies of Gallorin - Unreleased
+## [1.1.1] - Unreleased
 
 Small music-management improvements and a quieter default volume.
-
-### Added
-
-- Confirmation before removing a song from a playlist, with Cancel and Remove options.
 
 ### Changed
 
 - Lowered the default music volume to 15%. Existing saved volume preferences are retained.
 - Removed User Interface and Developer Settings from music folders and playlist assignment choices. Their pages keep the current music playing, including when older music assignments exist.
 - Show each folder's Show All/Hide All button only while that folder is open.
+
+### Fixed
+
+- Added the missing confirmation before removing a song from a playlist, with Cancel and Remove options.
 
 ## [1.1.0] - The Melodies of Gallorin - 2026-10-24
 
