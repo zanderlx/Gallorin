@@ -42,3 +42,10 @@
 - CI, tests, branch protection, deployment workflows, and contributor/process documentation do not warrant an app version bump, release tag, installer release, or in-app changelog entry on their own.
 - Keep infrastructure-only changes in PR descriptions, commit messages, and dedicated development documentation such as docs/deployment.md. Do not add them as app features in README.
 - For infrastructure-only pushes, preserve the published app version and release documentation. The personal review checkpoint still applies to the proposed changes before pushing.
+
+# Efficient testing
+
+- During local iteration, run focused tests for the changed behavior first. Expand coverage for shared systems and cross-cutting changes.
+- Run the inexpensive full unit suite before merging. Do not repeatedly rebuild installers or run the complete desktop walkthrough for each small local edit.
+- Run local packaged smoke tests for relevant desktop/integration changes or final verification; retain full mandatory CI checks on PRs, main, and releases.
+- Avoid duplicate development-push CI runs: PR validation covers new commits on open PRs. For a dev branch without a PR, use manual validation when needed.
