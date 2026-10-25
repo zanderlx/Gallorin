@@ -27,7 +27,7 @@ const editorGuidance = {
 };
 export function colorControl(key, value = '#D6B4DF', label = key) {
   const valid = /^#[\da-f]{6}$/i.test(value) ? value : '#D6B4DF';
-  return `<label class="color-control"><span>${e(label)}</span><span class="color-inputs"><input type="color" data-color-picker="${e(key)}" value="${valid}" aria-label="${e(label)} color picker"><input name="color:${e(key)}" data-color-hex="${e(key)}" value="${e(value)}" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="${e(label)} hex value"></span></label>`;
+  return `<div class="color-control"><span>${e(label)}</span><span class="color-inputs"><input type="color" data-color-picker="${e(key)}" value="${valid}" aria-label="${e(label)} color picker"><input name="color:${e(key)}" data-color-hex="${e(key)}" value="${e(value)}" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="${e(label)} hex value"></span></div>`;
 }
 export function traitRow(category = '', values = []) {
   return `<div class="trait-editor-row"><label class="zone-field">Category<input data-trait-category value="${e(category)}" maxlength="60" required ${traitCategories.includes(category) ? 'readonly' : ''}></label><label class="zone-field">Trait names · one per line<textarea data-trait-values rows="3" placeholder="Add as many options as you like">${e(values.join('\n'))}</textarea></label><button class="text-button" type="button" data-action="remove-trait-category">Remove Category</button></div>`;

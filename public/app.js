@@ -10,7 +10,7 @@ import {createPaletteTransfers} from './palette-transfer.js';
 import {palettesManagerPage,createPaletteEditor,updatePaletteGrid} from './palettes-manager.js';
 import {defaultSpawnSettings} from './spawn-config.js';
 import {validateSettingsNumbers,attachSettingsNumbers} from './game-settings.js';
-import {raritiesManagerPage,readRaritySettings} from './rarities-manager.js';
+import {raritiesManagerPage,readRaritySettings,syncRarityControls} from './rarities-manager.js';
 import {defaultRaritySettings,rarityNames,raritySettings} from './rarity-settings.js';
 import {horseCardRank} from './horse-rank.js';
 import {saleQuoteBreakdown} from './sale-quote.js';
@@ -374,10 +374,12 @@ document.addEventListener('click', async event => {
     const form = $('#rarity-settings-form');
     for (const key of Object.keys(rarityNames)) {
       form.elements.namedItem(`enabled:${key}`).checked = !!defaultRaritySettings.colors[key];
+      form.elements.namedItem(`glow:${key}`).checked = defaultRaritySettings.glow[key];
       const color = defaultRaritySettings.colors[key] || '#8D949E';
       form.elements.namedItem(`color:${key}`).value = color;
       form.querySelector(`[data-color-picker="${key}"]`).value = color;
     }
+    syncRarityControls(form);
     updateFormState(form);
     return;
   }
@@ -656,6 +658,7 @@ document.addEventListener('input', event => {
   if (event.target.matches('[data-color-hex]') && /^#[\da-f]{6}$/i.test(event.target.value)) {
     event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
   }
+  if(event.target.form?.id==='rarity-settings-form')syncRarityControls(event.target.form);
   updateFormState(event.target.form);
   if (event.target.id === 'eye-search') updateEyeGrid(main,catalog);
   if (event.target.id === 'definition-search') {
@@ -680,6 +683,7 @@ document.addEventListener('change', event => {
   if (event.target.id === 'eye-sort') main.querySelector('[data-action="eye-sort-direction"]').dataset.direction = 'asc';
   if (['eye-rarity','eye-sort','eye-percent'].includes(event.target.id)) updateEyeGrid(main,catalog);
   if (event.target.id === 'traits-species') {main.innerHTML = traitsEditorPage(catalog,event.target.value); trackForms(main); return;}
+  if(event.target.form?.id==='rarity-settings-form')syncRarityControls(event.target.form);
   updateFormState(event.target.form);
   if (event.target.id === 'horse-sort') updateStableSort(['recent','rarity','favorites'].includes(event.target.value) ? 'desc' : 'asc');
 });
@@ -694,7 +698,7 @@ document.addEventListener('reset', event => {
     event.target.hidden = true;
     profile.querySelector(`[data-form="${event.target.id}"]`).hidden = false;
   }
-  setTimeout(() => { updateFormState(event.target); if (event.target.id === 'keeper-form') updateAvatarPreview(); },0);
+  setTimeout(() => { if(event.target.id==='rarity-settings-form')syncRarityControls(event.target); updateFormState(event.target); if (event.target.id === 'keeper-form') updateAvatarPreview(); },0);
   if (['settings-form','economy-form'].includes(event.target.id)) event.target.querySelector('[role=status]').textContent = '';
   if (event.target.id === 'zone-form') {
     event.preventDefault();

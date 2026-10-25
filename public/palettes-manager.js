@@ -72,7 +72,6 @@ export function createPaletteEditor(renderEditor) {
     form.querySelector('.panel-heading')?.remove();
     dialog.innerHTML=`<div class="dialog-top"><h2 id="palette-editor-title">${draft?.id ? `Edit ${e(draft.name)}` : draft?.imported ? 'Import Palette' : 'Create Palette'}</h2><button type="button" class="icon-button" data-palette-close aria-label="Close palette editor">${icon('close')}</button></div>`;
     definitionTransferControls(form,dialog,draft,'palettes','Palette');
-    if (draft?.id) form.querySelectorAll('button[type="submit"],button[type="reset"]').forEach(button=>button.remove());
     const fields=form.querySelector('.definition-fields');
     const row=document.createElement('div');row.className='eye-name-rarity';
     row.append(fields.querySelector('[name="name"]').closest('label'),fields.querySelector('[name="group"]').closest('label'),fields.querySelector('[name="variationPercent"]').closest('label'));
