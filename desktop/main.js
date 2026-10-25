@@ -141,6 +141,20 @@ async function start() {
     }
   });
   await main.loadURL(menuURL);
+  // Explicitly exercise accessibility modes independently of the runner's OS settings.
+  if (smoke && process.env.GALLORIN_SMOKE_MOTION) {
+    const motion = process.env.GALLORIN_SMOKE_MOTION;
+    if (!['normal', 'reduced'].includes(motion)) throw new Error('Invalid smoke motion mode.');
+    main.webContents.debugger.attach('1.3');
+    await main.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
+      features:[{name:'prefers-reduced-motion', value:motion === 'reduced' ? 'reduce' : 'no-preference'}]
+    });
+    main.webContents.on('did-finish-load', () => {
+      void main.webContents.executeJavaScript("matchMedia('(prefers-reduced-motion: reduce)').matches").then(reduced => {
+        if (reduced !== (motion === 'reduced')) { log('Smoke motion override failed'); app.exit(1); }
+      }).catch(error => { log(error); app.exit(1); });
+    });
+  }
   // A short aesthetic reveal, not a fabricated progress percentage.
   await new Promise(resolve => setTimeout(resolve, Math.max(0, 4500 - (Date.now()-started))));
   main.show(); splash.destroy(); splash = null;

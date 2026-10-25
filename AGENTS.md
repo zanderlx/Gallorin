@@ -25,3 +25,13 @@
 - Display full major.minor.patch versions on the README banner and runtime labels. Use patch increments for subsequent small fix releases; a feature release can include fixes and start at patch 0.
 - Format release titles as Gallorin v<version>: <release name>. Keep workflow/run titles concise: Release v<version>: <release name>.
 - Keep README desktop-first and concise: installer play/updating, npm run desktop for local testing, first-time dependency setup, optional browser play, and brief feature/storage information.
+
+# Enforced deployment workflow
+
+- Work on codex/ feature branches; use a pull request into main. Never bypass main protection or required validation.
+- CI must pass unit tests, release consistency, installer/manifest integrity, and packaged smoke tests in both normal and reduced-motion modes.
+- Keep smoke data isolated in temporary directories. Retain failure diagnostics.
+- Preserve the mandatory personal documentation/version review checkpoint above. PR templates do not replace explicit user approval.
+- Releases must use a tag whose commit is merged into main. The release environment requires zanderlx approval after validation and before publication.
+- Before approving publication, ask the user to review the validated installer artifact (saves, imports, playback, and updates). Never approve the release environment on the user's behalf.
+- Do not weaken repository protections or release approvals to resolve a failing deployment.

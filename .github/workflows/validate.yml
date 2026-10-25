@@ -1,0 +1,25 @@
+name: Validate changes
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'codex/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    uses: ./.github/workflows/windows-validation.yml
+  required:
+    name: Required validation
+    if: always()
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every validation job to pass
+        env:
+          RESULT: ${{ needs.windows.result }}
+        run: test "$RESULT" = success
