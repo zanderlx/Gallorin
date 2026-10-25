@@ -1,3 +1,4 @@
+import {confirmPlaylistRemoval} from './music-playlist-remove.js';
 import {musicLibrarySections,rowPlay} from './music-library-table.js';
 import {bindSongActions} from './music-song-actions.js';
 import {bindMusicSorting} from './music-table-sort.js';
@@ -14,7 +15,7 @@ function songRows(library,context){
  if(!ids.length)return '<tr><td colspan="5" class="music-empty-playlist">No songs in this playlist. Using default song.</td></tr>';
  return ids.map((id,index)=>{
   const track=allTracks(library).find(t=>t.id===id);if(!track)return '';
-  return '<tr data-music-track="'+e(id)+'">'+rowPlay(track,index,context)+'<td><strong>'+e(track.name)+'</strong></td><td class="music-artist">'+e(track.artist??'Gallorin Studios')+'</td><td class="music-duration">'+formatMusicDuration(track.durationSeconds)+'</td><td class="music-row-actions"><button type="button" class="music-row-trash" data-playlist-remove="'+e(context)+'" data-index="'+index+'" title="Remove from playlist" aria-label="Remove '+e(track.name)+' from playlist">'+icon('trash')+'</button></td></tr>';
+  return '<tr data-music-track="'+e(id)+'">'+rowPlay(track,index,context)+'<td><strong>'+e(track.name)+'</strong></td><td class="music-artist">'+e(track.artist??'Gallorin Studios')+'</td><td class="music-duration">'+formatMusicDuration(track.durationSeconds)+'</td><td class="music-row-actions"><button type="button" class="music-row-trash" data-playlist-remove="'+e(context)+'" data-index="'+index+'" data-song-id="'+e(id)+'" title="Remove from playlist" aria-label="Remove '+e(track.name)+' from playlist">'+icon('trash')+'</button></td></tr>';
  }).join('');
 }
 function playlistCard(library,item){
@@ -60,6 +61,7 @@ export function bindMusicManager(root,services){
   if(ids===null)delete assignments[context];else assignments[context]=ids;
   await services.saveSettings(assignments,library.fadeSeconds);
  };
+ let removalDialog;
  root.addEventListener('keydown',event=>{
   if(event.target.closest('.music-import')&&(event.key==='Enter'||event.key===' ')){event.preventDefault();event.target.closest('.music-import').querySelector('[data-music-import]').click();}
  },options);
@@ -72,7 +74,10 @@ export function bindMusicManager(root,services){
   const button=event.target.closest('button');if(!button||button.disabled)return;
   if(button.dataset.previewSong)void services.preview(button.dataset.previewSong,button.dataset.playlistContext).catch(error=>services.notify(error.message,true));
   if(button.hasAttribute('data-audio-settings'))void services.openAudioSettings();
-  if(button.dataset.playlistRemove)void run(()=>save(button.dataset.playlistRemove,playlistSongs(services.getLibrary(),button.dataset.playlistRemove).filter((_,i)=>i!==Number(button.dataset.index))));
+  if(button.dataset.playlistRemove&&!removalDialog?.open)removalDialog=confirmPlaylistRemoval({
+   library:services.getLibrary(),locations:services.getLocations(),context:button.dataset.playlistRemove,id:button.dataset.songId,
+   signal:controller.signal,remove:(context,id)=>save(context,playlistSongs(services.getLibrary(),context).filter(song=>song!==id)),onRemoved:redraw,notify:services.notify
+  });
 
  },options);
  root.addEventListener('dblclick',event=>{

@@ -69,3 +69,9 @@ test('Gallorin 1.0.0 merges desktop, music, then Gallorin changes in chronologic
   assert.ok(notes.indexOf('Woodland title screen')<notes.indexOf('New Gallorin logo'));
   assert.deepEqual(parseChangelog(notes)[0].sections,current.sections);
 });
+test('untitled patch releases keep summaries out of release names',()=>{
+ const entry=parseChangelog('## [1.1.1] - Unreleased\nMusic improvements.\n### Fixed\n- Confirm playlist removal.')[0];
+ assert.equal(entry.title,null);
+ assert.equal(releaseTitle(entry),'Gallorin v1.1.1');
+ assert.match(releaseMarkdown(entry),/^## \[1\.1\.1\] - Unreleased\n\nMusic improvements\./);
+});

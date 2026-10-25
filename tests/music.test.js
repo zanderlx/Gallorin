@@ -193,3 +193,19 @@ test('saving every child selection consolidates into All without affecting parti
  await store.assign(id,['wilds/aetherion'],contexts);saved=await store.read();
  assert.deepEqual(saved.assignments.wilds,[]);assert.deepEqual(saved.assignments['wilds/aetherion'],[id]);
 });
+
+test('settings pages retain playback even with legacy page or section assignments',async()=>{
+ const {musicGroups,musicContexts}=await import('../public/music-context.js');
+ const library={assignments:{'user-interface':['old-ui'],developer:['old-dev'],'dev/music':['old-page'],'dev/settings':['old-page'],compendium:['reference']}};
+ for(const route of ['dev/appearance','dev/music','dev/profile','dev/edit-mode','dev/settings','dev/horse-updates','dev/roadmap','dev/saves']){
+  assert.equal(musicContext(route,library),null,route);
+ }
+ assert.equal(musicContext('dev/species',library),'dev/species');
+ assert.equal(musicContext('stable/all',library),'stable/all');
+ assert.equal(musicContext('town/cave',library),'town/cave');
+ const visible=musicGroups().flatMap(group=>group.items.map(item=>item.id));
+ assert.ok(!visible.includes('developer'));assert.ok(!visible.includes('dev/music'));
+ // Keep old keys valid so unrelated playlist saves cannot fail on hidden entries.
+ const valid=musicContexts().map(item=>item.id);
+ assert.ok(valid.includes('dev/settings'));assert.ok(valid.includes('user-interface'));
+});

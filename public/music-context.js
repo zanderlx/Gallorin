@@ -10,12 +10,14 @@ const sectionDefinitions=[
  ['User Interface','user-interface',[['dev/appearance','Appearance & Themes'],['dev/music','Music'],['dev/profile','My Profile']]],
  ['Developer Settings','developer',[['dev/edit-mode','Edit Mode'],['dev/settings','Game Settings'],['dev/horse-updates','Horse Updates'],['dev/roadmap','Remaining Features'],['dev/saves','Save Management']]]
 ];
-export function musicGroups(locations=[]){
- const groups=sectionDefinitions.map(([name,id,items])=>({name,id,items:[{id,name:'All '+name},...items.map(([id,name])=>({id,name}))]}));
+export function musicGroups(locations=[],{includeSettings=false}={}){
+ const groups=sectionDefinitions.filter(([,id])=>includeSettings||!['user-interface','developer'].includes(id)).map(([name,id,items])=>({name,id,items:[{id,name:'All '+name},...items.map(([id,name])=>({id,name}))]}));
  groups.splice(3,0,{name:'Wilds',id:'wilds',items:[{id:'wilds',name:'All Wilds'},...locations.map(z=>({id:'wilds/'+z.id,name:z.name}))]});
  return [{name:'General',id:'general',items:[{id:'default',name:'Default'},{id:'main-menu',name:'Main Menu'}]},...groups];
 }
-export const musicContexts=locations=>musicGroups(locations).flatMap(g=>g.items);
+// Accept legacy settings assignments when saving other playlists, without
+// exposing those destinations in the music page or assignment picker.
+export const musicContexts=locations=>musicGroups(locations,{includeSettings:true}).flatMap(g=>g.items);
 export function musicParent(context){
  if(context.startsWith('wilds/'))return 'wilds';
  for(const [,id,items] of sectionDefinitions)if(items.some(([route])=>route===context))return id;
@@ -51,6 +53,7 @@ export function musicContext(route,library={assignments:{}}){
  if(/^(wilds|stable|town|inventory)\//.test(route))return route;
  if(route.startsWith('dev/')){
   const parent=musicParent(route);
+  if(['user-interface','developer'].includes(parent))return null;
   return Object.hasOwn(library.assignments||{},route)||Object.hasOwn(library.assignments||{},parent)?route:null;
  }
  return null;

@@ -50,5 +50,5 @@ export function releaseMarkdown(entry,date=entry.date){
   return '## ['+entry.version+'] - '+(entry.title?entry.title+' - ':'')+date+'\n\n'+(entry.summary.length?entry.summary.join('\n\n')+'\n\n':'')+sections+'\n';
 }
 export function releaseTitle(entry){
-  return 'Gallorin v'+entry.version+': '+(entry.title || entry.summary[0]);
+  return 'Gallorin v'+entry.version+(entry.title?': '+entry.title:'');
 }

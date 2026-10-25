@@ -9,7 +9,7 @@ import {MusicLibrary} from '../src/music-library.js';
 import {selectedPlaylist,defaultMusicTrack} from '../public/music-context.js';
 const fake=()=>({volume:1,muted:false,paused:true,currentTime:0,duration:180,async play(){this.paused=false;},pause(){this.paused=true;},removeAttribute(){},load(){}});
 test('audio preferences migrate and keep music and effect levels independent',()=>{
- assert.deepEqual(audioPreferences(),{volume:25,muted:false,soundEffectsVolume:100});
+ assert.deepEqual(audioPreferences(),{volume:15,muted:false,soundEffectsVolume:100});
  const saved=audioPreferences({volume:45,muted:true,soundEffectsVolume:70});
  assert.deepEqual(audioPreferences({volume:20},saved),{volume:20,muted:true,soundEffectsVolume:70});
  assert.equal(audioPreferences({soundEffectsVolume:250}).soundEffectsVolume,100);

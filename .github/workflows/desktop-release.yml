@@ -1,5 +1,5 @@
-name: "Release v1.1.0: The Melodies of Gallorin"
-run-name: "Release v1.1.0: The Melodies of Gallorin"
+name: "Release v1.1.1"
+run-name: "Release v1.1.1"
 on:
   push:
     tags: ['gallorin-v*']
