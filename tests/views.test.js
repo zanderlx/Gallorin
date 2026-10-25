@@ -502,3 +502,10 @@ test('Rarity settings show five editable ranks and apply colors to horse cards',
   assert.match(html,/data-group="User Interface"/);
   assert.doesNotMatch(html,/Website & Profile/);
  });
+
+import {emptyState} from '../public/ui.js';
+test('empty clearings show only the requested message without a stray changelog',()=>{
+ const html=emptyState('No current horses in the area','',null,null,'leaf');
+ assert.match(html,/No current horses in the area/);
+ assert.doesNotMatch(html,/<p>|Changelog|sidebar-changelog|<\/span>/);
+});

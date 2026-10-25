@@ -1,3 +1,4 @@
+import {bindEncounterCooldown} from './encounter-cooldown.js';
 import {bindNavigationDisclosures} from './navigation-disclosures.js';
 import {createMusicPlayer} from './music-player.js';
 import {createChangelog} from './changelog-ui.js';
@@ -38,7 +39,7 @@ import { keeperPage, avatarSVG } from './keeper.js';
 import { roadmapPage } from './roadmap.js';
 import { trackForms, updateFormState, formSignature, formBaseline, restoreBaseline } from './form-state.js';
 
-let state, catalog, defaults, appVersion, busy = false, toastTimer;
+let state, catalog, defaults, appVersion, busy = false;
 let stableGridColumns = 5;
 let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0, pendingDeletion;
@@ -87,11 +88,13 @@ async function request(path, body) {
   return result;
 }
 const showGoldChange = createGoldFeedback();
+const updateEncounterCooldown=bindEncounterCooldown(()=>state,()=>{void musicPlayer.playEvent('effect/respawn-ready').catch(error=>notify(error.message,true));});
 async function action(type, payload) {
   const result = await request('/api/action', { type, payload });
   const goldChange = result.state.gold - state.gold;
   const previousState=state;
   state = result.state;
+  updateEncounterCooldown();
   if(route.startsWith('wilds/'))void musicPlayer.spawnEffects(previousState,state,route.split('/')[1]).catch(error=>notify(error.message,true));
   if(type==='sell')void musicPlayer.playEvent('effect/horse-sold').catch(error=>notify(error.message,true));
   showGoldChange(goldChange);
@@ -99,12 +102,12 @@ async function action(type, payload) {
   return state;
 }
 function notify(message, error = false) {
-  const toast = $('#toast');
+  const toast = document.createElement('div');
+  toast.className = `notification-toast ${error ? 'error' : ''}`;
   toast.textContent = message;
-  toast.className = `visible ${error ? 'error' : ''}`;
   toast.setAttribute('role', error ? 'alert' : 'status');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.className = '', error ? 8000 : 4500);
+  $('#toast').append(toast);
+  setTimeout(() => toast.remove(), error ? 8000 : 4500);
 }
 function renderChrome() {
   const navScroll = $('#sidebar nav')?.scrollTop || 0;
@@ -148,6 +151,7 @@ function pageContent(pageRoute, pageState = state) {
 function render() {
   renderChrome();
   main.innerHTML = pageContent(route);
+  updateEncounterCooldown();
   if(route==='dev/music')musicPlayer.bind(main);
   void musicPlayer.route(route).then(()=>{if(route==='dev/music'){main.innerHTML=musicPlayer.page();musicPlayer.bind(main);}});
   fitMutationDescriptions(main);
@@ -625,6 +629,8 @@ document.addEventListener('submit', async event => {
       $('#zone-status').textContent = saved.enabled ? 'Saved! Your zone is now in the Wilds navigation and the atlas below.' : 'Saved as a closed zone. Enable exploration whenever you are ready.';
     } else if (form.id === 'settings-form') {
       await action('settings', {
+        searchCooldownEnabled:form.elements.searchCooldownEnabled.checked,
+        searchCooldownSeconds:Number(values.searchCooldownSeconds),
         horsesPerSearch: Number(values.horsesPerSearch ?? state.settings.horsesPerSearch), sellingPrice: Number(values.sellingPrice ?? state.settings.sellingPrice),
         startingGold: Number(values.startingGold ?? state.settings.startingGold), stableCapacity: Number(values.stableCapacity ?? state.settings.stableCapacity),
         ignoreStableLimit: form.elements.ignoreStableLimit?.checked ?? state.settings.ignoreStableLimit,

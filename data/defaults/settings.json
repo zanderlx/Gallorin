@@ -13,5 +13,7 @@
     "heavenlyMultiplier": 20,
     "voidMultiplier": 25,
     "astralMultiplier": 30
-  }
+  },
+  "searchCooldownEnabled": false,
+  "searchCooldownSeconds": 30
 }

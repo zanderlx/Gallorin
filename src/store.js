@@ -12,6 +12,7 @@ import { validateHorseName, horseRecords, updateHorseField } from '../public/hor
 import { mkdir, readFile, writeFile, rename, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import {cooldownSeconds} from '../public/encounter-cooldown.js';
 import { createEncounters } from './encounters.js';
 import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
@@ -42,6 +43,8 @@ export class GameStore {
       this.state = { version: 1, gold: this.defaults.startingGold, settings: structuredClone(this.defaults), horses: [], sold: [], inventory: [], transactions: [], encounters: {}, searches: {}, createdAt: new Date().toISOString(), savedAt: null };
       await this.persist(this.state, false);
     }
+    this.state.settings.searchCooldownEnabled ??= false;
+    this.state.settings.searchCooldownSeconds ??= 30;
     this.state.customLocations ??= [];
     this.state.settings.saleModifiers = validateSaleModifiers(saleModifiers(this.state.settings));
     await this.files.recover(this.state);
@@ -162,10 +165,13 @@ export class GameStore {
       } else if (type === 'search' || type === 'visit') {
         const location = locationsFor(catalog, next).find(l => l.id === payload.locationId && l.enabled);
         if (!location) throw new Error('Unknown location.');
+        if (type === 'search' && cooldownSeconds(next)) throw new Error('Awaiting Respawn: the search cooldown is still active.');
+        if (type === 'visit' && !next.encounters[location.id] && cooldownSeconds(next)) next.encounters[location.id]=[];
         if (type === 'search' || !next.encounters[location.id]) {
           const searchNumber = next.searches[location.id] || 0;
           next.encounters[location.id] = createEncounters(catalog, location.id, next.settings.horsesPerSearch, searchNumber, location, this.rng);
           next.searches[location.id] = searchNumber + 1;
+          if (type === 'search' && next.settings.searchCooldownEnabled) next.searchAvailableAt=Date.now()+next.settings.searchCooldownSeconds*1000;
         }
       } else if (type === 'catch' || type === 'sell') {
         let horse = next.horses.find(h => h.id === payload.id);
@@ -190,7 +196,7 @@ export class GameStore {
           if (index < 0) continue;
           const location = locationsFor(catalog,next).find(l => l.id === key && l.enabled);
           // Replace only the removed slot, atomically with its capture or sale.
-          if (location) next.encounters[key].splice(index,1,...createEncounters(catalog,key,1,next.searches[key] || 0,location,this.rng));
+          if (location && !cooldownSeconds(next)) next.encounters[key].splice(index,1,...createEncounters(catalog,key,1,next.searches[key] || 0,location,this.rng));
           else next.encounters[key].splice(index,1);
         }
       } else if (type === 'import-horse') {
@@ -286,6 +292,15 @@ export class GameStore {
         next.gold = payload.gold;
         if (amount || type === 'current-gold') next.transactions.push({ id:randomUUID(), type:'Developer balance adjustment', amount, at:new Date().toISOString() });
       } else if (type === 'settings') {
+        if(payload.searchCooldownEnabled!==undefined){
+          if(typeof payload.searchCooldownEnabled!=='boolean')throw new Error('Search cooldown must be enabled or disabled.');
+          next.settings.searchCooldownEnabled=payload.searchCooldownEnabled;
+        }
+        if(payload.searchCooldownSeconds!==undefined){
+          if(!Number.isInteger(payload.searchCooldownSeconds)||payload.searchCooldownSeconds<1||payload.searchCooldownSeconds>86400)throw new Error('Search cooldown must be a whole number from 1 to 86400 seconds.');
+          next.settings.searchCooldownSeconds=payload.searchCooldownSeconds;
+        }
+        if(!next.settings.searchCooldownEnabled)next.searchAvailableAt=0;
         for (const [key, min, max] of [['horsesPerSearch', 1, 12], ['sellingPrice', 0, 1000000], ['startingGold', 0, 1000000], ['stableCapacity', 1, 10000]]) {
           if (!Number.isInteger(payload[key]) || payload[key] < min || payload[key] > max) throw new Error(`${key} must be a whole number between ${min} and ${max}.`);
           next.settings[key] = payload[key];
