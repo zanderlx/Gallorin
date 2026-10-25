@@ -22,16 +22,18 @@ Add opens searchable playlist checkboxes with a Section filter. Sections follow 
 - Selecting every individual destination consolidates into All when saved.
 - Section-wide songs and directly assigned songs play together without duplicates.
 - Unassigned destinations use Default; if Default is empty, Glades of Gallorin is the fallback.
-- Compendium/settings keep the current music unless their page or section is assigned.
+- Compendium keeps the current music unless its page or section is assigned. User Interface and Developer Settings always keep the current music.
 - Playlists advance in order and loop, with configurable crossfades.
 - Folders and playlists collapse independently. Page Show All controls folders; folder Show All controls its playlists.
 
-## Cosmic sound effects
+## Sound effect events
 
-All Sound Effects has its own import and row controls. Its Add popup assigns effects to **Cosmic Horse Spawn**.
+All Sound Effects has its own import and row controls. Its Add popup assigns effects to **Cosmic Horse Spawn** and **Horse Sold**.
 
 - A newly generated cosmic encounter plays an assigned effect over the background track.
 - Multiple assigned effects are alternative cues; one is chosen per cosmic spawn.
+- Horse Sold plays after a successful sale from the stable or a wild encounter. It defaults to Loot Coin Small; cancelled or failed sales and viewing sale history do not play it.
+- New event defaults are added once to existing libraries without replacing saved assignments. You can change or clear the assignment in All Sound Effects → Add.
 - Music and Sound Effects volumes are independent. Music mute does not mute effects.
 - Reloading or revisiting saved encounters does not replay their sound.
 - Magic Twinkle is categorized as an effect and assigned to this event initially.

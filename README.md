@@ -16,7 +16,8 @@
 - Inspect horse details, palettes, traits, mutations, notes, and skill XP.
 - Customize species, traits, palettes, eye colors, personalities, rarities, and zones through the Compendium.
 - Configure rarity borders and glow independently.
-- Manage location playlists and sound effects with smooth crossfades, a compact player, and confirmation before removing playlist songs.
+- Manage location playlists and a separate sound-effect library, with event assignments, crossfades, and a compact player.
+- Control music and sound-effect volumes independently.
 - Generate horses with an expanded set of categorized color palettes.
 - Adjust themes, page text, profiles, economy, and spawning settings.
 - Save locally with exports and automatic backups.

@@ -34,11 +34,22 @@ export class MusicLibrary {
       if(twinkle&&!Object.hasOwn(library.assignments,'effect/cosmic-spawn'))library.assignments['effect/cosmic-spawn']=[twinkle.id];
       library.soundEffectsMigrated=true;changed=true;
     }
-    if(changed){library.seededTrackIds=[...seen];await this.write(library);}
+    // New bundled event defaults apply once to existing libraries. Preserve
+    // explicit empty/custom assignments, including choices made after seeding.
+    const seededEvents=new Set(library.seededEffectEvents||[]);
+    library.assignments||={};
+    for(const [event,value] of Object.entries(defaults.assignments||{})){
+      if(!event.startsWith('effect/')||seededEvents.has(event))continue;
+      if(!Object.hasOwn(library.assignments,event)){
+        library.assignments[event]=assignmentTracks(value).filter(id=>library.tracks.some(track=>track.id===id&&isSoundEffect(track)));
+      }
+      seededEvents.add(event);changed=true;
+    }
+    if(changed){library.seededEffectEvents=[...seededEvents];library.seededTrackIds=[...seen];await this.write(library);}
   }
   async read(){
     await this.ready;
-    try{const library=JSON.parse(await readFile(join(this.root,'library.json'),'utf8'));return {...library,version:2,tracks:library.tracks.map(track=>({...track,name:track.customName??formatMusicName(track.filename||track.name),artist:track.artist??'Gallorin Studios'})),assignments:Object.fromEntries(Object.entries(library.assignments||{}).map(([key,value])=>[key,assignmentTracks(value)]))};}
+    try{const library=JSON.parse(await readFile(join(this.root,'library.json'),'utf8'));return {...library,version:2,tracks:library.tracks.map(track=>({...track,name:track.customName??formatMusicName(track.filename||track.name),artist:track.artist??'Gallorin Studios'})),assignments:Object.fromEntries(Object.entries(library.assignments||{}).map(([key,value])=>[key,key.startsWith('effect/')?assignmentTracks(value).slice(-1):assignmentTracks(value)]))};}
     catch(error){if(error.code!=='ENOENT')throw error;return {version:2,tracks:[],assignments:{},fadeSeconds:2};}
   }
   async write(value){
@@ -66,6 +77,7 @@ export class MusicLibrary {
       const assignments={};
       for(const [context,value] of Object.entries(input.assignments)){
         const ids=assignmentTracks(value);
+        if(context.startsWith('effect/')&&ids.length>1)throw Error('Choose only one sound effect per event.');
         if(![...contexts,...soundEffectGroups.flatMap(group=>group.items.map(item=>item.id))].includes(context)||(!Array.isArray(value)&&typeof value!=='string')||ids.length>500||ids.some(id=>typeof id!=='string'||(id!=='menu'&&!library.tracks.some(t=>t.id===id))))throw Error('Choose an existing song and location.');
         if(ids.some(id=>context.startsWith('effect/')?!isSoundEffect(library.tracks.find(t=>t.id===id)):isSoundEffect(library.tracks.find(t=>t.id===id))))throw Error('Use sound effects only for events and songs only for music playlists.');
         if(Array.isArray(value)||ids.length)assignments[context]=[...new Set(ids)];
@@ -77,11 +89,23 @@ export class MusicLibrary {
     return this.edit(async()=>{
       const library=await this.read(),track=library.tracks.find(t=>t.id===id);
       if(id!=='menu'&&!track)throw Error('Song not found.');
-      if(!values||Object.keys(values).some(key=>!['name','artist'].includes(key)))throw Error('Only the name and artist can be edited.');
+      if(!values||Object.keys(values).some(key=>!['name','artist','eventIds'].includes(key)))throw Error('Only the name, artist, and sound events can be edited.');
       const text=(key,max)=>{const value=values[key];if(typeof value!=='string'||!value.trim()||value.trim().length>max||/[\x00-\x1f]/.test(value))throw Error('Enter a valid '+key+' (maximum '+max+' characters).');return value.trim();};
       const name=text('name',200),artist=text('artist',120);
+      const assignmentReplacements=[];
+      if(values.eventIds!==undefined){
+        const events=soundEffectGroups.flatMap(group=>group.items);
+        if(!isSoundEffect(track)||!Array.isArray(values.eventIds)||values.eventIds.some(id=>!events.some(event=>event.id===id)))throw Error('Choose valid sound events.');
+        for(const event of events){
+          const old=assignmentTracks(library.assignments[event.id]);
+          if(values.eventIds.includes(event.id)){
+            if(old.length&&old[0]!==id)assignmentReplacements.push({event:event.id,from:old[0],to:id});
+            library.assignments[event.id]=[id];
+          }else if(old.includes(id))library.assignments[event.id]=[];
+        }
+      }
       if(id==='menu')library.builtinMetadata={name,artist};else Object.assign(track,{customName:name,name,artist});
-      await this.write(library);return this.read();
+      await this.write(library);return {...await this.read(),assignmentReplacements};
     });
   }
   async assign(id,playlistIds,contexts){
@@ -93,15 +117,19 @@ export class MusicLibrary {
         const validContexts=effect?soundEffectGroups.flatMap(group=>group.items.map(item=>item.id)):contexts.filter(key=>!key.startsWith('effect/'));
         if(playlistIds.some(key=>!validContexts.includes(key)))throw Error('Choose a matching music playlist or sound effect event.');
         const selected=new Set(normalizePlaylistSelections(playlistIds,validContexts));
+      const assignmentReplacements=[];
       for(const context of validContexts){
         const old=assignmentTracks(library.assignments[context]);
-        if(selected.has(context)){
+        if(selected.has(context)&&effect){
+          if(old.length&&old[0]!==id)assignmentReplacements.push({event:context,from:old[0],to:id});
+          library.assignments[context]=[id];
+        }else if(selected.has(context)){
           if(!old.includes(id)){if(old.length>=500)throw Error('A playlist can contain up to 500 songs.');library.assignments[context]=[...old,id];}
         }else if(old.includes(id)||(id==='menu'&&context==='default'&&!Object.hasOwn(library.assignments,context))){
           library.assignments[context]=old.filter(song=>song!==id);
         }
       }
-      await this.write(library);return this.read();
+      await this.write(library);return {...await this.read(),assignmentReplacements};
     });
   }
   async fade(value){

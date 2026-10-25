@@ -25,3 +25,11 @@ test('a failed preference write does not block the next change',async()=>{
  await assert.rejects(store.set({muted:true}),/Temporary failure/);
  await store.set({muted:false});assert.equal(store.get().muted,false);assert.equal(calls,2);
 });
+
+test('music-only preference updates never submit the sound-effects setting',async()=>{
+ const changes=[];
+ const store=createAudioPreferenceStore({initial:{volume:35,muted:false,soundEffectsVolume:70},save:async(_snapshot,changed)=>{changes.push(changed);}});
+ await store.set({volume:0});await store.set({muted:true});
+ assert.deepEqual(changes,[{volume:0},{muted:true}]);
+ assert.equal(store.get().soundEffectsVolume,70);
+});

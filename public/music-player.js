@@ -1,5 +1,5 @@
 import {bindPlayerLayout} from './music-player-layout.js';
-import {isSoundEffect,newCosmicEncounters} from './music-effects.js';
+import {soundEffectGroups,isSoundEffect,newCosmicEncounters,effectForEvent} from './music-effects.js';
 import {createAudioPreferenceStore} from './audio-preference-store.js';
 import {revealPlayingSong} from './music-navigation.js';
 import {createAudioSettings} from './audio-settings.js';
@@ -37,9 +37,16 @@ export function createMusicPlayer({notify,getLocations}){
  };
  const preferenceStore=createAudioPreferenceStore({
   initial:preferences,onChange:renderPreferences,
-  async save(value){
-   if(desktop&&window.desktopMenu)return window.desktopMenu.setAudio(value);
-   await transport.command({type:'volume',value:value.volume/100});await transport.command({type:'mute',value:value.muted});await transport.command({type:'sfx-volume',value:value.soundEffectsVolume/100});
+  async save(value,changed=value){
+   if(desktop&&window.desktopMenu) {
+    // Include music volume for compatibility with an already-running desktop host.
+    const music={volume:value.volume,muted:value.muted};
+    if ('soundEffectsVolume' in changed) music.soundEffectsVolume=value.soundEffectsVolume;
+    return window.desktopMenu.setAudio(music);
+   }
+   if ('volume' in changed) await transport.command({type:'volume',value:value.volume/100});
+   if ('muted' in changed) await transport.command({type:'mute',value:value.muted});
+   if ('soundEffectsVolume' in changed) await transport.command({type:'sfx-volume',value:value.soundEffectsVolume/100});
    try{localStorage.setItem('gallorin-audio',JSON.stringify(value));}catch{}
   }
  });
@@ -53,6 +60,13 @@ export function createMusicPlayer({notify,getLocations}){
   notify
  });
  document.addEventListener('gallorin-audio-settings',()=>void audioSettings.open());
+ function notifyReplacements(){
+    for(const replacement of library.assignmentReplacements||[]){
+     const name=trackId=>musicTracks(library).find(t=>t.id===trackId)?.name||'Previous sound';
+     const event=soundEffectGroups.flatMap(group=>group.items).find(event=>event.id===replacement.event)?.name||replacement.event;
+     notify(`${event}: replaced ${name(replacement.from)} with ${name(replacement.to)}.`);
+    }
+ }
  async function refreshLibrary(){if(!loading)loading=api('/api/music').then(value=>{library=value;loaded=true;return value;}).finally(()=>{loading=null;});return loading;}
  async function select(){
   if(!loaded)return;
@@ -98,12 +112,14 @@ export function createMusicPlayer({notify,getLocations}){
   const track=library.tracks.find(t=>t.id===id&&isSoundEffect(t));if(!track)return;
   await transport.command({type:'effect',track:{...track,url:location.origin+'/api/music/media/'+track.id}});await refresh();
  }
- async function spawnEffects(previous,next,zone){
-  const cosmic=newCosmicEncounters(previous,next,zone);if(!cosmic.length)return;
+ async function playEvent(event){
   if(!loaded)await refreshLibrary();
-  const ids=(library.assignments['effect/cosmic-spawn']||[]).filter(id=>library.tracks.some(t=>t.id===id&&isSoundEffect(t)));
-  if(!ids.length)return;
-  for(const horse of cosmic)await playEffect(ids[Math.floor(Math.random()*ids.length)]);
+  const track=effectForEvent(library,event);
+  if(track)await playEffect(track.id);
+ }
+ async function spawnEffects(previous,next,zone){
+  const cosmic=newCosmicEncounters(previous,next,zone);
+  for(const horse of cosmic)await playEvent('effect/cosmic-spawn');
  }
  function page(){return musicManagerPage(library,getLocations());}
  function bind(root){
@@ -128,15 +144,26 @@ export function createMusicPlayer({notify,getLocations}){
    },
    async updateSong(id,values){
     library=await api('/api/music/update',{id,values});
+    notifyReplacements();
     const track=musicTracks(library).find(t=>t.id===id);
     await transport.command({type:'metadata',id,name:track.name,artist:track.artist});await refresh();
    },
+   async setEventSound(event,oldId,newId){
+    const id=newId||oldId;if(!id)return;
+    const events=soundEffectGroups.flatMap(group=>group.items).filter(item=>(library.assignments[item.id]||[]).includes(id)).map(item=>item.id).filter(key=>key!==event);
+    if(newId)events.push(event);
+    library=await api('/api/music/assign',{id,playlistIds:events});
+    const eventName=soundEffectGroups.flatMap(group=>group.items).find(item=>item.id===event)?.name||event;
+    notify(`${eventName} sound effect ${oldId ? 'updated' : 'added'}`);
+    await refresh();
+   },
    async assignSong(id,playlistIds){
     library=await api('/api/music/assign',{id,playlistIds});
+    notifyReplacements();
     const state=await transport.state();if(!isSoundEffect(library.tracks.find(t=>t.id===id))&&state.playlistKey!=='library')await select();
    },
    async deleteSong(id){const effect=isSoundEffect(library.tracks.find(t=>t.id===id));library=await api('/api/music/delete',{id});if(!effect)await select();}
   });
  }
- return {page,bind,spawnEffects,async route(route){try{if(!loaded)await refreshLibrary();context=musicContext(route,library)||context;await select();}catch(error){notify(error.message,true);}}};
+ return {page,bind,spawnEffects,playEvent,async route(route){try{if(!loaded)await refreshLibrary();context=musicContext(route,library)||context;await select();}catch(error){notify(error.message,true);}}};
 }
