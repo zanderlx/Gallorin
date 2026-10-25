@@ -4,6 +4,7 @@ import {migrateHorseVersion} from '../public/horse-version.js';
 import {ConfigurationFiles} from './configuration.js';
 import {readHorseSkills,awardHorseSkillXP} from '../public/skill-progress.js';
 import {synchronizeCosmicPalettes} from './cosmic-palettes.js';
+import {paletteAdditionsVersion,missingBundledPalettes} from './palette-additions.js';
 import {validateRaritySettings} from '../public/rarity-settings.js';
 import {horseSalePrice,saleModifiers,validateSaleModifiers} from '../public/sale-pricing.js';
 import {registryKinds,defaultSpawnSettings,validateSpawnSettings,zoneCreatures,validateCreatures} from '../public/spawn-config.js';
@@ -55,12 +56,40 @@ export class GameStore {
       await this.files.commit(seeded,async revision => {
         await this.files.read(seeded.catalog);
         next.configurationRevision = revision;
+        next.paletteAdditionsVersion = paletteAdditionsVersion;
         await this.persist(next);
       });
       this.state = next;
     }
+    await this.addBundledPalettes();
     await this.readConfiguration();
     return this;
+  }
+  // One-time additive upgrade: appends known bundled palettes to an existing registry without touching local entries.
+  async addBundledPalettes() {
+    if ((this.state.paletteAdditionsVersion || 0) >= paletteAdditionsVersion) return;
+    const configuration = await this.files.read(catalogFor(this.catalog,this.state));
+    const additions = missingBundledPalettes(this.catalog,configuration.catalog,this.state);
+    const next = this.snapshot();
+    next.paletteAdditionsVersion = paletteAdditionsVersion;
+    if (!additions.length) { await this.persist(next); this.state = next; return; }
+    const backup = `pre-palette-additions-${Date.now()}-${randomUUID()}`;
+    await copyFile(this.file,join(this.directory,'backups',`${backup}.json`));
+    await copyFile(this.files.path('palettes.json'),join(this.directory,'backups',`${backup}-palettes.json`));
+    // Only palettes.json is written, so existing entries keep their stored form exactly.
+    const palettes = [...await this.files.json('palettes.json'),...additions];
+    try {
+      await this.files.commit(configuration,async revision => {
+        await this.files.read(catalogFor(this.catalog,this.state));
+        next.configurationRevision = revision;
+        await this.persist(next);
+      },{'palettes.json':palettes});
+    } catch (error) {
+      // The transaction restored the previous files; play continues and the upgrade retries next launch.
+      console.warn(`Bundled palette upgrade skipped: ${error.message}`);
+      return;
+    }
+    this.state = next;
   }
   async persist(next, backup = true) {
     const tmp = `${this.file}.${randomUUID()}.tmp`;
