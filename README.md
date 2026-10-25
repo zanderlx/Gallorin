@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.1.1 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
+![Gallorin v1.1.0 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.1.1: The Melodies of Gallorin
+# Gallorin v1.1.0: The Melodies of Gallorin
 
 **Desktop horse collection game · Windows**
 
@@ -78,5 +78,3 @@ Horses, configuration, imported audio, and playlists stay local. Updates replace
 Versions use **major.minor.patch**. New features can increase the minor version; subsequent small fix releases increase the patch number.
 
 [Changelog and Aetherion legacy history](CHANGELOG.md) · [Desktop guide](desktop/README.md) · [Music guide](docs/music.md)
-
-[Development and release checks](docs/deployment.md)
