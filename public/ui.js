@@ -74,10 +74,10 @@ export function card(horse, state, mode = 'wild', catalog) {
   const cardTitle = characters.length > 13 ? `${characters.slice(0,13).join('')}…` : title;
   const collected = mode === 'stable';
   const rank = horseCardRank(horse,catalog);
-  const rankColor = raritySettings(catalog).colors[rank.key];
+  const appearance = raritySettings(catalog),rankColor = appearance.colors[rank.key];
   const female = horse.gender === 'Female';
 
-  return `<article class="horse-card" data-card-rank="${rankColor ? rank.key : 'none'}" ${rankColor ? `style="--horse-rank-color:${rankColor}"` : ''} aria-label="${escapeHTML(title)} · ${rank.label}">
+  return `<article class="horse-card" data-card-rank="${rankColor ? rank.key : 'none'}" ${rankColor && appearance.glow[rank.key] ? 'data-rarity-glow' : ''} ${rankColor ? `style="--horse-rank-color:${rankColor}"` : ''} aria-label="${escapeHTML(title)} · ${rank.label}">
     <div class="card-picture">${mode === 'wild' ? horseArt(horse) : horseHeadArt(horse)}
     ${collected ? `<button class="favorite ${horse.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${horse.id}" aria-label="${horse.favorite ? 'Unfavorite' : 'Favorite'} ${escapeHTML(title)}" aria-pressed="${horse.favorite}">${icon('heart')}</button>` : ''}</div>
     <div class="card-body"><div class="card-title"><span class="gender ${female ? 'gender-female' : 'gender-male'}" role="img" aria-label="${female ? 'Female' : 'Male'}">${horseGenderIcon(horse.gender)}</span><h3><button class="horse-card-open" data-action="inspect" data-id="${horse.id}" title="${escapeHTML(title)}" aria-label="View ${escapeHTML(title)}">${escapeHTML(cardTitle)}</button></h3></div></div></article>`;

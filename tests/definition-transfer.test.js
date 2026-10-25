@@ -28,7 +28,8 @@ test('import review uses Import and Cancel Import without reset behavior',async(
  for(const kind of ['eyes','mutations','palettes']) {
   const submit={textContent:'Save entry'};
   const cancel={type:'reset',textContent:'Cancel changes',dataset:{}};
-  const form={querySelector:selector=>selector==='[type="submit"]' ? submit : selector==='[type="reset"]' ? cancel : null};
+  const actions={classList:{add(){}}};
+  const form={querySelector:selector=>selector==='.form-actions' ? actions : selector==='[type="submit"]' ? submit : selector==='[type="reset"]' ? cancel : null};
   definitionTransferControls(form,{}, {imported:true},kind,'Definition');
   assert.equal(submit.textContent,'Import');
   assert.equal(cancel.textContent,'Cancel Import');

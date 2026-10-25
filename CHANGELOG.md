@@ -12,8 +12,20 @@ More control over encounters, sound events, and Compendium settings.
 
 ### Added
 
-- **Changelog**
-  - In-app history and release notes support indented feature groups under Added, Updated, and Fixed.
+- **Compendium**
+  - Independent rarity Border and Glow controls; Glow requires an enabled border.
+
+### Updated
+
+- **Compendium**
+  - Renamed Rarity Settings to Rarity Manager and simplified its cards.
+  - Unified eye-color, mutation, and palette editor footers, with conditional Save/Cancel controls on the right and auxiliary actions on the left.
+  - Improved spacing around rarity swatches and editor controls.
+
+### Fixed
+
+- **Compendium**
+  - Color pickers no longer open when clicking outside the actual swatch.
 
 ## [1.1.1] - 2026-10-24
 

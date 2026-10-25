@@ -6,7 +6,7 @@ import {join,resolve,dirname,basename} from 'node:path';
 import {GameStore} from '../src/store.js';
 import {draftDefinition} from '../public/definitions.js';
 import {newZoneDraft} from '../public/zones.js';
-import {defaultRaritySettings} from '../public/rarity-settings.js';
+import {defaultRaritySettings,validateRaritySettings} from '../public/rarity-settings.js';
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json',import.meta.url),'utf8'));
 const defaults = JSON.parse(await readFile(new URL('../data/defaults/settings.json',import.meta.url),'utf8'));
 async function fixture(t) {
@@ -79,7 +79,7 @@ test('rarity display colors migrate, save locally, and never change spawn config
   const spawning = await read('spawn-settings.json');
   const species = store.getCatalog().species;
   const zones = await read('zones/aetherion.json');
-  const custom = {version:1,colors:{...defaultRaritySettings.colors,common:'#AABBCC',rare:'#123456',cosmic:null}};
+  const custom = validateRaritySettings({version:1,colors:{...defaultRaritySettings.colors,common:'#AABBCC',rare:'#123456',cosmic:null},glow:{...defaultRaritySettings.glow,rare:false}});
   await store.action('rarity-settings',custom);
   assert.deepEqual(await read('rarities.json'),custom);
   const restored = await new GameStore(directory,catalog,defaults).init();

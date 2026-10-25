@@ -485,6 +485,13 @@ test('Rarity settings show five editable ranks and apply colors to horse cards',
  const custom={...catalog,rarities:{version:1,colors:{...defaultRaritySettings.colors,rare:'#123456'}}};
  const horse={...horses[0],rarityTier:2,speciesId:'unregistered',species:'Unregistered',speciesEvent:null,mutations:[],specialSpawn:null};
  assert.match(card(horse,state,'stable',custom),/--horse-rank-color:#123456/);
+ assert.match(card(horse,state,'stable',custom),/data-rarity-glow/);
+ const borderOnly={...custom,rarities:{...custom.rarities,glow:{...defaultRaritySettings.glow,rare:false}}};
+ assert.match(card(horse,state,'stable',borderOnly),/--horse-rank-color:#123456/);
+ assert.doesNotMatch(card(horse,state,'stable',borderOnly),/data-rarity-glow/);
+ assert.match(html,/>Rarity Manager<\/h1>/);
+ assert.ok(!html.includes('Border Color')&&!html.includes('rarity-settings-note'));
+
  assert.match(card({...horse,specialSpawn:'Solar'},state,'stable',custom),/data-card-rank="cosmic"/);
  assert.match(card({...horse,rarityTier:4},state,'stable',custom),/data-card-rank="none"/);
 });
