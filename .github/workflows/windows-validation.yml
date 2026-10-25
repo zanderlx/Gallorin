@@ -1,0 +1,65 @@
+name: Windows validation
+on:
+  workflow_call:
+    inputs:
+      release:
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  windows:
+    name: Windows packaged validation
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Verify version and changelog
+        shell: pwsh
+        env:
+          RELEASE_BUILD: ${{ inputs.release }}
+        run: |
+          if ($env:RELEASE_BUILD -eq 'true') {
+            $version = (Get-Content package.json | ConvertFrom-Json).version
+            if ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne "gallorin-v$version") { throw 'Release tag must match package version.' }
+            git merge-base --is-ancestor HEAD origin/main
+            if ($LASTEXITCODE -ne 0) { throw 'Release commit must be merged into main.' }
+            node scripts/release-notes.js --check --release
+          } else { node scripts/release-notes.js --check }
+          if ($LASTEXITCODE -ne 0) { throw 'Version/changelog validation failed.' }
+      - run: npm test
+      - name: Build without publishing
+        run: npm run desktop:build
+      - name: Verify installer and updater metadata
+        run: node scripts/verify-release-assets.js
+      - name: Packaged smoke tests (normal and reduced motion)
+        shell: pwsh
+        run: ./scripts/desktop-smoke.ps1
+      - name: Upload smoke diagnostics
+        if: always() && env.SMOKE_DIAGNOSTICS != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Gallorin-smoke-diagnostics
+          path: |
+            ${{ env.SMOKE_DIAGNOSTICS }}/**/*.png
+            ${{ env.SMOKE_DIAGNOSTICS }}/**/*.log
+            ${{ env.SMOKE_DIAGNOSTICS }}/**/desktop-smoke.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Upload validated installer
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Gallorin-Windows
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+          if-no-files-found: error
+          retention-days: 14
