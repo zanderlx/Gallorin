@@ -149,11 +149,10 @@ async function start() {
     await main.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
       features:[{name:'prefers-reduced-motion', value:motion === 'reduced' ? 'reduce' : 'no-preference'}]
     });
-    main.webContents.on('did-finish-load', () => {
-      void main.webContents.executeJavaScript("matchMedia('(prefers-reduced-motion: reduce)').matches").then(reduced => {
-        if (reduced !== (motion === 'reduced')) { log('Smoke motion override failed'); app.exit(1); }
-      }).catch(error => { log(error); app.exit(1); });
-    });
+    // Check the loaded frame directly: a navigation listener can race the next
+    // smoke-test navigation and report an expected disposed frame as a failure.
+    const reduced = await main.webContents.executeJavaScript("matchMedia('(prefers-reduced-motion: reduce)').matches");
+    if (reduced !== (motion === 'reduced')) throw new Error('Smoke motion override failed');
   }
   // A short aesthetic reveal, not a fabricated progress percentage.
   await new Promise(resolve => setTimeout(resolve, Math.max(0, 4500 - (Date.now()-started))));
