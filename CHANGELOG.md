@@ -6,7 +6,7 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.2.1] - Unreleased
+## [1.2.1] - 2026-10-25
 
 Restore bundled palette additions for existing installations and keep Wilds zones filled during the search cooldown.
 
