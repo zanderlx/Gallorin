@@ -45,6 +45,7 @@
 
 # Efficient testing
 
+- Smoke tests skip the splash by default. When the splash/startup reveal changes, explicitly test it with --test-splash (or scripts/desktop-smoke.ps1 -TestSplash); do not remove the player splash.
 - During local iteration, run focused tests for the changed behavior first. Expand coverage for shared systems and cross-cutting changes.
 - Run the inexpensive full unit suite before merging. Do not repeatedly rebuild installers or run the complete desktop walkthrough for each small local edit.
 - Run local packaged smoke tests for relevant desktop/integration changes or final verification; retain full mandatory CI checks on PRs, main, and releases.
