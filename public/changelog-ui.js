@@ -30,7 +30,12 @@ export function createChangelog({loadSource,getVersion}){
           phase=category.phase || null;
           appendText(section,phase?'h5':'h4',category.name);
           const list=document.createElement('ul');
-          category.items.forEach(text=>appendText(list,'li',text));
+          if(category.groups){
+            for(const group of category.groups){
+              const item=document.createElement('li');appendText(item,'strong',group.name);
+              const changes=document.createElement('ul');group.items.forEach(text=>appendText(changes,'li',text));item.append(changes);list.append(item);
+            }
+          }else category.items.forEach(text=>appendText(list,'li',text));
           section.append(list);
         }
         body.append(section);

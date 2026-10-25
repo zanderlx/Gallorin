@@ -75,3 +75,12 @@ test('untitled patch releases keep summaries out of release names',()=>{
  assert.equal(releaseTitle(entry),'Gallorin v1.1.1');
  assert.match(releaseMarkdown(entry),/^## \[1\.1\.1\] - Unreleased\n\nMusic improvements\./);
 });
+
+test('Updated categories retain indented feature groups in release notes',()=>{
+ const source='## [1.2.0] - Unreleased\nUpdates in development.\n### Added\n- **Wilds**\n  - Search cooldown.\n\n- **Audio**\n  - Sound events.\n### Updated\n- **Compendium**\n  - Rarity controls.';
+ const entry=parseChangelog(source)[0];
+ assert.deepEqual(entry.sections[0].groups,[{name:'Wilds',items:['Search cooldown.']},{name:'Audio',items:['Sound events.']}]);
+ assert.deepEqual(entry.sections[0].items,['Search cooldown.','Sound events.']);
+ assert.deepEqual(parseChangelog(releaseMarkdown(entry))[0],entry);
+ assert.throws(()=>parseChangelog('## [1.2.0] - Unreleased\nSummary\n### Added\n  - Orphaned change.'),/feature group/);
+});

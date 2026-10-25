@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.1.1 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
+![Gallorin v1.2.0 — Patient Equines Yearn Toward Overgrown Nature](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.1.1: The Melodies of Gallorin
+# Gallorin v1.2.0: Patient Equines Yearn Toward Overgrown Nature
 
 **Desktop horse collection game · Windows**
 
