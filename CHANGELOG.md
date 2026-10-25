@@ -14,6 +14,7 @@ More control over encounters, sound events, and Compendium settings.
 
 - **Compendium**
   - Independent rarity Border and Glow controls; Glow requires an enabled border.
+  - Seventeen categorized palettes, including Orange and Lemon.
 
 ### Updated
 
@@ -21,6 +22,7 @@ More control over encounters, sound events, and Compendium settings.
   - Renamed Rarity Settings to Rarity Manager and simplified its cards.
   - Unified eye-color, mutation, and palette editor footers, with conditional Save/Cancel controls on the right and auxiliary actions on the left.
   - Improved spacing around rarity swatches and editor controls.
+  - Updated the Lettuce palette using the supplied colors.
 
 ### Fixed
 
