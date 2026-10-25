@@ -19,6 +19,7 @@ Workflow changes take effect only after they are pushed and merged. Required val
 - Run broader integration checks when changes affect saves, navigation, audio, spawning, or other shared systems.
 - Reserve the complete packaged walkthrough for a final local check when relevant, and mandatory CI validation. Do not repeat it after every small edit.
 - Automated desktop checks always use isolated temporary saves.
+- Smoke tests skip the splash window and its artificial delay by default. For splash changes, run ./scripts/desktop-smoke.ps1 -TestSplash (or pass --test-splash alongside --smoke-test when launching Electron directly). Normal app launches keep the splash.
 
 ## CI triggers
 

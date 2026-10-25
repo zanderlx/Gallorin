@@ -17,6 +17,8 @@ import {configureUpdates} from './updater.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const smoke = process.argv.includes('--smoke-test');
+// Keep the cinematic splash for players; automated tests opt in only when testing it.
+const showSplash = !smoke || process.argv.includes('--test-splash');
 if (smoke && !process.env.AETHERION_TEST_DATA) throw new Error('Smoke testing requires an isolated AETHERION_TEST_DATA directory.');
 if (process.env.AETHERION_SOFTWARE_RENDERING === '1') app.disableHardwareAcceleration();
 app.setName('Gallorin');
@@ -57,12 +59,14 @@ else {
 async function start() {
   await mkdir(app.getPath('userData'), {recursive:true});
   const options = {nodeIntegration:false, contextIsolation:true, sandbox:true};
-  splash = new BrowserWindow({width:640, height:430, resizable:false, frame:false, backgroundColor:'#1d1b18', show:false,
-    icon:join(root, 'desktop/assets/icon.png'), webPreferences:options});
-  splash.setMenu(null);
-  await splash.loadFile(join(root, 'desktop/splash.html'));
-  splash.show();
-  if (smoke) {await new Promise(resolve=>setTimeout(resolve,200)); await writeFile(join(process.env.AETHERION_TEST_DATA,'splash-smoke.png'),(await splash.webContents.capturePage()).toPNG());}
+  if (showSplash) {
+    splash = new BrowserWindow({width:640, height:430, resizable:false, frame:false, backgroundColor:'#1d1b18', show:false,
+      icon:join(root, 'desktop/assets/icon.png'), webPreferences:options});
+    splash.setMenu(null);
+    await splash.loadFile(join(root, 'desktop/splash.html'));
+    splash.show();
+    if (smoke) {await new Promise(resolve=>setTimeout(resolve,200)); await writeFile(join(process.env.AETHERION_TEST_DATA,'splash-smoke.png'),(await splash.webContents.capturePage()).toPNG());}
+  }
   const started = Date.now();
   if (!smoke && !existsSync(data)) await offerImport();
   process.env.HORSE_DATA_DIR = data;
@@ -155,8 +159,8 @@ async function start() {
     if (reduced !== (motion === 'reduced')) throw new Error('Smoke motion override failed');
   }
   // A short aesthetic reveal, not a fabricated progress percentage.
-  await new Promise(resolve => setTimeout(resolve, Math.max(0, 4500 - (Date.now()-started))));
-  main.show(); splash.destroy(); splash = null;
+  if (showSplash) await new Promise(resolve => setTimeout(resolve, Math.max(0, 4500 - (Date.now()-started))));
+  main.show(); splash?.destroy(); splash = null;
   await playMenuMusic();
   await audioCommand({type:'play'});
   if (smoke) {
