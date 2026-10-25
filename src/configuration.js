@@ -118,8 +118,8 @@ export class ConfigurationFiles {
     }
     return files;
   }
-  async commit(configuration,persistPlayer) {
-    const after = this.documents(configuration), before = {};
+  async commit(configuration,persistPlayer,after = this.documents(configuration)) {
+    const before = {};
     let previous = [];
     try { previous = (await this.json('index.json')).zoneIds; } catch(e) { if (e.code !== 'ENOENT') throw e; }
     for (const id of previous) if (!configuration.zones.some(z => z.id === id)) after[`zones/${id}.json`] = null;
