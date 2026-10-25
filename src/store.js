@@ -195,8 +195,8 @@ export class GameStore {
         const location = locationsFor(catalog, next).find(l => l.id === payload.locationId && l.enabled);
         if (!location) throw new Error('Unknown location.');
         if (type === 'search' && cooldownSeconds(next)) throw new Error('Awaiting Respawn: the search cooldown is still active.');
-        if (type === 'visit' && !next.encounters[location.id] && cooldownSeconds(next)) next.encounters[location.id]=[];
-        if (type === 'search' || !next.encounters[location.id]) {
+        // Zones are never left empty; the cooldown only gates searching for a fresh set.
+        if (type === 'search' || !next.encounters[location.id]?.length) {
           const searchNumber = next.searches[location.id] || 0;
           next.encounters[location.id] = createEncounters(catalog, location.id, next.settings.horsesPerSearch, searchNumber, location, this.rng);
           next.searches[location.id] = searchNumber + 1;
@@ -225,7 +225,7 @@ export class GameStore {
           if (index < 0) continue;
           const location = locationsFor(catalog,next).find(l => l.id === key && l.enabled);
           // Replace only the removed slot, atomically with its capture or sale.
-          if (location && !cooldownSeconds(next)) next.encounters[key].splice(index,1,...createEncounters(catalog,key,1,next.searches[key] || 0,location,this.rng));
+          if (location) next.encounters[key].splice(index,1,...createEncounters(catalog,key,1,next.searches[key] || 0,location,this.rng));
           else next.encounters[key].splice(index,1);
         }
       } else if (type === 'import-horse') {

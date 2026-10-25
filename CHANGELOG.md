@@ -6,9 +6,14 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.2.1] - 2026-10-25
+## [1.2.1] - Unreleased
 
-Restore bundled palette additions for existing installations.
+Restore bundled palette additions for existing installations and keep Wilds zones filled during the search cooldown.
+
+### Updated
+
+- **Wilds & Game Settings**
+  - Reverted the 1.2.0 change that left empty spaces during the search cooldown. Taming or selling a horse replaces it again, and zones are never left empty. The cooldown only limits new searches.
 
 ### Fixed
 

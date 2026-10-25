@@ -529,17 +529,28 @@ test('taming and selling refill only their slot; reload and visit preserve all o
  assert.ok(loaded.state.encounters.aetherion.every(h=>!sold.some(old=>old.id===h.id)));
 });
 
-test('search cooldown persists, blocks zone bypasses, and suppresses capture/sale replacements',async t=>{
+test('search cooldown persists and blocks zone bypasses while capture/sale replacements keep zones filled',async t=>{
  const {directory,store}=await fixture(t);
  await store.action('settings',{...store.state.settings,searchCooldownEnabled:true,searchCooldownSeconds:90});
  await store.action('search',{locationId:'aetherion'});
  const ids=store.state.encounters.aetherion.map(h=>h.id);
  await assert.rejects(store.action('search',{locationId:'aetherion'}),/cooldown/);
  await assert.rejects(store.action('search',{locationId:'hallowhoof'}),/cooldown/);
- await store.action('visit',{locationId:'hallowhoof'});assert.equal(store.state.encounters.hallowhoof.length,0);
- await store.action('catch',{id:ids[0]});assert.equal(store.state.encounters.aetherion.length,2);
+ await store.action('visit',{locationId:'hallowhoof'});assert.equal(store.state.encounters.hallowhoof.length,3);
+ await store.action('catch',{id:ids[0]});
+ assert.equal(store.state.encounters.aetherion.length,3);
+ assert.deepEqual(store.state.encounters.aetherion.slice(1).map(h=>h.id),ids.slice(1));
+ assert.ok(!ids.includes(store.state.encounters.aetherion[0].id));
  for(const id of ids.slice(1))await store.action('sell',{id});
- assert.equal(store.state.encounters.aetherion.length,0);
+ assert.equal(store.state.encounters.aetherion.length,3);
+ assert.ok(store.state.encounters.aetherion.every(h=>!ids.includes(h.id)));
+ assert.ok(store.state.searchAvailableAt>Date.now());
+ const saved=JSON.parse(await readFile(join(directory,'player','save.json'),'utf8'));
+ saved.encounters.hallowhoof=[];
+ await writeFile(join(directory,'player','save.json'),JSON.stringify(saved));
+ const refilled=await new GameStore(directory,catalog,defaults).init();
+ await refilled.action('visit',{locationId:'hallowhoof'});assert.equal(refilled.state.encounters.hallowhoof.length,3);
+ await assert.rejects(refilled.action('search',{locationId:'hallowhoof'}),/cooldown/);
  const restored=await new GameStore(directory,catalog,defaults).init();
  assert.equal(restored.state.searchAvailableAt,store.state.searchAvailableAt);
  await assert.rejects(restored.action('search',{locationId:'aetherion'}),/cooldown/);
