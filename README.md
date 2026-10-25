@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.1.0 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
+![Gallorin v1.1.1 — The Melodies of Gallorin](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.1.0: The Melodies of Gallorin
+# Gallorin v1.1.1: The Melodies of Gallorin
 
 **Desktop horse collection game · Windows**
 
@@ -15,7 +15,7 @@
 - Explore zones and tame, rename, favorite, sell, import, and export horses.
 - Inspect horse details, palettes, traits, mutations, notes, and skill XP.
 - Customize species, traits, palettes, eye colors, personalities, rarities, and zones through the Compendium.
-- Manage location playlists and sound effects, with smooth crossfades and a compact player.
+- Manage location playlists and sound effects with smooth crossfades, a compact player, and confirmation before removing playlist songs.
 - Adjust themes, page text, profiles, economy, and spawning settings.
 - Save locally with exports and automatic backups.
 

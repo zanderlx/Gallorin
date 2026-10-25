@@ -7,7 +7,7 @@ async function verifyRemoval(){
  async function remove(button,cancel=false){
   const before=await read();button.click();
   const dialog=document.querySelector('.music-playlist-remove-dialog');
-  if(!dialog?.open||!dialog.textContent.includes('All Songs'))throw Error('Playlist removal confirmation missing');
+  if(!dialog?.open||!dialog.textContent.includes('Remove Song from Playlist?'))throw Error('Playlist removal confirmation missing');
   if(JSON.stringify((await read()).assignments)!==JSON.stringify(before.assignments))throw Error('Removal saved before confirmation');
   dialog.querySelector(cancel?'[data-no]':'[data-yes]').click();
   for(let i=0;i<100&&dialog.isConnected;i++)await wait(25);
