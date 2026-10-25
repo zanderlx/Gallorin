@@ -6,6 +6,15 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.2.1] - Unreleased
+
+Restore bundled palette additions for existing installations.
+
+### Fixed
+
+- **Compendium**
+  - Existing installations receive missing bundled palettes without replacing local palette customizations.
+
 ## [1.2.0] - Patient Equines Yearn Toward Overgrown Nature - 2026-10-25
 
 More control over encounters, sound events, and Compendium settings.
