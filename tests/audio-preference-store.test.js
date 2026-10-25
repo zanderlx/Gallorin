@@ -7,7 +7,7 @@ test('rapid mute changes are optimistic and persisted in order despite stale pol
  const store=createAudioPreferenceStore({save:state=>new Promise(resolve=>{saved.push(state);release.push(resolve);})});
  const oldVersion=store.version(),first=store.set({muted:true}),second=store.set({muted:false});
  assert.equal(store.get().muted,false);
- store.sync({muted:true,volume:100});assert.equal(store.get().muted,false);assert.equal(store.get().volume,25);
+ store.sync({muted:true,volume:100});assert.equal(store.get().muted,false);assert.equal(store.get().volume,15);
  await Promise.resolve();assert.deepEqual(saved.map(s=>s.muted),[true]);
  release[0]();await first;await Promise.resolve();assert.deepEqual(saved.map(s=>s.muted),[true,false]);
  release[1]();await second;

@@ -14,7 +14,7 @@ test('new libraries receive the promoted local playlist and audio defaults',asyn
  const dir=await mkdtemp(join(tmpdir(),'gallorin-promoted-defaults-'));t.after(()=>rm(dir,{recursive:true,force:true}));
  const library=await new MusicLibrary(dir,builtin,seeds,defaults).read();
  assert.deepEqual(library.assignments,defaults.assignments);assert.equal(library.fadeSeconds,2);
- assert.deepEqual(defaultAudioPreferences,{volume:25,muted:false,soundEffectsVolume:100});
+ assert.deepEqual(defaultAudioPreferences,{volume:15,muted:false,soundEffectsVolume:100});
  const names=context=>selectedPlaylist(library,context).map(id=>library.tracks.find(t=>t.id===id)?.name||'Glades of Gallorin');
  assert.deepEqual(names('wilds/aetherion'),['Aetherion Wilds']);
  assert.deepEqual(names('wilds/hallowhoof'),['Halloween 1','Halloween 2']);
