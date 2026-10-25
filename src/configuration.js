@@ -1,3 +1,4 @@
+import {withLocalDefaults} from '../public/local-defaults.js';
 import {isCosmicPalette} from '../public/cosmic-types.js';
 import {mkdir,readFile,writeFile,rename,unlink} from 'node:fs/promises';
 import {resolve,sep} from 'node:path';
@@ -80,7 +81,7 @@ export class ConfigurationFiles {
       if (new Set(keys).size !== keys.length) throw new Error(`Duplicate names in ${kind}.json.`);
     }
     if (!catalog.palettes.some(p => p.complete)) throw new Error('Keep at least one complete palette for spawning.');
-    const settings = validateSpawnSettings(await this.json('spawn-settings.json'));
+    const settings = validateSpawnSettings(withLocalDefaults(defaultSpawnSettings,await this.json('spawn-settings.json')));
     for (const cosmic of settings.cosmic) if (!cosmic.mutationId) cosmic.mutationId = catalog.mutations.find(m => m.name === cosmic.name && ['Cosmic','Mutated'].includes(m.type))?.id;
     for (const cosmic of settings.cosmic) if (cosmic.chance > 0 && !catalog.mutations.some(m => m.id === cosmic.mutationId && ['Mutated','Cosmic'].includes(m.type))) throw new Error(`Cosmic ${cosmic.name} needs a registered Cosmic/Mutated mutation ID.`);
     for (const p of catalog.palettes) if ((p.speciesIds || []).some(id => !catalog.species.some(s => s.id === id))) throw new Error('A palette refers to an unknown species ID.');

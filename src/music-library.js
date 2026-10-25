@@ -34,17 +34,18 @@ export class MusicLibrary {
       if(twinkle&&!Object.hasOwn(library.assignments,'effect/cosmic-spawn'))library.assignments['effect/cosmic-spawn']=[twinkle.id];
       library.soundEffectsMigrated=true;changed=true;
     }
-    // New bundled event defaults apply once to existing libraries. Preserve
-    // explicit empty/custom assignments, including choices made after seeding.
+    // Saved assignments (including []) override defaults. Missing destinations
+    // inherit repo defaults, including destinations added by a later update.
     const seededEvents=new Set(library.seededEffectEvents||[]);
     library.assignments||={};
-    for(const [event,value] of Object.entries(defaults.assignments||{})){
-      if(!event.startsWith('effect/')||seededEvents.has(event))continue;
-      if(!Object.hasOwn(library.assignments,event)){
-        library.assignments[event]=assignmentTracks(value).filter(id=>library.tracks.some(track=>track.id===id&&isSoundEffect(track)));
+    for(const [context,value] of Object.entries(defaults.assignments||{})){
+      if(!Object.hasOwn(library.assignments,context)){
+        library.assignments[context]=assignmentTracks(value).filter(id=>id==='menu'||library.tracks.some(track=>track.id===id&&isSoundEffect(track)===context.startsWith('effect/')));
+        changed=true;
       }
-      seededEvents.add(event);changed=true;
+      if(context.startsWith('effect/')&&!seededEvents.has(context)){seededEvents.add(context);changed=true;}
     }
+    if(!Object.hasOwn(library,'fadeSeconds')){library.fadeSeconds=defaults.fadeSeconds??2;changed=true;}
     if(changed){library.seededEffectEvents=[...seededEvents];library.seededTrackIds=[...seen];await this.write(library);}
   }
   async read(){
@@ -82,6 +83,9 @@ export class MusicLibrary {
         if(ids.some(id=>context.startsWith('effect/')?!isSoundEffect(library.tracks.find(t=>t.id===id)):isSoundEffect(library.tracks.find(t=>t.id===id))))throw Error('Use sound effects only for events and songs only for music playlists.');
         if(Array.isArray(value)||ids.length)assignments[context]=[...new Set(ids)];
       }
+      // Omitting a previously saved playlist in a full replacement is an
+      // explicit clear, not permission to reapply its bundled assignment.
+      for(const context of Object.keys(library.assignments))if(!Object.hasOwn(assignments,context))assignments[context]=[];
       await this.write({...library,assignments,fadeSeconds:input.fadeSeconds});return this.read();
     });
   }

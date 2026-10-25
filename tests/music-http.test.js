@@ -32,6 +32,8 @@ test('music HTTP APIs enforce origin and stream seekable imports without exposin
  assert.equal((await (await fetch(base+'/api/music')).json()).fadeSeconds,3);
  assert.equal((await post('fade',{fadeSeconds:99})).status,400);
  const deleted=await post('delete',{id});assert.equal(deleted.status,200);
- assert.deepEqual((await deleted.json()).assignments,{'wilds/aetherion':[]});
+ const cleared=(await deleted.json()).assignments;
+ assert.deepEqual(cleared['wilds/aetherion'],[]);
+ assert.ok(Object.values(cleared).every(ids=>Array.isArray(ids)&&ids.length===0));
  assert.equal((await fetch(base+'/api/music/media/'+id)).status,404);
 });

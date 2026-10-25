@@ -238,6 +238,8 @@ test('mutation emojis persist and duplicate emoji selections are allowed',async 
 });
 test('palette variation updates live from JSON settings, preserves saved colors, and validates bounds',async t=>{
  const {store,read,directory}=await fixture(t);
+ // This test intentionally performs back-to-back palette searches.
+ await store.action('settings',{...store.state.settings,searchCooldownEnabled:false});
  assert.equal(store.getCatalog().spawning.paletteVariationPercent,25);
  await store.action('spawn-settings',{paletteVariationPercent:0});
  store.rng=()=>.25;

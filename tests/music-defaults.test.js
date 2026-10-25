@@ -27,5 +27,5 @@ test('updated repo defaults never replace existing playlist choices or crossfade
  const store=new MusicLibrary(dir,builtin,seeds,defaults);await store.ready;
  await store.settings({assignments:{default:[]},fadeSeconds:7},['default']);
  const restarted=await new MusicLibrary(dir,builtin,seeds,defaults).read();
- assert.deepEqual(restarted.assignments,{default:[]});assert.equal(restarted.fadeSeconds,7);
+ assert.deepEqual(restarted.assignments,Object.fromEntries(Object.keys(defaults.assignments).map(key=>[key,[]])));assert.equal(restarted.fadeSeconds,7);
 });
