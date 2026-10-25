@@ -30,6 +30,7 @@ More control over encounters, sound events, and Compendium settings.
 
 - **Wilds & Game Settings**
   - Refined Search the Wilds hover feedback with a stable background, small lift, and subtle glow.
+  - Search cooldown defaults are enabled with a 90-second duration; saved local settings take precedence.
 
 - **Compendium**
   - Renamed Rarity Settings to Rarity Manager and simplified its cards.
@@ -46,6 +47,10 @@ More control over encounters, sound events, and Compendium settings.
 - **Layout & Notifications**
   - Notifications and the respawn countdown stack at the bottom right above the music player.
   - Added bottom clearance across pages so controls can scroll above notifications.
+
+- **Local Settings**
+  - Saved local values override bundled defaults; missing fields inherit defaults, while Off, zero, and empty playlists remain intentional overrides.
+  - Reimported songs retain their local track IDs and assignments without restoring deleted bundled copies.
 
 ### Fixed
 

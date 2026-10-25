@@ -1,3 +1,4 @@
+import {withLocalDefaults} from '../public/local-defaults.js';
 import {regenerateHorse,horseFingerprint} from './horse-regeneration.js';
 import {migrateHorseVersion} from '../public/horse-version.js';
 import {ConfigurationFiles} from './configuration.js';
@@ -43,8 +44,7 @@ export class GameStore {
       this.state = { version: 1, gold: this.defaults.startingGold, settings: structuredClone(this.defaults), horses: [], sold: [], inventory: [], transactions: [], encounters: {}, searches: {}, createdAt: new Date().toISOString(), savedAt: null };
       await this.persist(this.state, false);
     }
-    this.state.settings.searchCooldownEnabled ??= false;
-    this.state.settings.searchCooldownSeconds ??= 30;
+    this.state.settings = withLocalDefaults(this.defaults,this.state.settings);
     this.state.customLocations ??= [];
     this.state.settings.saleModifiers = validateSaleModifiers(saleModifiers(this.state.settings));
     await this.files.recover(this.state);

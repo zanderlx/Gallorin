@@ -21,7 +21,7 @@
 - Generate horses with an expanded set of categorized color palettes.
 - Configure optional Wilds search cooldowns with a persistent countdown and completion sound.
 - Adjust themes, page text, profiles, economy, and spawning settings.
-- Save locally with exports and automatic backups.
+- Save locally with exports and automatic backups. Saved settings override bundled defaults; missing settings inherit them.
 
 Breeding, Town activities, equipment gameplay, and skill training remain planned. Developer Horse Updates is a work in progress.
 
