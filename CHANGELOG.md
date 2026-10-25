@@ -13,7 +13,7 @@ Restore bundled palette additions for existing installations and keep Wilds zone
 ### Updated
 
 - **Wilds & Game Settings**
-  - Taming or selling a horse during the search cooldown replaces it, and zones are never left empty. The cooldown only limits new searches.
+  - Reverted the 1.2.0 change that left empty spaces during the search cooldown. Taming or selling a horse replaces it again, and zones are never left empty. The cooldown only limits new searches.
 
 ### Fixed
 
