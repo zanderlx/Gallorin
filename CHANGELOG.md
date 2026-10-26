@@ -6,6 +6,24 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.2.2] - Unreleased
+
+Safer saves with point-in-time backups, and faster clicks and page loads in large stables.
+
+### Updated
+
+- **Saves & Backups**
+  - Saves, settings, and the music library are written to disk safely before replacing the previous file, so a power cut or crash cannot leave them empty.
+  - A backup snapshot is kept before your first change each session and at most hourly after, keeping the newest 20.
+  - Automatic upgrade backups are trimmed to the newest 20 of each kind. Manual backups are never removed.
+  - Save files are stored as compact JSON, about a third smaller.
+  - Desktop logs stay small by keeping one older copy after about 1 MB.
+
+- **Performance**
+  - Clicks and page loads are about twice as fast, and faster still with long sale histories.
+  - Settings files are reloaded only when they change, including changes you make by hand.
+  - Imported songs stream to disk instead of being held in memory.
+
 ## [1.2.1] - 2026-10-25
 
 Restore bundled palette additions for existing installations and keep Wilds zones filled during the search cooldown.

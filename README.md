@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.2.1 — Patient Equines Yearn Toward Overgrown Nature](docs/assets/gallorin-banner.svg)
+![Gallorin v1.2.2 — Patient Equines Yearn Toward Overgrown Nature](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.2.1: Patient Equines Yearn Toward Overgrown Nature
+# Gallorin v1.2.2: Patient Equines Yearn Toward Overgrown Nature
 
 **Desktop horse collection game · Windows**
 
@@ -21,7 +21,7 @@
 - Generate horses with an expanded set of categorized color palettes.
 - Configure optional Wilds search cooldowns with a persistent countdown and completion sound.
 - Adjust themes, page text, profiles, economy, and spawning settings.
-- Save locally with exports and automatic backups. Saved settings override bundled defaults; missing settings inherit them.
+- Save locally with exports, automatic backups, and hourly snapshots. Saved settings override bundled defaults; missing settings inherit them.
 
 Breeding, Town activities, equipment gameplay, and skill training remain planned. Developer Horse Updates is a work in progress.
 
@@ -37,7 +37,7 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 
 ## Local development
 
-Install [Node.js 22+ with npm](https://nodejs.org/en/download), then open a terminal in the repo root.
+Install [Node.js 24+ with npm](https://nodejs.org/en/download), then open a terminal in the repo root.
 
 For a fresh clone without dependencies, install them once:
 
