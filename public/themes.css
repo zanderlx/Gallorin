@@ -1,45 +1,213 @@
 /* The original theme is deliberately untouched. Other themes use the editable tokens. */
-:root[data-theme]:not([data-theme="default"]) {
-  & body { background:var(--bg);color:var(--text) }
-  & #sidebar { background:var(--sidebar);border-color:var(--border) }
-  & #topbar { background:var(--panel);border-color:var(--border) }
-  & .workspace { background:var(--bg) }
-  & .panel,& .horse-card,& .stable-shortcut,& .stat-strip,& dialog { background:var(--panel);border-color:var(--border);color:var(--text) }
-  & input,& select,& .zone-field textarea { background-color:var(--panel-deep);border-color:var(--border);color:var(--text) }
-  & input::placeholder,& textarea::placeholder { color:var(--muted) }
-  & input[type=checkbox] { accent-color:var(--burgundy) }
-  & .brand>span,& .card-title h3 button,& .field-note h3,& .stable-shortcut span,& .breadcrumb strong { color:var(--text) }
-  & .brand small,& .nav-caption,& nav summary,& .nav-section-link,& .nav-items a,& .sidebar-foot,& .sidebar-foot small,& .breadcrumb>span,& .save-status { color:var(--muted) }
-  & nav summary .icon,& .nav-section-link .icon,& .chevron,& .nav-caption span { color:var(--gold) }
-  & .nav-items a:hover,& nav summary:hover { background:var(--panel-deep);color:var(--text) }
-  & .nav-items a[aria-current] { background:var(--panel);color:var(--gold);box-shadow:inset 2px 0 var(--gold) }
-  & .nav-items a[aria-current]:before { color:var(--gold) }
-  & .button.primary { background:var(--burgundy);color:var(--button-text);border-color:var(--burgundy);box-shadow:none }
-  & .button.primary:hover:not(:disabled) { filter:brightness(.95) }
-  & .button.secondary { background:var(--panel-deep);color:var(--gold);border-color:var(--border) }
-  & .button.secondary:hover { background:var(--panel);border-color:var(--gold) }
-  & .text-button,& .text-link,& .eyebrow,& .gender { color:var(--gold) }
-  & .gold-balance,& .keeper-avatar { background:var(--panel-deep);border-color:var(--border);color:var(--gold) }
-  & .gold-balance strong,& .gold-balance span,& .gold-balance .icon { color:var(--gold) }
-  & .field-note,& .callout,& .mutation-empty,& .profile-actions,& .empty-symbol { background:var(--panel-deep);color:var(--text);border-color:var(--border) }
-  & .field-note p,& .field-note .eyebrow,& .horse-meta,& .horse-meta span,& .palette-line,& .preview-note,& .data-warning,& .personality-note small { color:var(--muted) }
-  & .field-note strong,& .note-icon,& .profile-palette>.eyebrow { color:var(--gold) }
-  & .card-actions,& .horse-facts,& .profile-grid,& .profile-lower,& .profile-art,& .profile-lower>section+section,& .sidebar-foot { border-color:var(--border) }
-  & .badge,& .location-tabs small { background:var(--panel-deep);color:var(--gold);border-color:var(--border) }
-  & .location-tabs a { color:var(--muted) }
-  & .location-tabs a[aria-current] { color:var(--gold) }
-  & .location-tabs a[aria-current]:after { background:var(--gold) }
-  & .horse-facts dt,& .trait-list dt,& .horse-id,& .color-regions>div { color:var(--muted) }
-  & .trait-list dd,& .palette-preview code { color:var(--text) }
-  & .form-status,& .collected-label,& .sold-label { color:var(--green) }
-  & #toast { background:var(--panel);color:var(--text);border-color:var(--gold) }
-  & #toast.error { background:#fbe4e4;color:#7b2028;border-color:#a3535a }
-  & footer,& footer>span:last-child { color:var(--muted);border-color:var(--border) }
-  & .hero .eyebrow { color:#ecd7ab }
-  & .hero p { color:#eee4d3 }
-  & .hero-bottom { color:#eee4d3 }
-  & .hero-bottom .icon { color:#ecd7ab }
-  & .favorite { background:var(--panel);color:var(--gold) }
-  & .favorite.is-favorite { color:var(--burgundy) }
-  & :focus-visible { outline-color:var(--gold) }
+:root[data-theme]:not([data-theme='default']) {
+  & body {
+    background: var(--bg);
+    color: var(--text);
+  }
+  & #sidebar {
+    background: var(--sidebar);
+    border-color: var(--border);
+  }
+  & #topbar {
+    background: var(--panel);
+    border-color: var(--border);
+  }
+  & .workspace {
+    background: var(--bg);
+  }
+  & .panel,
+  & .horse-card,
+  & .stable-shortcut,
+  & .stat-strip,
+  & dialog {
+    background: var(--panel);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  & input,
+  & select,
+  & .zone-field textarea {
+    background-color: var(--panel-deep);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  & input::placeholder,
+  & textarea::placeholder {
+    color: var(--muted);
+  }
+  & input[type='checkbox'] {
+    accent-color: var(--burgundy);
+  }
+  & .brand > span,
+  & .card-title h3 button,
+  & .field-note h3,
+  & .stable-shortcut span,
+  & .breadcrumb strong {
+    color: var(--text);
+  }
+  & .brand small,
+  & .nav-caption,
+  & nav summary,
+  & .nav-section-link,
+  & .nav-items a,
+  & .sidebar-foot,
+  & .sidebar-foot small,
+  & .breadcrumb > span,
+  & .save-status {
+    color: var(--muted);
+  }
+  & nav summary .icon,
+  & .nav-section-link .icon,
+  & .chevron,
+  & .nav-caption span {
+    color: var(--gold);
+  }
+  & .nav-items a:hover,
+  & nav summary:hover {
+    background: var(--panel-deep);
+    color: var(--text);
+  }
+  & .nav-items a[aria-current] {
+    background: var(--panel);
+    color: var(--gold);
+    box-shadow: inset 2px 0 var(--gold);
+  }
+  & .nav-items a[aria-current]:before {
+    color: var(--gold);
+  }
+  & .button.primary {
+    background: var(--burgundy);
+    color: var(--button-text);
+    border-color: var(--burgundy);
+    box-shadow: none;
+  }
+  & .button.primary:hover:not(:disabled) {
+    filter: brightness(0.95);
+  }
+  & .button.secondary {
+    background: var(--panel-deep);
+    color: var(--gold);
+    border-color: var(--border);
+  }
+  & .button.secondary:hover {
+    background: var(--panel);
+    border-color: var(--gold);
+  }
+  & .text-button,
+  & .text-link,
+  & .eyebrow,
+  & .gender {
+    color: var(--gold);
+  }
+  & .gold-balance,
+  & .keeper-avatar {
+    background: var(--panel-deep);
+    border-color: var(--border);
+    color: var(--gold);
+  }
+  & .gold-balance strong,
+  & .gold-balance span,
+  & .gold-balance .icon {
+    color: var(--gold);
+  }
+  & .field-note,
+  & .callout,
+  & .mutation-empty,
+  & .profile-actions,
+  & .empty-symbol {
+    background: var(--panel-deep);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  & .field-note p,
+  & .field-note .eyebrow,
+  & .horse-meta,
+  & .horse-meta span,
+  & .palette-line,
+  & .preview-note,
+  & .data-warning,
+  & .personality-note small {
+    color: var(--muted);
+  }
+  & .field-note strong,
+  & .note-icon,
+  & .profile-palette > .eyebrow {
+    color: var(--gold);
+  }
+  & .card-actions,
+  & .horse-facts,
+  & .profile-grid,
+  & .profile-lower,
+  & .profile-art,
+  & .profile-lower > section + section,
+  & .sidebar-foot {
+    border-color: var(--border);
+  }
+  & .badge,
+  & .location-tabs small {
+    background: var(--panel-deep);
+    color: var(--gold);
+    border-color: var(--border);
+  }
+  & .location-tabs a {
+    color: var(--muted);
+  }
+  & .location-tabs a[aria-current] {
+    color: var(--gold);
+  }
+  & .location-tabs a[aria-current]:after {
+    background: var(--gold);
+  }
+  & .horse-facts dt,
+  & .trait-list dt,
+  & .horse-id,
+  & .color-regions > div {
+    color: var(--muted);
+  }
+  & .trait-list dd,
+  & .palette-preview code {
+    color: var(--text);
+  }
+  & .form-status,
+  & .collected-label,
+  & .sold-label {
+    color: var(--green);
+  }
+  & #toast {
+    background: var(--panel);
+    color: var(--text);
+    border-color: var(--gold);
+  }
+  & #toast.error {
+    background: #fbe4e4;
+    color: #7b2028;
+    border-color: #a3535a;
+  }
+  & footer,
+  & footer > span:last-child {
+    color: var(--muted);
+    border-color: var(--border);
+  }
+  & .hero .eyebrow {
+    color: #ecd7ab;
+  }
+  & .hero p {
+    color: #eee4d3;
+  }
+  & .hero-bottom {
+    color: #eee4d3;
+  }
+  & .hero-bottom .icon {
+    color: #ecd7ab;
+  }
+  & .favorite {
+    background: var(--panel);
+    color: var(--gold);
+  }
+  & .favorite.is-favorite {
+    color: var(--burgundy);
+  }
+  & :focus-visible {
+    outline-color: var(--gold);
+  }
 }

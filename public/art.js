@@ -1,6 +1,6 @@
 // Original, deliberately stylized placeholder artwork. Species anatomy is not simulated.
-export function horseHeadArt(horse,large = false) {
-  return horseArt(horse,large).replace('viewBox="0 0 460 310"','viewBox="240 25 135 145"');
+export function horseHeadArt(horse, large = false) {
+  return horseArt(horse, large).replace('viewBox="0 0 460 310"', 'viewBox="240 25 135 145"');
 }
 export function horseArt(horse, large = false) {
   const palette = horse.palette.colors;

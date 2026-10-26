@@ -1,1 +1,87 @@
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 35%,#394036 0,#25261f 42%,#1d1b18 80%);color:#d2b477;font-family:Georgia,serif;height:100vh;display:grid;place-items:center;border:1px solid #766347;-webkit-app-region:drag}body:before{content:"";position:absolute;inset:14px;border:1px solid #d2b47733;pointer-events:none}main{text-align:center;width:72%}.stars{font-size:17px;letter-spacing:32px;padding-left:32px;margin-bottom:14px;opacity:.7}.stars span{font-size:10px}img{filter:drop-shadow(0 0 19px #d2b47733)}h1{font-size:38px;font-weight:400;letter-spacing:9px;margin:9px 0 12px;padding-left:9px}p{font:10px 'Segoe UI',sans-serif;letter-spacing:3.6px;color:#b6aa98;margin:0}.reveal{height:2px;background:#d2b47722;margin:29px auto 15px;width:160px;overflow:hidden}.reveal:after{content:"";display:block;height:100%;width:50%;background:linear-gradient(90deg,transparent,#e7ce96,transparent);animation:drift 2s ease-in-out infinite}small{font-size:14px;font-style:italic;color:#b6aa98}@keyframes drift{from{transform:translateX(-100%)}to{transform:translateX(300%)}}@media(prefers-reduced-motion:reduce){.reveal:after{animation:none;margin:auto}}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 35%, #394036 0, #25261f 42%, #1d1b18 80%);
+  color: #d2b477;
+  font-family: Georgia, serif;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  border: 1px solid #766347;
+  -webkit-app-region: drag;
+}
+body:before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px solid #d2b47733;
+  pointer-events: none;
+}
+main {
+  text-align: center;
+  width: 72%;
+}
+.stars {
+  font-size: 17px;
+  letter-spacing: 32px;
+  padding-left: 32px;
+  margin-bottom: 14px;
+  opacity: 0.7;
+}
+.stars span {
+  font-size: 10px;
+}
+img {
+  filter: drop-shadow(0 0 19px #d2b47733);
+}
+h1 {
+  font-size: 38px;
+  font-weight: 400;
+  letter-spacing: 9px;
+  margin: 9px 0 12px;
+  padding-left: 9px;
+}
+p {
+  font:
+    10px 'Segoe UI',
+    sans-serif;
+  letter-spacing: 3.6px;
+  color: #b6aa98;
+  margin: 0;
+}
+.reveal {
+  height: 2px;
+  background: #d2b47722;
+  margin: 29px auto 15px;
+  width: 160px;
+  overflow: hidden;
+}
+.reveal:after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, #e7ce96, transparent);
+  animation: drift 2s ease-in-out infinite;
+}
+small {
+  font-size: 14px;
+  font-style: italic;
+  color: #b6aa98;
+}
+@keyframes drift {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal:after {
+    animation: none;
+    margin: auto;
+  }
+}

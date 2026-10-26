@@ -1,12 +1,103 @@
-.audio-settings-dialog{width:min(490px,calc(100vw - 36px));padding:28px;border:1px solid var(--gold-soft,#9a8454);border-radius:10px;background:var(--panel,#252b24);color:var(--text,#e9d8b4);box-shadow:0 24px 90px #0006}
-.audio-settings-dialog::backdrop{background:#101811bd;backdrop-filter:blur(5px)}
-.audio-settings-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0;margin:0 0 28px}
-.audio-settings-dialog>header h2{font:30px/1.2 Georgia,serif;margin:0;color:var(--text,#e9d8b4);letter-spacing:0}
-.audio-settings-dialog .audio-settings-close{display:grid;place-items:center;width:32px;height:32px;flex-shrink:0;padding:0;margin:0;border:0;background:none;color:inherit;font:28px/1 'Segoe UI',sans-serif;cursor:pointer}
-.audio-settings-dialog .audio-settings-close:hover{color:var(--gold,#d2b477);background:var(--border,#48503c)}
-.audio-settings-dialog .audio-settings-rows{display:grid;gap:24px}
-.audio-settings-dialog .audio-settings-rows label{display:grid;grid-template-columns:108px minmax(75px,180px) 80px;align-items:center;gap:14px;font:14px/1.5 'Segoe UI',sans-serif;margin:0}
-.audio-settings-dialog input[type=range]{appearance:auto;width:100%;height:18px;min-height:18px;padding:0;margin:0;border:0;background:transparent;accent-color:var(--gold,#d2b477)}
-.audio-settings-dialog output{text-align:left;color:var(--gold,#d2b477);font:14px 'Segoe UI',sans-serif}
-.audio-settings-dialog .audio-settings-error:empty{display:none}.audio-settings-dialog .audio-settings-error{margin:18px 0 0;font:13px 'Segoe UI',sans-serif;color:#e7a5a5}
-@media(max-width:450px){.audio-settings-dialog{padding:22px}.audio-settings-dialog .audio-settings-rows label{grid-template-columns:94px minmax(55px,1fr) 78px;gap:10px}.audio-settings-dialog>header h2{font-size:26px}}
+.audio-settings-dialog {
+  width: min(490px, calc(100vw - 36px));
+  padding: 28px;
+  border: 1px solid var(--gold-soft, #9a8454);
+  border-radius: 10px;
+  background: var(--panel, #252b24);
+  color: var(--text, #e9d8b4);
+  box-shadow: 0 24px 90px #0006;
+}
+.audio-settings-dialog::backdrop {
+  background: #101811bd;
+  backdrop-filter: blur(5px);
+}
+.audio-settings-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0;
+  margin: 0 0 28px;
+}
+.audio-settings-dialog > header h2 {
+  font:
+    30px/1.2 Georgia,
+    serif;
+  margin: 0;
+  color: var(--text, #e9d8b4);
+  letter-spacing: 0;
+}
+.audio-settings-dialog .audio-settings-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font:
+    28px/1 'Segoe UI',
+    sans-serif;
+  cursor: pointer;
+}
+.audio-settings-dialog .audio-settings-close:hover {
+  color: var(--gold, #d2b477);
+  background: var(--border, #48503c);
+}
+.audio-settings-dialog .audio-settings-rows {
+  display: grid;
+  gap: 24px;
+}
+.audio-settings-dialog .audio-settings-rows label {
+  display: grid;
+  grid-template-columns: 108px minmax(75px, 180px) 80px;
+  align-items: center;
+  gap: 14px;
+  font:
+    14px/1.5 'Segoe UI',
+    sans-serif;
+  margin: 0;
+}
+.audio-settings-dialog input[type='range'] {
+  appearance: auto;
+  width: 100%;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--gold, #d2b477);
+}
+.audio-settings-dialog output {
+  text-align: left;
+  color: var(--gold, #d2b477);
+  font:
+    14px 'Segoe UI',
+    sans-serif;
+}
+.audio-settings-dialog .audio-settings-error:empty {
+  display: none;
+}
+.audio-settings-dialog .audio-settings-error {
+  margin: 18px 0 0;
+  font:
+    13px 'Segoe UI',
+    sans-serif;
+  color: #e7a5a5;
+}
+@media (max-width: 450px) {
+  .audio-settings-dialog {
+    padding: 22px;
+  }
+  .audio-settings-dialog .audio-settings-rows label {
+    grid-template-columns: 94px minmax(55px, 1fr) 78px;
+    gap: 10px;
+  }
+  .audio-settings-dialog > header h2 {
+    font-size: 26px;
+  }
+}
