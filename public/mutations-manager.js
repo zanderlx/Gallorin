@@ -2,7 +2,7 @@ import { openEmojiPicker } from './emoji-picker.js';
 import { fitMutationDescriptions } from './mutation-card-layout.js';
 import { animateCardBody } from './collapsible-cards.js';
 import { definitionTransferControls } from './definition-transfer-controls.js';
-import { escapeHTML as e, icon } from './ui.js';
+import { escapeHTML as e, icon, html, raw } from './ui.js';
 import { formSignature, formBaseline } from './form-state.js';
 
 const mutationEmojis = {
@@ -109,7 +109,9 @@ export function mutationCards(entries, showWeights = false, expanded = new Set()
   return entries
     .map(m => {
       const open = expanded.has(m.id);
-      return `<article class="panel personality-card mutation-collapse-card" data-mutation-card data-id="${e(m.id)}"><div class="personality-card-heading"><div class="mutation-title-block ${showType ? 'mutation-title-with-type' : ''}"><h2 title="${e(m.name)}"><span class="personality-emoji" aria-hidden="true">${e(mutationEmoji(m))}</span><span class="mutation-card-name">${e(m.name)}</span></h2><span class="mutation-preview-type ${showType ? '' : 'mutation-type-expanded-only'}">${e(m.type)}</span></div><button type="button" class="icon-button personality-toggle" data-action="toggle-mutation" data-name="${e(m.name)}" aria-label="${open ? 'Collapse' : 'Expand'} ${e(m.name)}" aria-expanded="${open}" aria-controls="mutation-body-${e(m.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div><div class="personality-card-body" id="mutation-body-${e(m.id)}" ${open ? '' : 'hidden inert'}><p class="personality-card-description" tabindex="0" aria-label="${e(m.name)} description">${e(m.description || 'No description yet.')}</p>${showWeights ? `<div class="mutation-card-meta"><span>Weight: ${Math.abs(m.weight || 0).toLocaleString()}</span></div>` : ''}<div class="personality-card-actions"><button type="button" class="button secondary" data-action="edit-definition" data-kind="mutations" data-id="${e(m.id)}">${icon('edit')} Edit</button></div></div></article>`;
+      return String(
+        html`<article class="panel personality-card mutation-collapse-card" data-mutation-card data-id="${m.id}"><div class="personality-card-heading"><div class="mutation-title-block ${showType ? 'mutation-title-with-type' : ''}"><h2 title="${m.name}"><span class="personality-emoji" aria-hidden="true">${mutationEmoji(m)}</span><span class="mutation-card-name">${m.name}</span></h2><span class="mutation-preview-type ${showType ? '' : 'mutation-type-expanded-only'}">${m.type}</span></div><button type="button" class="icon-button personality-toggle" data-action="toggle-mutation" data-name="${m.name}" aria-label="${open ? 'Collapse' : 'Expand'} ${m.name}" aria-expanded="${open}" aria-controls="mutation-body-${m.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div><div class="personality-card-body" id="mutation-body-${m.id}" ${open ? '' : 'hidden inert'}><p class="personality-card-description" tabindex="0" aria-label="${m.name} description">${m.description || 'No description yet.'}</p>${showWeights ? html`<div class="mutation-card-meta"><span>Weight: ${Math.abs(m.weight || 0).toLocaleString()}</span></div>` : ''}<div class="personality-card-actions"><button type="button" class="button secondary" data-action="edit-definition" data-kind="mutations" data-id="${m.id}">${raw(icon('edit'))} Edit</button></div></div></article>`
+      );
     })
     .join('');
 }

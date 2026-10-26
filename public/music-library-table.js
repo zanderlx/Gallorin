@@ -1,16 +1,10 @@
-import { escapeHTML as e, icon } from './ui.js';
+import { escapeHTML as e, icon, html } from './ui.js';
 import { musicTracks, formatMusicDuration } from './music-context.js';
 import { soundEffectGroups, isSoundEffect } from './music-effects.js';
 export const rowPlay = (track, index, context = '') =>
-  '<td class="music-order"><span class="music-index-control"><span class="music-row-number">' +
-  (index + 1) +
-  '</span><button type="button" class="music-row-play" data-preview-song="' +
-  e(track.id) +
-  '"' +
-  (context ? ' data-playlist-context="' + e(context) + '"' : '') +
-  ' title="Play" aria-label="Play ' +
-  e(track.name) +
-  '">▶</button></span></td>';
+  String(
+    html`<td class="music-order"><span class="music-index-control"><span class="music-row-number">${index + 1}</span><button type="button" class="music-row-play" data-preview-song="${track.id}"${context ? html` data-playlist-context="${context}"` : ''} title="Play" aria-label="Play ${track.name}">▶</button></span></td>`
+  );
 export function musicLibrarySections(library) {
   return ['music', 'effect']
     .map(kind => {
