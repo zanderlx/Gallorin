@@ -1,0 +1,926 @@
+{
+  "version": 1,
+  "gold": 125,
+  "settings": {
+    "horsesPerSearch": 3,
+    "sellingPrice": 50,
+    "startingGold": 0,
+    "stableCapacity": 50,
+    "ignoreStableLimit": true,
+    "note": "Phase 1 preview defaults. Starting gold, capacity, and free guaranteed catches are provisional interface settings, not confirmed gameplay rules."
+  },
+  "horses": [
+    {
+      "schemaVersion": 1,
+      "generationVersion": 1,
+      "revision": 2,
+      "id": "60e9dc62-eb88-4374-9798-0f7814c32b8e",
+      "name": "Golden One",
+      "species": "Felorse",
+      "speciesId": "felorse",
+      "rarityTier": 2,
+      "speciesEvent": null,
+      "age": "Adult",
+      "origin": "Wild",
+      "gender": "Male",
+      "size": "Normal",
+      "sizePercent": 100,
+      "birthday": "2026-10-25",
+      "palette": {
+        "name": "Emerald",
+        "group": "Royal",
+        "natural": false,
+        "colors": {
+          "Coat Top": "#0E7968",
+          "Coat Bottom": "#008B04",
+          "Hair": "#9EDCCA",
+          "Hoof": "#D7E8C3",
+          "Nose": "#F1E8E4",
+          "Sock": "#165C3B",
+          "Keratin": "#95B482",
+          "Paint": "#F5F5F5",
+          "Pattern": "#F5F5F5"
+        },
+        "complete": true,
+        "id": "palettes-24",
+        "description": "",
+        "global": true,
+        "speciesIds": [],
+        "assetSkins": [],
+        "systemId": "emerald",
+        "variationPercent": null,
+        "colorVariation": {
+          "baseColors": {
+            "Coat Top": "#0F7E6C",
+            "Coat Bottom": "#009104",
+            "Hair": "#A5E5D2",
+            "Hoof": "#E0F2CB",
+            "Nose": "#FBF2ED",
+            "Sock": "#17603D",
+            "Keratin": "#9BBC87",
+            "Paint": "#FFFFFF",
+            "Pattern": "#FFFFFF"
+          }
+        }
+      },
+      "paletteId": "palettes-24",
+      "skinId": null,
+      "eye": {
+        "name": "Ocean",
+        "rarity": "Uncommon",
+        "colors": [
+          "#75FFE3"
+        ],
+        "id": "eyes-17",
+        "description": "",
+        "textureId": "eye-ocean",
+        "layers": [],
+        "systemId": "ocean"
+      },
+      "eyeId": "eyes-17",
+      "eyeTextureId": "eye-ocean",
+      "eyeLayers": [],
+      "personality": {
+        "name": "Curious",
+        "description": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+        "id": "personalities-3",
+        "systemId": "personalities-3",
+        "behaviorTags": [],
+        "emoji": ""
+      },
+      "personalityId": "personalities-3",
+      "personalitySystemId": "personalities-3",
+      "personalityDescription": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+      "traits": {
+        "Mane": [
+          "Awaiting species data"
+        ],
+        "Tail": [
+          "Awaiting species data"
+        ],
+        "Pattern": [],
+        "Paint": [],
+        "Cosmetic": [],
+        "Keratin": [],
+        "Ears": [],
+        "Whiskers": []
+      },
+      "mutations": [
+        {
+          "name": "Strong Muscles",
+          "type": "Standard",
+          "weight": 1116,
+          "description": "+10% damage to foragables",
+          "id": "mutations-3",
+          "thresholds": {},
+          "sizeShift": 0,
+          "systemId": "standard-strong-muscles",
+          "emoji": ""
+        }
+      ],
+      "skills": {
+        "agility": {
+          "level": 0,
+          "xp": 0
+        },
+        "strength": {
+          "level": 0,
+          "xp": 0
+        },
+        "jump": {
+          "level": 0,
+          "xp": 0
+        },
+        "bond": {
+          "level": 0,
+          "xp": 0
+        },
+        "wing": {
+          "level": 0,
+          "xp": 0
+        }
+      },
+      "specialSpawn": null,
+      "spawnPath": "Wild",
+      "locationId": "aetherion",
+      "favorite": false,
+      "preview": false,
+      "traitsComplete": false,
+      "createdAt": "2026-10-26T02:11:40.952Z",
+      "caughtAt": "2026-10-26T02:11:40.965Z",
+      "updatedAt": "2026-10-26T02:11:40.965Z"
+    },
+    {
+      "schemaVersion": 1,
+      "generationVersion": 1,
+      "revision": 2,
+      "id": "fbe9695c-a5fc-4baa-8ee3-042d94cef4d9",
+      "name": "Golden Three",
+      "species": "Felorse",
+      "speciesId": "felorse",
+      "rarityTier": 2,
+      "speciesEvent": null,
+      "age": "Adult",
+      "origin": "Wild",
+      "gender": "Male",
+      "size": "Normal",
+      "sizePercent": 100,
+      "birthday": "2026-10-25",
+      "palette": {
+        "name": "Emerald",
+        "group": "Royal",
+        "natural": false,
+        "colors": {
+          "Coat Top": "#0E7968",
+          "Coat Bottom": "#008B04",
+          "Hair": "#9EDCCA",
+          "Hoof": "#D7E8C3",
+          "Nose": "#F1E8E4",
+          "Sock": "#165C3B",
+          "Keratin": "#95B482",
+          "Paint": "#F5F5F5",
+          "Pattern": "#F5F5F5"
+        },
+        "complete": true,
+        "id": "palettes-24",
+        "description": "",
+        "global": true,
+        "speciesIds": [],
+        "assetSkins": [],
+        "systemId": "emerald",
+        "variationPercent": null,
+        "colorVariation": {
+          "baseColors": {
+            "Coat Top": "#0F7E6C",
+            "Coat Bottom": "#009104",
+            "Hair": "#A5E5D2",
+            "Hoof": "#E0F2CB",
+            "Nose": "#FBF2ED",
+            "Sock": "#17603D",
+            "Keratin": "#9BBC87",
+            "Paint": "#FFFFFF",
+            "Pattern": "#FFFFFF"
+          }
+        }
+      },
+      "paletteId": "palettes-24",
+      "skinId": null,
+      "eye": {
+        "name": "Ocean",
+        "rarity": "Uncommon",
+        "colors": [
+          "#75FFE3"
+        ],
+        "id": "eyes-17",
+        "description": "",
+        "textureId": "eye-ocean",
+        "layers": [],
+        "systemId": "ocean"
+      },
+      "eyeId": "eyes-17",
+      "eyeTextureId": "eye-ocean",
+      "eyeLayers": [],
+      "personality": {
+        "name": "Curious",
+        "description": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+        "id": "personalities-3",
+        "systemId": "personalities-3",
+        "behaviorTags": [],
+        "emoji": ""
+      },
+      "personalityId": "personalities-3",
+      "personalitySystemId": "personalities-3",
+      "personalityDescription": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+      "traits": {
+        "Mane": [
+          "Awaiting species data"
+        ],
+        "Tail": [
+          "Awaiting species data"
+        ],
+        "Pattern": [],
+        "Paint": [],
+        "Cosmetic": [],
+        "Keratin": [],
+        "Ears": [],
+        "Whiskers": []
+      },
+      "mutations": [
+        {
+          "name": "Strong Muscles",
+          "type": "Standard",
+          "weight": 1116,
+          "description": "+10% damage to foragables",
+          "id": "mutations-3",
+          "thresholds": {},
+          "sizeShift": 0,
+          "systemId": "standard-strong-muscles",
+          "emoji": ""
+        }
+      ],
+      "skills": {
+        "agility": {
+          "level": 0,
+          "xp": 0
+        },
+        "strength": {
+          "level": 0,
+          "xp": 0
+        },
+        "jump": {
+          "level": 0,
+          "xp": 0
+        },
+        "bond": {
+          "level": 0,
+          "xp": 0
+        },
+        "wing": {
+          "level": 0,
+          "xp": 0
+        }
+      },
+      "specialSpawn": null,
+      "spawnPath": "Wild",
+      "locationId": "aetherion",
+      "favorite": false,
+      "preview": false,
+      "traitsComplete": false,
+      "createdAt": "2026-10-26T02:11:40.952Z",
+      "caughtAt": "2026-10-26T02:11:41.003Z",
+      "updatedAt": "2026-10-26T02:11:41.004Z"
+    }
+  ],
+  "sold": [
+    {
+      "schemaVersion": 1,
+      "generationVersion": 1,
+      "revision": 3,
+      "id": "362cdca9-5f33-4178-a4dc-1e15f863a6f5",
+      "name": "Golden Two",
+      "species": "Felorse",
+      "speciesId": "felorse",
+      "rarityTier": 2,
+      "speciesEvent": null,
+      "age": "Adult",
+      "origin": "Wild",
+      "gender": "Male",
+      "size": "Normal",
+      "sizePercent": 100,
+      "birthday": "2026-10-25",
+      "palette": {
+        "name": "Emerald",
+        "group": "Royal",
+        "natural": false,
+        "colors": {
+          "Coat Top": "#0E7968",
+          "Coat Bottom": "#008B04",
+          "Hair": "#9EDCCA",
+          "Hoof": "#D7E8C3",
+          "Nose": "#F1E8E4",
+          "Sock": "#165C3B",
+          "Keratin": "#95B482",
+          "Paint": "#F5F5F5",
+          "Pattern": "#F5F5F5"
+        },
+        "complete": true,
+        "id": "palettes-24",
+        "description": "",
+        "global": true,
+        "speciesIds": [],
+        "assetSkins": [],
+        "systemId": "emerald",
+        "variationPercent": null,
+        "colorVariation": {
+          "baseColors": {
+            "Coat Top": "#0F7E6C",
+            "Coat Bottom": "#009104",
+            "Hair": "#A5E5D2",
+            "Hoof": "#E0F2CB",
+            "Nose": "#FBF2ED",
+            "Sock": "#17603D",
+            "Keratin": "#9BBC87",
+            "Paint": "#FFFFFF",
+            "Pattern": "#FFFFFF"
+          }
+        }
+      },
+      "paletteId": "palettes-24",
+      "skinId": null,
+      "eye": {
+        "name": "Ocean",
+        "rarity": "Uncommon",
+        "colors": [
+          "#75FFE3"
+        ],
+        "id": "eyes-17",
+        "description": "",
+        "textureId": "eye-ocean",
+        "layers": [],
+        "systemId": "ocean"
+      },
+      "eyeId": "eyes-17",
+      "eyeTextureId": "eye-ocean",
+      "eyeLayers": [],
+      "personality": {
+        "name": "Curious",
+        "description": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+        "id": "personalities-3",
+        "systemId": "personalities-3",
+        "behaviorTags": [],
+        "emoji": ""
+      },
+      "personalityId": "personalities-3",
+      "personalitySystemId": "personalities-3",
+      "personalityDescription": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+      "traits": {
+        "Mane": [
+          "Awaiting species data"
+        ],
+        "Tail": [
+          "Awaiting species data"
+        ],
+        "Pattern": [],
+        "Paint": [],
+        "Cosmetic": [],
+        "Keratin": [],
+        "Ears": [],
+        "Whiskers": []
+      },
+      "mutations": [
+        {
+          "name": "Strong Muscles",
+          "type": "Standard",
+          "weight": 1116,
+          "description": "+10% damage to foragables",
+          "id": "mutations-3",
+          "thresholds": {},
+          "sizeShift": 0,
+          "systemId": "standard-strong-muscles",
+          "emoji": ""
+        }
+      ],
+      "skills": {
+        "agility": {
+          "level": 0,
+          "xp": 0
+        },
+        "strength": {
+          "level": 0,
+          "xp": 0
+        },
+        "jump": {
+          "level": 0,
+          "xp": 0
+        },
+        "bond": {
+          "level": 0,
+          "xp": 0
+        },
+        "wing": {
+          "level": 0,
+          "xp": 0
+        }
+      },
+      "specialSpawn": null,
+      "spawnPath": "Wild",
+      "locationId": "aetherion",
+      "favorite": false,
+      "preview": false,
+      "traitsComplete": false,
+      "createdAt": "2026-10-26T02:11:40.952Z",
+      "caughtAt": "2026-10-26T02:11:40.978Z",
+      "updatedAt": "2026-10-26T02:11:40.991Z",
+      "soldAt": "2026-10-26T02:11:40.991Z",
+      "soldFor": 125,
+      "salePricing": {
+        "basePrice": 50,
+        "traitCount": 0,
+        "mutationCount": 1,
+        "traitBonus": 0,
+        "mutationBonus": 75,
+        "skillLevels": 0,
+        "wingLevels": 0,
+        "skillLevelBonus": 0,
+        "wingLevelBonus": 0,
+        "subtotal": 125,
+        "special": null,
+        "multiplier": 1,
+        "total": 125,
+        "modifiers": {
+          "traitBonus": 8,
+          "mutationBonus": 75,
+          "skillLevelBonus": 8,
+          "wingLevelBonus": 8,
+          "solarMultiplier": 10,
+          "lunarMultiplier": 15,
+          "heavenlyMultiplier": 20,
+          "voidMultiplier": 25,
+          "astralMultiplier": 30
+        }
+      }
+    }
+  ],
+  "inventory": [],
+  "transactions": [
+    {
+      "id": "b5f1dcbe-6f62-4e1f-8369-5915d96b0dff",
+      "type": "Horse sold",
+      "horseId": "362cdca9-5f33-4178-a4dc-1e15f863a6f5",
+      "horseName": "Golden Two",
+      "species": "Felorse",
+      "amount": 125,
+      "salePricing": {
+        "basePrice": 50,
+        "traitCount": 0,
+        "mutationCount": 1,
+        "traitBonus": 0,
+        "mutationBonus": 75,
+        "skillLevels": 0,
+        "wingLevels": 0,
+        "skillLevelBonus": 0,
+        "wingLevelBonus": 0,
+        "subtotal": 125,
+        "special": null,
+        "multiplier": 1,
+        "total": 125,
+        "modifiers": {
+          "traitBonus": 8,
+          "mutationBonus": 75,
+          "skillLevelBonus": 8,
+          "wingLevelBonus": 8,
+          "solarMultiplier": 10,
+          "lunarMultiplier": 15,
+          "heavenlyMultiplier": 20,
+          "voidMultiplier": 25,
+          "astralMultiplier": 30
+        }
+      },
+      "at": "2026-10-26T02:11:40.991Z"
+    }
+  ],
+  "encounters": {
+    "aetherion": [
+      {
+        "schemaVersion": 1,
+        "generationVersion": 1,
+        "revision": 1,
+        "id": "bcc86e10-0c31-47c2-8f18-e07efd059b52",
+        "name": "",
+        "species": "Felorse",
+        "speciesId": "felorse",
+        "rarityTier": 2,
+        "speciesEvent": null,
+        "age": "Adult",
+        "origin": "Wild",
+        "gender": "Male",
+        "size": "Normal",
+        "sizePercent": 100,
+        "birthday": "2026-10-26",
+        "palette": {
+          "name": "Emerald",
+          "group": "Royal",
+          "natural": false,
+          "colors": {
+            "Coat Top": "#0E7968",
+            "Coat Bottom": "#008B04",
+            "Hair": "#9EDCCA",
+            "Hoof": "#D7E8C3",
+            "Nose": "#F1E8E4",
+            "Sock": "#165C3B",
+            "Keratin": "#95B482",
+            "Paint": "#F5F5F5",
+            "Pattern": "#F5F5F5"
+          },
+          "complete": true,
+          "id": "palettes-24",
+          "description": "",
+          "global": true,
+          "speciesIds": [],
+          "assetSkins": [],
+          "systemId": "emerald",
+          "variationPercent": null,
+          "colorVariation": {
+            "baseColors": {
+              "Coat Top": "#0F7E6C",
+              "Coat Bottom": "#009104",
+              "Hair": "#A5E5D2",
+              "Hoof": "#E0F2CB",
+              "Nose": "#FBF2ED",
+              "Sock": "#17603D",
+              "Keratin": "#9BBC87",
+              "Paint": "#FFFFFF",
+              "Pattern": "#FFFFFF"
+            }
+          }
+        },
+        "paletteId": "palettes-24",
+        "skinId": null,
+        "eye": {
+          "name": "Ocean",
+          "rarity": "Uncommon",
+          "colors": [
+            "#75FFE3"
+          ],
+          "id": "eyes-17",
+          "description": "",
+          "textureId": "eye-ocean",
+          "layers": [],
+          "systemId": "ocean"
+        },
+        "eyeId": "eyes-17",
+        "eyeTextureId": "eye-ocean",
+        "eyeLayers": [],
+        "personality": {
+          "name": "Curious",
+          "description": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+          "id": "personalities-3",
+          "systemId": "personalities-3",
+          "behaviorTags": [],
+          "emoji": ""
+        },
+        "personalityId": "personalities-3",
+        "personalitySystemId": "personalities-3",
+        "personalityDescription": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+        "traits": {
+          "Mane": [
+            "Awaiting species data"
+          ],
+          "Tail": [
+            "Awaiting species data"
+          ],
+          "Pattern": [],
+          "Paint": [],
+          "Cosmetic": [],
+          "Keratin": [],
+          "Ears": [],
+          "Whiskers": []
+        },
+        "mutations": [
+          {
+            "name": "Strong Muscles",
+            "type": "Standard",
+            "weight": 1116,
+            "description": "+10% damage to foragables",
+            "id": "mutations-3",
+            "thresholds": {},
+            "sizeShift": 0,
+            "systemId": "standard-strong-muscles",
+            "emoji": ""
+          }
+        ],
+        "skills": {
+          "agility": {
+            "level": 0,
+            "xp": 0
+          },
+          "strength": {
+            "level": 0,
+            "xp": 0
+          },
+          "jump": {
+            "level": 0,
+            "xp": 0
+          },
+          "bond": {
+            "level": 0,
+            "xp": 0
+          },
+          "wing": {
+            "level": 0,
+            "xp": 0
+          }
+        },
+        "specialSpawn": null,
+        "spawnPath": "Wild",
+        "locationId": "aetherion",
+        "favorite": false,
+        "preview": false,
+        "traitsComplete": false,
+        "createdAt": "2026-10-26T02:11:40.965Z"
+      },
+      {
+        "schemaVersion": 1,
+        "generationVersion": 1,
+        "revision": 1,
+        "id": "a030c26a-96ee-4040-83bd-e8676c5aab2c",
+        "name": "",
+        "species": "Felorse",
+        "speciesId": "felorse",
+        "rarityTier": 2,
+        "speciesEvent": null,
+        "age": "Adult",
+        "origin": "Wild",
+        "gender": "Male",
+        "size": "Normal",
+        "sizePercent": 100,
+        "birthday": "2026-10-26",
+        "palette": {
+          "name": "Emerald",
+          "group": "Royal",
+          "natural": false,
+          "colors": {
+            "Coat Top": "#0E7968",
+            "Coat Bottom": "#008B04",
+            "Hair": "#9EDCCA",
+            "Hoof": "#D7E8C3",
+            "Nose": "#F1E8E4",
+            "Sock": "#165C3B",
+            "Keratin": "#95B482",
+            "Paint": "#F5F5F5",
+            "Pattern": "#F5F5F5"
+          },
+          "complete": true,
+          "id": "palettes-24",
+          "description": "",
+          "global": true,
+          "speciesIds": [],
+          "assetSkins": [],
+          "systemId": "emerald",
+          "variationPercent": null,
+          "colorVariation": {
+            "baseColors": {
+              "Coat Top": "#0F7E6C",
+              "Coat Bottom": "#009104",
+              "Hair": "#A5E5D2",
+              "Hoof": "#E0F2CB",
+              "Nose": "#FBF2ED",
+              "Sock": "#17603D",
+              "Keratin": "#9BBC87",
+              "Paint": "#FFFFFF",
+              "Pattern": "#FFFFFF"
+            }
+          }
+        },
+        "paletteId": "palettes-24",
+        "skinId": null,
+        "eye": {
+          "name": "Ocean",
+          "rarity": "Uncommon",
+          "colors": [
+            "#75FFE3"
+          ],
+          "id": "eyes-17",
+          "description": "",
+          "textureId": "eye-ocean",
+          "layers": [],
+          "systemId": "ocean"
+        },
+        "eyeId": "eyes-17",
+        "eyeTextureId": "eye-ocean",
+        "eyeLayers": [],
+        "personality": {
+          "name": "Curious",
+          "description": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+          "id": "personalities-3",
+          "systemId": "personalities-3",
+          "behaviorTags": [],
+          "emoji": ""
+        },
+        "personalityId": "personalities-3",
+        "personalitySystemId": "personalities-3",
+        "personalityDescription": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+        "traits": {
+          "Mane": [
+            "Awaiting species data"
+          ],
+          "Tail": [
+            "Awaiting species data"
+          ],
+          "Pattern": [],
+          "Paint": [],
+          "Cosmetic": [],
+          "Keratin": [],
+          "Ears": [],
+          "Whiskers": []
+        },
+        "mutations": [
+          {
+            "name": "Strong Muscles",
+            "type": "Standard",
+            "weight": 1116,
+            "description": "+10% damage to foragables",
+            "id": "mutations-3",
+            "thresholds": {},
+            "sizeShift": 0,
+            "systemId": "standard-strong-muscles",
+            "emoji": ""
+          }
+        ],
+        "skills": {
+          "agility": {
+            "level": 0,
+            "xp": 0
+          },
+          "strength": {
+            "level": 0,
+            "xp": 0
+          },
+          "jump": {
+            "level": 0,
+            "xp": 0
+          },
+          "bond": {
+            "level": 0,
+            "xp": 0
+          },
+          "wing": {
+            "level": 0,
+            "xp": 0
+          }
+        },
+        "specialSpawn": null,
+        "spawnPath": "Wild",
+        "locationId": "aetherion",
+        "favorite": false,
+        "preview": false,
+        "traitsComplete": false,
+        "createdAt": "2026-10-26T02:11:40.979Z"
+      },
+      {
+        "schemaVersion": 1,
+        "generationVersion": 1,
+        "revision": 1,
+        "id": "962df599-0aea-422d-a8b8-e4b5a9130178",
+        "name": "",
+        "species": "Felorse",
+        "speciesId": "felorse",
+        "rarityTier": 2,
+        "speciesEvent": null,
+        "age": "Adult",
+        "origin": "Wild",
+        "gender": "Male",
+        "size": "Normal",
+        "sizePercent": 100,
+        "birthday": "2026-10-26",
+        "palette": {
+          "name": "Emerald",
+          "group": "Royal",
+          "natural": false,
+          "colors": {
+            "Coat Top": "#0E7968",
+            "Coat Bottom": "#008B04",
+            "Hair": "#9EDCCA",
+            "Hoof": "#D7E8C3",
+            "Nose": "#F1E8E4",
+            "Sock": "#165C3B",
+            "Keratin": "#95B482",
+            "Paint": "#F5F5F5",
+            "Pattern": "#F5F5F5"
+          },
+          "complete": true,
+          "id": "palettes-24",
+          "description": "",
+          "global": true,
+          "speciesIds": [],
+          "assetSkins": [],
+          "systemId": "emerald",
+          "variationPercent": null,
+          "colorVariation": {
+            "baseColors": {
+              "Coat Top": "#0F7E6C",
+              "Coat Bottom": "#009104",
+              "Hair": "#A5E5D2",
+              "Hoof": "#E0F2CB",
+              "Nose": "#FBF2ED",
+              "Sock": "#17603D",
+              "Keratin": "#9BBC87",
+              "Paint": "#FFFFFF",
+              "Pattern": "#FFFFFF"
+            }
+          }
+        },
+        "paletteId": "palettes-24",
+        "skinId": null,
+        "eye": {
+          "name": "Ocean",
+          "rarity": "Uncommon",
+          "colors": [
+            "#75FFE3"
+          ],
+          "id": "eyes-17",
+          "description": "",
+          "textureId": "eye-ocean",
+          "layers": [],
+          "systemId": "ocean"
+        },
+        "eyeId": "eyes-17",
+        "eyeTextureId": "eye-ocean",
+        "eyeLayers": [],
+        "personality": {
+          "name": "Curious",
+          "description": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+          "id": "personalities-3",
+          "systemId": "personalities-3",
+          "behaviorTags": [],
+          "emoji": ""
+        },
+        "personalityId": "personalities-3",
+        "personalitySystemId": "personalities-3",
+        "personalityDescription": "The mount emits the question mark emote if a Clue is nearby, when player is idle, mounted, near other mounts or crowd and when hearing a loud event.",
+        "traits": {
+          "Mane": [
+            "Awaiting species data"
+          ],
+          "Tail": [
+            "Awaiting species data"
+          ],
+          "Pattern": [],
+          "Paint": [],
+          "Cosmetic": [],
+          "Keratin": [],
+          "Ears": [],
+          "Whiskers": []
+        },
+        "mutations": [
+          {
+            "name": "Strong Muscles",
+            "type": "Standard",
+            "weight": 1116,
+            "description": "+10% damage to foragables",
+            "id": "mutations-3",
+            "thresholds": {},
+            "sizeShift": 0,
+            "systemId": "standard-strong-muscles",
+            "emoji": ""
+          }
+        ],
+        "skills": {
+          "agility": {
+            "level": 0,
+            "xp": 0
+          },
+          "strength": {
+            "level": 0,
+            "xp": 0
+          },
+          "jump": {
+            "level": 0,
+            "xp": 0
+          },
+          "bond": {
+            "level": 0,
+            "xp": 0
+          },
+          "wing": {
+            "level": 0,
+            "xp": 0
+          }
+        },
+        "specialSpawn": null,
+        "spawnPath": "Wild",
+        "locationId": "aetherion",
+        "favorite": false,
+        "preview": false,
+        "traitsComplete": false,
+        "createdAt": "2026-10-26T02:11:41.004Z"
+      }
+    ]
+  },
+  "searches": {
+    "aetherion": 1
+  },
+  "createdAt": "2026-10-26T02:11:40.872Z",
+  "savedAt": "2026-10-26T02:11:41.004Z",
+  "customLocations": []
+}
