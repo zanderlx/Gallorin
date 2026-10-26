@@ -10,6 +10,26 @@ export const escapeHTML = value =>
     /[&<>"']/g,
     c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
   );
+// Markup that is already safe: html`` results, or trusted fragments wrapped with raw().
+class SafeHTML {
+  constructor(value) {
+    this.value = value;
+  }
+  toString() {
+    return this.value;
+  }
+}
+/** Marks trusted markup (icons, generated art, other renderers' output) so html`` keeps it as is. */
+export const raw = value => new SafeHTML(String(value ?? ''));
+const htmlPart = value =>
+  value instanceof SafeHTML ? value.value : Array.isArray(value) ? value.map(htmlPart).join('') : escapeHTML(value);
+/**
+ * Tagged template that escapes every interpolated value unless it is html`` output or raw().
+ * Arrays are joined and null or undefined render nothing, like a plain template would print
+ * them through escapeHTML. Call String() on the result when returning it from a renderer.
+ */
+export const html = (strings, ...values) =>
+  new SafeHTML(strings.reduce((out, text, i) => out + text + (i < values.length ? htmlPart(values[i]) : ''), ''));
 export const number = value => Number(value).toLocaleString();
 export const icons = {
   more: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
@@ -183,10 +203,10 @@ export function card(horse, state, mode = 'wild', catalog) {
     rankColor = appearance.colors[rank.key];
   const female = horse.gender === 'Female';
 
-  return `<article class="horse-card" data-card-rank="${rankColor ? rank.key : 'none'}" ${rankColor && appearance.glow[rank.key] ? 'data-rarity-glow' : ''} ${rankColor ? `style="--horse-rank-color:${rankColor}"` : ''} aria-label="${escapeHTML(title)} · ${rank.label}">
-    <div class="card-picture">${mode === 'wild' ? horseArt(horse) : horseHeadArt(horse)}
-    ${collected ? `<button class="favorite ${horse.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${horse.id}" aria-label="${horse.favorite ? 'Unfavorite' : 'Favorite'} ${escapeHTML(title)}" aria-pressed="${horse.favorite}">${icon('heart')}</button>` : ''}</div>
-    <div class="card-body"><div class="card-title"><span class="gender ${female ? 'gender-female' : 'gender-male'}" role="img" aria-label="${female ? 'Female' : 'Male'}">${horseGenderIcon(horse.gender)}</span><h3><button class="horse-card-open" data-action="inspect" data-id="${horse.id}" title="${escapeHTML(title)}" aria-label="View ${escapeHTML(title)}">${escapeHTML(cardTitle)}</button></h3></div></div></article>`;
+  return String(html`<article class="horse-card" data-card-rank="${rankColor ? rank.key : 'none'}" ${rankColor && appearance.glow[rank.key] ? raw('data-rarity-glow') : ''} ${rankColor ? html`style="--horse-rank-color:${rankColor}"` : ''} aria-label="${title} · ${rank.label}">
+    <div class="card-picture">${raw(mode === 'wild' ? horseArt(horse) : horseHeadArt(horse))}
+    ${collected ? html`<button class="favorite ${horse.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${horse.id}" aria-label="${horse.favorite ? 'Unfavorite' : 'Favorite'} ${title}" aria-pressed="${horse.favorite}">${raw(icon('heart'))}</button>` : ''}</div>
+    <div class="card-body"><div class="card-title"><span class="gender ${female ? 'gender-female' : 'gender-male'}" role="img" aria-label="${female ? 'Female' : 'Male'}">${raw(horseGenderIcon(horse.gender))}</span><h3><button class="horse-card-open" data-action="inspect" data-id="${horse.id}" title="${title}" aria-label="View ${title}">${cardTitle}</button></h3></div></div></article>`);
 }
 export function emptyState(title, description, link, linkLabel, symbol = 'stable') {
   return `<div class="empty-state"><div class="empty-symbol">${icon(symbol)}</div><h2>${title}</h2>${description ? `<p>${description}</p>` : ''}${link ? `<a class="button primary" href="#${link}">${linkLabel} ${icon('arrow')}</a>` : ''}</div>`;

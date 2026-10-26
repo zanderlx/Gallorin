@@ -3,7 +3,7 @@ import { musicLibrarySections, rowPlay } from './music-library-table.js';
 import { bindSongActions } from './music-song-actions.js';
 import { bindMusicSorting } from './music-table-sort.js';
 import { bindMusicDisclosures } from './music-disclosures.js';
-import { escapeHTML as e, icon, groups as navigationGroups } from './ui.js';
+import { escapeHTML as e, icon, html, raw, groups as navigationGroups } from './ui.js';
 import { musicGroups, musicTracks, playlistSongs, formatMusicDuration } from './music-context.js';
 
 const bindings = new WeakMap();
@@ -19,28 +19,8 @@ function songRows(library, context) {
     .map((id, index) => {
       const track = allTracks(library).find(t => t.id === id);
       if (!track) return '';
-      return (
-        '<tr data-music-track="' +
-        e(id) +
-        '">' +
-        rowPlay(track, index, context) +
-        '<td><strong>' +
-        e(track.name) +
-        '</strong></td><td class="music-artist">' +
-        e(track.artist ?? 'Gallorin Studios') +
-        '</td><td class="music-duration">' +
-        formatMusicDuration(track.durationSeconds) +
-        '</td><td class="music-row-actions"><button type="button" class="music-row-trash" data-playlist-remove="' +
-        e(context) +
-        '" data-index="' +
-        index +
-        '" data-song-id="' +
-        e(id) +
-        '" title="Remove from playlist" aria-label="Remove ' +
-        e(track.name) +
-        ' from playlist">' +
-        icon('trash') +
-        '</button></td></tr>'
+      return String(
+        html`<tr data-music-track="${id}">${raw(rowPlay(track, index, context))}<td><strong>${track.name}</strong></td><td class="music-artist">${track.artist ?? 'Gallorin Studios'}</td><td class="music-duration">${raw(formatMusicDuration(track.durationSeconds))}</td><td class="music-row-actions"><button type="button" class="music-row-trash" data-playlist-remove="${context}" data-index="${index}" data-song-id="${id}" title="Remove from playlist" aria-label="Remove ${track.name} from playlist">${raw(icon('trash'))}</button></td></tr>`
       );
     })
     .join('');

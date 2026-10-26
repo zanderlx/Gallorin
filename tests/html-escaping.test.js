@@ -115,3 +115,18 @@ for (const [name, render] of Object.entries(views)) {
     );
   });
 }
+
+test('html escapes values, keeps nested html and raw markup, and joins arrays', async () => {
+  const { html, raw } = await import('../public/ui.js');
+  const name = '<b>"Star" & Co</b>';
+  assert.equal(
+    String(html`<p title="${name}">${name}</p>`),
+    '<p title="&lt;b&gt;&quot;Star&quot; &amp; Co&lt;/b&gt;">&lt;b&gt;&quot;Star&quot; &amp; Co&lt;/b&gt;</p>'
+  );
+  assert.equal(
+    String(html`<ul>${['a<', 'b'].map(item => html`<li>${item}</li>`)}</ul>`),
+    '<ul><li>a&lt;</li><li>b</li></ul>'
+  );
+  assert.equal(String(html`<i>${raw('<svg></svg>')}</i>`), '<i><svg></svg></i>');
+  assert.equal(String(html`${null}${undefined}|${false}|${0}`), '|false|0');
+});
