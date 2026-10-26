@@ -1,6 +1,6 @@
 {
   "name": "gallorin-horse-sanctuary",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "type": "module",
   "description": "Gallorin: a local fantasy horse collection game with data-driven spawning.",
@@ -21,7 +21,7 @@
     "typecheck": "tsc -p jsconfig.json"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "dependencies": {
     "electron-updater": "6.8.10",
