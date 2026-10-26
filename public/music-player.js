@@ -244,12 +244,15 @@ export function createMusicPlayer({ notify, getLocations }) {
   });
   if (!desktop) void setPreferences(preferences).catch(error => notify(error.message, true));
   setInterval(() => void refresh(), 350);
-  async function playEffect(id) {
+  async function playEffect(id, eventId) {
     if (!loaded) await refreshLibrary();
-    const track = library.tracks.find(t => t.id === id && isSoundEffect(t));
+    const track = eventId
+      ? effectForEvent(library, eventId)
+      : library.tracks.find(t => t.id === id && isSoundEffect(t));
     if (!track) return;
     await transport.command({
       type: 'effect',
+      eventId,
       track: { ...track, url: location.origin + '/api/music/media/' + track.id }
     });
     await refresh();
@@ -257,7 +260,7 @@ export function createMusicPlayer({ notify, getLocations }) {
   async function playEvent(event) {
     if (!loaded) await refreshLibrary();
     const track = effectForEvent(library, event);
-    if (track) await playEffect(track.id);
+    if (track) await playEffect(track.id, event);
   }
   async function spawnEffects(previous, next, zone) {
     const cosmic = newCosmicEncounters(previous, next, zone);
@@ -301,7 +304,7 @@ export function createMusicPlayer({ notify, getLocations }) {
       },
       async preview(id, playlistContext) {
         if (isSoundEffect(library.tracks.find(t => t.id === id))) {
-          await playEffect(id);
+          await playEffect(id, playlistContext?.startsWith('effect/') ? playlistContext : undefined);
           return;
         }
         const ids = playlistContext
@@ -329,6 +332,15 @@ export function createMusicPlayer({ notify, getLocations }) {
         notifyReplacements();
         const track = musicTracks(library).find(t => t.id === id);
         await transport.command({ type: 'metadata', id, name: track.name, artist: track.artist });
+        if (Number.isFinite(values.volumePercent))
+          await transport.command({ type: 'effect-level', id, value: values.volumePercent / 100 });
+        await refresh();
+      },
+      async setEventVolume(event, volumePercent) {
+        library = await api('/api/music/event-volume', { event, volumePercent });
+        const track = effectForEvent(library, event);
+        if (track)
+          await transport.command({ type: 'effect-level', id: track.id, eventId: event, value: volumePercent / 100 });
         await refresh();
       },
       async setEventSound(event, oldId, newId) {

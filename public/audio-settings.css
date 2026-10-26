@@ -61,7 +61,8 @@
     sans-serif;
   margin: 0;
 }
-.audio-settings-dialog input[type='range'] {
+.audio-settings-dialog input[type='range'],
+.effect-volume input[type='range'] {
   appearance: auto;
   width: 100%;
   height: 18px;
@@ -72,7 +73,8 @@
   background: transparent;
   accent-color: var(--gold, #d2b477);
 }
-.audio-settings-dialog output {
+.audio-settings-dialog output,
+.effect-volume output {
   text-align: left;
   color: var(--gold, #d2b477);
   font:

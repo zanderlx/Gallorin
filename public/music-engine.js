@@ -123,13 +123,23 @@ export function createMusicEngine({
     if (input.type === 'fade' && Number.isFinite(input.value)) fadeSeconds = Math.max(0, Math.min(10, input.value));
     if (input.type === 'sfx-volume' && Number.isFinite(input.value)) {
       soundEffectsVolume = Math.max(0, Math.min(1, input.value));
-      for (const effect of effects.keys()) effect.volume = soundEffectsVolume;
+      for (const [effect, entry] of effects) effect.volume = soundEffectsVolume * entry.gain;
+    }
+    if (input.type === 'effect-level' && Number.isFinite(input.value)) {
+      for (const [effect, entry] of effects) {
+        if (input.eventId ? entry.eventId !== input.eventId : entry.id !== input.id) continue;
+        entry.gain = Math.max(0, Math.min(1, input.value));
+        effect.volume = soundEffectsVolume * entry.gain;
+      }
     }
     if (input.type === 'effect' && input.track?.url) {
       const effect = makeAudio();
       effect.src = input.track.url;
-      effect.volume = soundEffectsVolume;
-      effects.set(effect, input.track.id);
+      const gain = Number.isFinite(input.track.volumePercent)
+        ? Math.max(0, Math.min(100, input.track.volumePercent)) / 100
+        : 1;
+      effect.volume = soundEffectsVolume * gain;
+      effects.set(effect, { id: input.track.id, eventId: input.eventId, gain });
       const release = () => {
         effects.delete(effect);
         effect.pause();
@@ -209,7 +219,7 @@ export function createMusicEngine({
   function snapshot() {
     return {
       track,
-      activeEffectIds: [...effects.values()],
+      activeEffectIds: [...effects.values()].map(entry => entry.id),
       playlistKey: queueKey,
       soundEffectsVolume: Math.round(soundEffectsVolume * 100),
       playlist: queue.map(t => t.id),

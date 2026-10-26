@@ -1,4 +1,5 @@
 // @ts-check
+import { regularEyes, isCosmicEye } from '../public/cosmic-types.js';
 import { limits, formatLimit } from '../public/limits.js';
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { regenerateHorse, horseFingerprint } from './horse-regeneration.js';
@@ -469,6 +470,9 @@ export class GameStore {
         const entry = catalog[kind].find(d => d.id === id);
         if (!entry) throw new Error('Definition not found.');
         if (kind === 'siteThemes' && id === 'default') throw new Error('The original theme is kept as the fallback.');
+        if (kind === 'eyes' && isCosmicEye(entry)) throw new Error('Cosmic eye colors cannot be deleted.');
+        if (kind === 'eyes' && !isCosmicEye(entry) && regularEyes(catalog.eyes).length === 1)
+          throw new Error('Keep at least one normal eye color for spawning.');
         if (
           ['species', 'palettes', 'eyes', 'personalities', 'atmospheres'].includes(kind) &&
           catalog[kind].length === 1
@@ -598,7 +602,10 @@ export class GameStore {
         const validated = validateDefinition('species', { ...existing, traits: payload.traits });
         Object.assign(existing, { traits: validated.traits, traitsComplete: validated.traitsComplete });
       } else if (type === 'save-definition') {
-        const { kind, id, values } = payload;
+        const { kind, id } = payload;
+        let values = payload.values;
+        const cosmicEye = kind === 'eyes' && catalog.eyes.find(eye => eye.id === id && isCosmicEye(eye));
+        if (cosmicEye) values = { ...values, cosmicType: cosmicEye.cosmicType };
         const existing = id ? catalog[kind]?.find(d => d.id === id) : null;
         // Mutation identifiers are generated on creation and remain stable through edits.
         const input = ['mutations', 'species'].includes(kind)
@@ -622,7 +629,8 @@ export class GameStore {
             d =>
               d.id !== id &&
               d.name.toLowerCase() === definition.name.toLowerCase() &&
-              (kind !== 'mutations' || d.type === definition.type)
+              (kind !== 'mutations' || d.type === definition.type) &&
+              (kind !== 'eyes' || (d.cosmicType || 'Normal') === (definition.cosmicType || 'Normal'))
           )
         )
           throw new Error('That name is already in use. Choose another name.');

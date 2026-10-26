@@ -2430,3 +2430,20 @@ select:not([multiple]) {
     grid-column: 1/-1;
   }
 }
+
+.cosmic-eye-note {
+  margin: 6px 0 18px;
+  font-size: 14px;
+}
+
+.eye-locked-value {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--panel-deep), var(--panel) 45%);
+  color: var(--muted);
+  cursor: not-allowed;
+}

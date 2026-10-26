@@ -58,7 +58,7 @@ export function updateMusicRows(root, state) {
 }
 export function musicManagerPage(library, locations) {
   return (
-    '<section class="music-manager"><header class="music-heading"><h1>Background Music</h1><button type="button" class="button music-header-toggle" data-music-toggle-all>Show All</button><button type="button" class="button music-audio-settings" data-audio-settings>' +
+    '<section class="music-manager"><header class="music-heading"><h1>Background Music</h1><button type="button" class="button music-header-toggle" data-music-toggle-all>Show All</button><button type="button" class="button primary music-audio-settings" data-audio-settings>' +
     icon('settings') +
     ' Audio Settings</button></header><div class="music-playlist-groups">' +
     musicGroups(locations)
@@ -134,6 +134,14 @@ export function bindMusicManager(root, services) {
     else assignments[context] = ids;
     await services.saveSettings(assignments, library.fadeSeconds);
   };
+  root.addEventListener(
+    'input',
+    event => {
+      if (event.target.matches('[data-effect-volume]'))
+        event.target.nextElementSibling.textContent = event.target.value + '%';
+    },
+    options
+  );
   let removalDialog;
   root.addEventListener(
     'keydown',
@@ -149,6 +157,9 @@ export function bindMusicManager(root, services) {
     'change',
     event => {
       const target = event.target;
+      if (target.matches('[data-effect-volume]')) {
+        void run(() => services.setEventVolume(target.dataset.volumeEvent, Number(target.value)));
+      }
       if (target.matches('[data-music-import]'))
         void run(() => services.importFiles([...target.files], target.dataset.musicImport));
     },

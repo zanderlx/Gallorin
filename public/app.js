@@ -1,3 +1,5 @@
+import { bindTextButtonSounds } from './button-sounds.js';
+import { regularEyes, setCosmicEyeDefinitions } from './cosmic-types.js';
 import { bindEncounterCooldown } from './encounter-cooldown.js';
 import { bindNavigationDisclosures } from './navigation-disclosures.js';
 import { createMusicPlayer } from './music-player.js';
@@ -76,6 +78,11 @@ const musicPlayer = createMusicPlayer({
   notify,
   getLocations: () => (catalog && state ? locationsFor(catalog, state) : [])
 });
+bindTextButtonSounds(
+  document,
+  () => musicPlayer.playEvent('effect/button-click'),
+  error => notify(error.message, true)
+);
 const openChangelog = createChangelog({
   loadSource: async () => (await request('/api/changelog')).changelog,
   getVersion: () => appVersion
@@ -101,7 +108,7 @@ personalityCreation.addEventListener('cancel', event => {
 });
 const eyeEditor = createEyeEditor(
   draft => libraryEditorPage('eyes', catalog, state, draft),
-  () => catalog.eyes
+  () => regularEyes(catalog.eyes)
 );
 const definitionTransfers = Object.fromEntries(
   ['eyes', 'mutations'].map(kind => [
@@ -220,11 +227,13 @@ function notify(message, error = false) {
   setTimeout(() => toast.remove(), error ? 8000 : 4500);
 }
 function renderChrome() {
+  const navigationScroll = $('#sidebar nav')?.scrollTop ?? 0;
   for (const details of $('#sidebar').querySelectorAll('details')) {
     if (details.dataset.navExpanded ? details.dataset.navExpanded === 'true' : details.open)
       openGroups.add(details.dataset.group);
     else openGroups.delete(details.dataset.group);
   }
+  setCosmicEyeDefinitions(catalog.eyes);
   applyWebsiteTheme(catalog, state);
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   $('#sidebar').innerHTML = sidebar(route, state, openGroups, catalog, appVersion);
@@ -234,6 +243,8 @@ function renderChrome() {
       location.hash = 'wilds/aetherion';
     }
   });
+  // The nav element is replaced above; keep the player's place in the sidebar.
+  $('#sidebar nav').scrollTop = navigationScroll;
   const section = navigationSection(route);
   const sectionName = state.pageCopy?.site?.[`group-${section.title.toLowerCase()}`] ?? section.title;
   const definitionKind =
@@ -619,7 +630,9 @@ document.addEventListener('click', async event => {
         'delete-definition',
         { kind, id },
         catalog.eyes.find(eye => eye.id === id)?.name || 'Eye Color',
-        'Remove this eye color from future spawns. Existing horses keep their saved eye colors.'
+        catalog.eyes.find(eye => eye.id === id)?.cosmicType
+          ? 'Reset this Cosmic artwork eye color to its default. Generated Eye Color traits stay unchanged.'
+          : 'Remove this eye color from future spawns. Existing horses keep their saved eye colors.'
       );
     return askToDelete(
       'delete-definition',

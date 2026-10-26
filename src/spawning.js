@@ -1,4 +1,5 @@
 // @ts-check
+import { regularEyes } from '../public/cosmic-types.js';
 import { horseSchemaVersion, horseGenerationVersion } from '../public/horse-version.js';
 import { varyPalette } from '../public/palette-variation.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
@@ -97,7 +98,7 @@ export function spawnHorse(catalog, location, rng = randomFloat) {
   if (!matchedPalette && !palettes.length)
     throw new Error(`No eligible palette for ${species.name} in ${location.name || location.id}.`);
   const palette = structuredClone(matchedPalette || pickUniform(palettes, rng));
-  const eye = structuredClone(pickUniform(catalog.eyes, rng));
+  const eye = structuredClone(pickUniform(regularEyes(catalog.eyes), rng));
   const personality = structuredClone(pickUniform(catalog.personalities, rng));
   const availableTraits = species.traits || catalog.traits?.[species.name] || {};
   const traits = Object.fromEntries(

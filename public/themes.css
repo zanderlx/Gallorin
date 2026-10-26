@@ -82,7 +82,8 @@
     box-shadow: none;
   }
   & .button.primary:hover:not(:disabled) {
-    filter: brightness(0.95);
+    background: color-mix(in srgb, var(--burgundy), black 15%);
+    filter: none;
   }
   & .button.secondary {
     background: var(--panel-deep);
@@ -90,7 +91,7 @@
     border-color: var(--border);
   }
   & .button.secondary:hover {
-    background: var(--panel);
+    background: color-mix(in srgb, var(--panel-deep), black 15%);
     border-color: var(--gold);
   }
   & .text-button,

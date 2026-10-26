@@ -6,11 +6,29 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.2.2] - Unreleased
+## [1.2.3] - Unreleased
 
-Safer saves with point-in-time backups, and faster clicks and page loads in large stables.
+More control over sound events and Cosmic eye colors, consistent button feedback, and safer, faster local saves.
+
+### Added
+
+- **Music & Sound Effects**
+  - Button Click sound event for text buttons, using Justsomesounds Click Sound by default. Icon-only controls and dropdown menus remain silent.
+  - Individual volume sliders in Sound Events, multiplied by the master Sound Effects volume. Events sharing an audio file can have independent levels.
+
+- **Compendium**
+  - Cosmic eye-color section for Solar, Lunar, Heavenly, Void, and Astral. Artwork colors can be edited locally and apply to existing and future Cosmic horses without changing their generated Eye Color traits.
+  - Cosmic names and rarity are fixed, shown in disabled-style boxes, and protected from deletion. Cosmic artwork colors stay outside normal eye-trait generation and horse-update choices.
 
 ### Updated
+
+- **Music & Sound Effects**
+  - Horse Sold now defaults to Alexzavesa Clinking Coins. Existing saved assignments are preserved.
+  - Assigning a sound to an empty event starts its volume at 100%. Replacing an assigned sound preserves the event's level; clearing it and assigning again starts at 100%.
+  - Song and sound-effect name/artist editors fit their text and have adjacent checkmark buttons that save the entire row. Sound-event selection uses the same inline confirmation layout.
+  - Icon-only import controls sit beside All Songs and All Sound Effects, with tooltips and no button-click sound.
+  - Sound Events uses Event, Sound Effect, and Volume columns, with volume meters aligned to the Artist column in the library tables.
+  - Audio Settings uses the same primary button style as Compendium Create/Add actions.
 
 - **Saves & Backups**
   - Saves, settings, and the music library are written to disk safely before replacing the previous file, so a power cut or crash cannot leave them empty.
@@ -23,6 +41,13 @@ Safer saves with point-in-time backups, and faster clicks and page loads in larg
   - Clicks and page loads are about twice as fast, and faster still with long sale histories.
   - Settings files are reloaded only when they change, including changes you make by hand.
   - Imported songs stream to disk instead of being held in memory.
+
+### Fixed
+
+- **Navigation & Buttons**
+  - Selecting a sidebar page preserves the navigation's scroll position.
+  - Action buttons darken on hover without lifting. Search The Wilds uses the shared styling without its previous glow.
+  - Escape-menu buttons visibly darken on hover while keeping their base colors and dimensions.
 
 ## [1.2.1] - 2026-10-25
 

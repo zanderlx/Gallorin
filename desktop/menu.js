@@ -1,5 +1,18 @@
+import { bindTextButtonSounds } from '../public/button-sounds.js';
+import { effectForEvent } from '../public/music-effects.js';
 import { bindChangelog } from './changelog.js';
 import { createAudioSettings } from '../public/audio-settings.js';
+bindTextButtonSounds(document, async () => {
+  const library = await window.desktopMenu.musicSettings();
+  const track = library && effectForEvent(library, 'effect/button-click');
+  const origin = new URLSearchParams(location.search).get('game');
+  if (track && origin)
+    await window.gallorinMusic.command({
+      type: 'effect',
+      eventId: 'effect/button-click',
+      track: { ...track, url: origin + '/api/music/media/' + track.id }
+    });
+});
 const mute = document.querySelector('#mute');
 let preferences = await window.desktopMenu.audio();
 function display() {

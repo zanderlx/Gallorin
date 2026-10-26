@@ -84,6 +84,8 @@ const server = createServer(async (req, res) => {
           ]).map(item => item.id);
           return send(res, 200, await music.settings(input, contexts));
         }
+        if (url.pathname === '/api/music/event-volume')
+          return send(res, 200, await music.eventVolume(input.event, input.volumePercent));
         if (url.pathname === '/api/music/update') return send(res, 200, await music.update(input.id, input.values));
         if (url.pathname === '/api/music/assign') {
           const contexts = musicContexts([

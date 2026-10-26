@@ -48,7 +48,7 @@ function sort(table, state) {
 export function bindMusicSorting(root, signal) {
   for (const table of root.querySelectorAll('.music-table')) {
     [...table.tHead.rows[0].cells].slice(0, -1).forEach((th, index) => {
-      if (th.dataset.musicSort) return;
+      if (th.dataset.musicSort || th.textContent.trim() === 'Volume') return;
       const label = th.textContent.trim();
       th.dataset.musicSort = th.classList.contains('music-sound-effect')
         ? 'sound'

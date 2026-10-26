@@ -1,5 +1,6 @@
 // @ts-check
 import { withLocalDefaults } from '../public/local-defaults.js';
+import { withCosmicEyes, regularEyes } from '../public/cosmic-types.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
 import { mkdir, readFile, readdir, stat, unlink } from 'node:fs/promises';
 import { replaceDurable } from './durable-file.js';
@@ -182,9 +183,14 @@ export class ConfigurationFiles {
       });
       const systemIDs = catalog[kind].map(e => e.systemId).filter(Boolean);
       if (new Set(systemIDs).size !== systemIDs.length) throw new Error(`Duplicate system IDs in ${kind}.json.`);
-      const keys = entries.map(e => `${kind === 'mutations' ? e.type : ''}:${e.name?.toLowerCase()}`);
+      const keys = entries.map(
+        e =>
+          `${kind === 'mutations' ? e.type : kind === 'eyes' ? e.cosmicType || 'Normal' : ''}:${e.name?.toLowerCase()}`
+      );
       if (new Set(keys).size !== keys.length) throw new Error(`Duplicate names in ${kind}.json.`);
     }
+    catalog.eyes = withCosmicEyes(catalog.eyes);
+    if (!regularEyes(catalog.eyes).length) throw new Error('Keep at least one normal eye color for spawning.');
     if (!catalog.palettes.some(p => p.complete)) throw new Error('Keep at least one complete palette for spawning.');
     const settings = validateSpawnSettings(
       withLocalDefaults(defaultSpawnSettings, await this.json('spawn-settings.json'))

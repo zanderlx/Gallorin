@@ -1,7 +1,7 @@
 import { bindPlaylistSelection } from './music-playlist-selection.js';
 import { soundEffectGroups, isSoundEffect } from './music-effects.js';
 import { musicGroups, musicTracks, playlistSongs, normalizePlaylistSelections } from './music-context.js';
-import { escapeHTML as e, icon, groups as navigationGroups } from './ui.js';
+import { escapeHTML as e, groups as navigationGroups } from './ui.js';
 
 export function bindSongActions(root, services, { signal, redraw }) {
   let menu, menuAbort, edit, confirmation;
@@ -160,6 +160,44 @@ export function bindSongActions(root, services, { signal, redraw }) {
       else services.notify(e.message, true);
     }
   };
+  // Measure the actual text; clamp long values to the available table cell.
+  const sizeEditor = input => {
+    const resize = () => {
+      const context = document.createElement('canvas').getContext('2d');
+      context.font = getComputedStyle(input).font;
+      const text = input.tagName === 'SELECT' ? input.selectedOptions[0]?.textContent || 'None' : input.value || ' ';
+      input.style.width = Math.ceil(context.measureText(text).width + (input.tagName === 'SELECT' ? 52 : 20)) + 'px';
+    };
+    input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', resize);
+    requestAnimationFrame(resize);
+  };
+  const editorWithSave = input => {
+    const fields = document.createElement('div');
+    fields.className = 'music-inline-edit';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'music-row-save';
+    button.dataset.saveSongRow = '';
+    button.title = 'Save changes';
+    button.setAttribute('aria-label', 'Save all changes in this row');
+    const mark = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    mark.classList.add('icon');
+    mark.setAttribute('viewBox', '0 0 24 24');
+    mark.setAttribute('fill', 'none');
+    mark.setAttribute('stroke', 'currentColor');
+    mark.setAttribute('stroke-width', '2');
+    mark.setAttribute('stroke-linecap', 'round');
+    mark.setAttribute('stroke-linejoin', 'round');
+    mark.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'm5 12 4 4L19 6');
+    mark.append(path);
+    button.append(mark);
+    button.onclick = () => saveEdit();
+    fields.append(input, button);
+    sizeEditor(input);
+    return fields;
+  };
   const editSong = (id, eventId) => {
     if (eventId) {
       if (edit) {
@@ -192,13 +230,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
         name: soundSelect
       };
       edit.buttons.forEach(button => (button.disabled = true));
-      soundCell.replaceChildren(soundSelect);
-      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-      edit.orderCell.innerHTML =
-        '<button type="button" class="music-row-save" data-save-song-row title="Save sound effect" aria-label="Save sound effect">' +
-        icon('check') +
-        '</button>';
-      edit.orderCell.querySelector('button').onclick = () => saveEdit();
+      soundCell.replaceChildren(editorWithSave(soundSelect));
       row.classList.add('music-editing');
       soundSelect.focus();
       row.addEventListener(
@@ -250,14 +282,8 @@ export function bindSongActions(root, services, { signal, redraw }) {
       buttons: [...row.querySelectorAll('button')]
     };
     edit.buttons.forEach(button => (button.disabled = true));
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    edit.orderCell.innerHTML =
-      '<button type="button" class="music-row-save" data-save-song-row title="Save song" aria-label="Save song name and artist">' +
-      icon('check') +
-      '</button>';
-    edit.orderCell.querySelector('button').onclick = () => saveEdit();
-    titleCell.replaceChildren(name);
-    artistCell.replaceChildren(artist);
+    titleCell.replaceChildren(editorWithSave(name));
+    artistCell.replaceChildren(editorWithSave(artist));
     row.classList.add('music-editing');
     name.focus();
     name.select();

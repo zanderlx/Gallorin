@@ -6,7 +6,8 @@ export const soundEffectGroups = [
     items: [
       { id: 'effect/cosmic-spawn', name: 'Cosmic Horse Spawn' },
       { id: 'effect/horse-sold', name: 'Horse Sold' },
-      { id: 'effect/respawn-ready', name: 'Horse Respawn Timer Finished' }
+      { id: 'effect/respawn-ready', name: 'Horse Respawn Timer Finished' },
+      { id: 'effect/button-click', name: 'Button Click' }
     ]
   }
 ];
@@ -26,5 +27,12 @@ export function newCosmicEncounters(previous, next, zone) {
 export function effectForEvent(library, event, rng = Math.random) {
   const ids = Array.isArray(library.assignments?.[event]) ? library.assignments[event] : [];
   const tracks = ids.map(id => library.tracks.find(track => track.id === id && isSoundEffect(track))).filter(Boolean);
-  return tracks.length ? tracks[Math.floor(rng() * tracks.length)] : null;
+  if (!tracks.length) return null;
+  const track = tracks[Math.floor(rng() * tracks.length)];
+  return { ...track, volumePercent: soundEventVolume(library, event, track) };
+}
+
+export function soundEventVolume(library, event, track) {
+  if (!track) return 100;
+  return library.eventVolumes?.[event] ?? track.volumePercent ?? 100;
 }

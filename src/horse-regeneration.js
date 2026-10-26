@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { pickUniform, pickWeighted, randomFloat, rollSize, meetsThresholds } from './spawning.js';
 import { cosmicPalette } from './cosmic-palettes.js';
 import { varyPalette } from '../public/palette-variation.js';
+import { regularEyes } from '../public/cosmic-types.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
 import { horseUpdateFields, horseTraitLimits } from '../public/horse-update-fields.js';
 import { horseGenerationVersion } from '../public/horse-version.js';
@@ -221,8 +222,8 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   if (active('eye')) {
     const eye = structuredClone(
       rule('eye').mode === 'reroll'
-        ? pickUniform(catalog.eyes, rng)
-        : find(catalog.eyes, rule('eye').value, 'eye color')
+        ? pickUniform(regularEyes(catalog.eyes), rng)
+        : find(regularEyes(catalog.eyes), rule('eye').value, 'eye color')
     );
     Object.assign(horse, {
       eye,

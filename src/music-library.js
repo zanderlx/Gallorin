@@ -14,6 +14,16 @@ function checkImport(name, kind) {
   if (typeof name !== 'string' || !name.toLowerCase().endsWith('.mp3') || name.length > 200)
     throw Error('Choose an MP3 file with a name under 200 characters.');
 }
+// New assignments start at full event volume; existing events keep their level.
+function assignSoundEvent(library, event, ids) {
+  const old = assignmentTracks(library.assignments[event]);
+  library.eventVolumes ||= {};
+  if (!ids.length) delete library.eventVolumes[event];
+  else if (!old.length) library.eventVolumes[event] = 100;
+  else if (!Object.hasOwn(library.eventVolumes, event))
+    library.eventVolumes[event] = library.tracks.find(track => track.id === old[0])?.volumePercent ?? 100;
+  library.assignments[event] = ids;
+}
 export class MusicLibrary {
   constructor(directory, builtin, seeds = [], defaults = {}) {
     this.builtin = builtin;
@@ -31,6 +41,7 @@ export class MusicLibrary {
       library = {
         version: 2,
         tracks: [],
+        eventVolumes: structuredClone(defaults.eventVolumes || {}),
         assignments: structuredClone(defaults.assignments || {}),
         fadeSeconds: defaults.fadeSeconds ?? 2
       };
@@ -45,6 +56,7 @@ export class MusicLibrary {
         id: track.id,
         name: track.name,
         kind: track.kind || 'music',
+        ...(Number.isFinite(track.volumePercent) ? { volumePercent: track.volumePercent } : {}),
         addedAt: new Date().toISOString()
       });
       seen.add(track.id);
@@ -112,6 +124,8 @@ export class MusicLibrary {
             id === 'menu' ||
             library.tracks.some(track => track.id === id && isSoundEffect(track) === context.startsWith('effect/'))
         );
+        if (Number.isFinite(defaults.eventVolumes?.[context]))
+          library.eventVolumes = { ...library.eventVolumes, [context]: defaults.eventVolumes[context] };
         changed = true;
       }
       if (context.startsWith('effect/') && !seededEvents.has(context)) {
@@ -289,6 +303,8 @@ export class MusicLibrary {
       // explicit clear, not permission to reapply its bundled assignment.
       for (const context of Object.keys(library.assignments))
         if (!Object.hasOwn(assignments, context)) assignments[context] = [];
+      for (const [event, ids] of Object.entries(assignments))
+        if (event.startsWith('effect/')) assignSoundEvent(library, event, ids);
       await this.write({ ...library, assignments, fadeSeconds: input.fadeSeconds });
       return this.read();
     });
@@ -298,8 +314,18 @@ export class MusicLibrary {
       const library = await this.read(),
         track = library.tracks.find(t => t.id === id);
       if (id !== 'menu' && !track) throw Error('Song not found.');
-      if (!values || Object.keys(values).some(key => !['name', 'artist', 'eventIds'].includes(key)))
+      if (!values || Object.keys(values).some(key => !['name', 'artist', 'eventIds', 'volumePercent'].includes(key)))
         throw Error('Only the name, artist, and sound events can be edited.');
+      if (values.volumePercent !== undefined) {
+        if (
+          !isSoundEffect(track) ||
+          !Number.isFinite(values.volumePercent) ||
+          values.volumePercent < 0 ||
+          values.volumePercent > 100
+        )
+          throw Error('Sound effect volume must be between 0 and 100.');
+        track.volumePercent = values.volumePercent;
+      }
       const text = (key, max) => {
         const value = values[key];
         // eslint-disable-next-line no-control-regex -- rejects control characters in names
@@ -322,8 +348,8 @@ export class MusicLibrary {
           const old = assignmentTracks(library.assignments[event.id]);
           if (values.eventIds.includes(event.id)) {
             if (old.length && old[0] !== id) assignmentReplacements.push({ event: event.id, from: old[0], to: id });
-            library.assignments[event.id] = [id];
-          } else if (old.includes(id)) library.assignments[event.id] = [];
+            assignSoundEvent(library, event.id, [id]);
+          } else if (old.includes(id)) assignSoundEvent(library, event.id, []);
         }
       }
       if (id === 'menu') library.builtinMetadata = { name, artist };
@@ -359,7 +385,7 @@ export class MusicLibrary {
         const old = assignmentTracks(library.assignments[context]);
         if (selected.has(context) && effect) {
           if (old.length && old[0] !== id) assignmentReplacements.push({ event: context, from: old[0], to: id });
-          library.assignments[context] = [id];
+          assignSoundEvent(library, context, [id]);
         } else if (selected.has(context)) {
           if (!old.includes(id)) {
             if (old.length >= 500) throw Error('A playlist can contain up to 500 songs.');
@@ -369,11 +395,34 @@ export class MusicLibrary {
           old.includes(id) ||
           (id === 'menu' && context === 'default' && !Object.hasOwn(library.assignments, context))
         ) {
-          library.assignments[context] = old.filter(song => song !== id);
+          if (effect)
+            assignSoundEvent(
+              library,
+              context,
+              old.filter(song => song !== id)
+            );
+          else library.assignments[context] = old.filter(song => song !== id);
         }
       }
       await this.write(library);
       return { ...(await this.read()), assignmentReplacements };
+    });
+  }
+  async eventVolume(event, value) {
+    return this.edit(async () => {
+      const library = await this.read();
+      if (
+        !soundEffectGroups.flatMap(group => group.items).some(item => item.id === event) ||
+        !assignmentTracks(library.assignments[event]).some(id =>
+          library.tracks.some(track => track.id === id && isSoundEffect(track))
+        )
+      )
+        throw Error('Choose an assigned sound event.');
+      if (!Number.isFinite(value) || value < 0 || value > 100)
+        throw Error('Sound event volume must be between 0 and 100.');
+      library.eventVolumes = { ...library.eventVolumes, [event]: value };
+      await this.write(library);
+      return this.read();
     });
   }
   async fade(value) {
@@ -399,6 +448,8 @@ export class MusicLibrary {
           assignmentTracks(value).filter(value => value !== id)
         ])
       );
+      for (const [event, ids] of Object.entries(library.assignments))
+        if (event.startsWith('effect/') && !ids.length && library.eventVolumes) delete library.eventVolumes[event];
       await this.write(library);
       await unlink(join(this.root, id + '.mp3')).catch(e => {
         if (e.code !== 'ENOENT') throw e;
