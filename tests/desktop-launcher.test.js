@@ -31,7 +31,7 @@ test('desktop launcher starts hidden-compatible server, reuses it, and stops onl
   const url = 'http://127.0.0.1:' + port;
   const first = await (await fetch(url + '/api/health')).json();
   pid = first.pid;
-  assert.equal(first.application, 'aetherion');
+  assert.equal(first.application, 'gallorin');
   await run('start');
   assert.equal((await (await fetch(url + '/api/health')).json()).pid, pid);
   const saved = await readFile(join(directory, 'player', 'save.json'), 'utf8');

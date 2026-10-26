@@ -99,7 +99,7 @@ const server = createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/health')
       return send(res, 200, {
-        application: 'aetherion',
+        application: 'gallorin',
         projectId: createHash('sha256').update(resolve(root).toLowerCase()).digest('hex'),
         pid: process.pid
       });
@@ -142,6 +142,8 @@ const server = createServer(async (req, res) => {
     });
     res.end(req.method === 'HEAD' ? undefined : content);
   } catch (error) {
+    // A reply already under way (such as a streamed song) cannot be replaced by an error message.
+    if (res.headersSent) return res.destroy();
     send(res, error.code === 'ENOENT' ? 404 : 400, { error: error.code === 'ENOENT' ? 'Not found.' : error.message });
   }
 });
