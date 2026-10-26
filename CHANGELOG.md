@@ -30,6 +30,9 @@ More control over sound events and Cosmic eye colors, consistent button feedback
   - Sound Events uses Event, Sound Effect, and Volume columns, with volume meters aligned to the Artist column in the library tables.
   - Audio Settings uses the same primary button style as Compendium Create/Add actions.
 
+- **Interface**
+  - Removed visual keyboard-focus rings and focus-only highlights throughout gameplay, dialogs, and the main menu. Native keyboard controls and mouse-hover feedback remain available.
+
 - **Saves & Backups**
   - Saves, settings, and the music library are written to disk safely before replacing the previous file, so a power cut or crash cannot leave them empty.
   - A backup snapshot is kept before your first change each session and at most hourly after, keeping the newest 20.
@@ -48,6 +51,7 @@ More control over sound events and Cosmic eye colors, consistent button feedback
   - Selecting a sidebar page preserves the navigation's scroll position.
   - Action buttons darken on hover without lifting. Search The Wilds uses the shared styling without its previous glow.
   - Escape-menu buttons visibly darken on hover while keeping their base colors and dimensions.
+  - Play and Back To Game no longer appear permanently highlighted when their menus open.
 
 ## [1.2.1] - 2026-10-25
 

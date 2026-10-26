@@ -1,0 +1,5 @@
+/* Keep native keyboard behavior without visible focus rings. */
+:focus,
+:focus-visible {
+  outline: none !important;
+}

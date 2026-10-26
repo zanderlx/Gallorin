@@ -957,8 +957,7 @@ body.has-music-player {
   color: inherit;
   cursor: pointer;
 }
-.music-options-menu button:hover,
-.music-options-menu button:focus-visible {
+.music-options-menu button:hover {
   background: var(--panel-deep);
   color: var(--gold);
 }

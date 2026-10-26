@@ -208,7 +208,4 @@
   & .favorite.is-favorite {
     color: var(--burgundy);
   }
-  & :focus-visible {
-    outline-color: var(--gold);
-  }
 }
