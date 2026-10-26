@@ -1,39 +1,82 @@
-import {test} from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {spawn} from 'node:child_process';
-import {once} from 'node:events';
-import {mkdtemp,rm} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
-test('music HTTP APIs enforce origin and stream seekable imports without exposing arbitrary files',{timeout:20000},async t=>{
- const directory=await mkdtemp(join(tmpdir(),'gallorin-music-http-'));
- const child=spawn(process.execPath,['server.js'],{cwd:fileURLToPath(new URL('../',import.meta.url)),env:{...process.env,PORT:'0',HORSE_DATA_DIR:directory},stdio:['ignore','pipe','pipe'],windowsHide:true});
- t.after(async()=>{if(child.exitCode===null){const exit=once(child,'exit');child.kill();await exit;}await rm(directory,{recursive:true,force:true});});
- const base=await new Promise((resolve,reject)=>{let output='';child.stdout.on('data',bytes=>{output+=bytes;const match=output.match(/http:\/\/127\.0\.0\.1:\d+/);if(match)resolve(match[0]);});child.once('error',reject);child.once('exit',code=>reject(Error('Early server exit '+code)));});
- const bytes=Buffer.from('ID3abcdefghijklmno');
- const upload=origin=>fetch(base+'/api/music/import',{method:'POST',headers:{Origin:origin,'Content-Type':'audio/mpeg','X-File-Name':encodeURIComponent('Forest song.mp3')},body:bytes});
- assert.equal((await upload('https://elsewhere.test')).status,403);
- const response=await upload(base);assert.equal(response.status,200);
- const library=await response.json(),id=library.tracks.find(track=>track.name==='Forest Song').id;
- const range=await fetch(base+'/api/music/media/'+id,{headers:{Range:'bytes=3-6'}});
- assert.equal(range.status,206);assert.equal(range.headers.get('content-range'),'bytes 3-6/'+bytes.length);
- assert.deepEqual(Buffer.from(await range.arrayBuffer()),bytes.subarray(3,7));
- const suffix=await fetch(base+'/api/music/media/'+id,{headers:{Range:'bytes=-4'}});
- assert.deepEqual(Buffer.from(await suffix.arrayBuffer()),bytes.subarray(-4));
- assert.equal((await fetch(base+'/api/music/media/'+id,{headers:{Range:'bytes=9999-'}})).status,416);
- const head=await fetch(base+'/api/music/media/'+id,{method:'HEAD'});assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),String(bytes.length));
- assert.equal((await fetch(base+'/api/music/media/not-a-track')).status,404);
- const builtin=await fetch(base+'/api/music/media/menu',{headers:{Range:'bytes=0-3'}});assert.equal(builtin.status,206);await builtin.arrayBuffer();
- const post=(endpoint,body)=>fetch(base+'/api/music/'+endpoint,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(body)});
- assert.equal((await post('settings',{assignments:{'wilds/aetherion':id},fadeSeconds:1.5})).status,200);
- assert.equal((await post('settings',{assignments:{'wilds/unknown':id},fadeSeconds:1})).status,400);
- assert.equal((await post('fade',{fadeSeconds:3})).status,200);
- assert.equal((await (await fetch(base+'/api/music')).json()).fadeSeconds,3);
- assert.equal((await post('fade',{fadeSeconds:99})).status,400);
- const deleted=await post('delete',{id});assert.equal(deleted.status,200);
- const cleared=(await deleted.json()).assignments;
- assert.deepEqual(cleared['wilds/aetherion'],[]);
- assert.ok(Object.values(cleared).every(ids=>Array.isArray(ids)&&ids.length===0));
- assert.equal((await fetch(base+'/api/music/media/'+id)).status,404);
-});
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+test(
+  'music HTTP APIs enforce origin and stream seekable imports without exposing arbitrary files',
+  { timeout: 20000 },
+  async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'gallorin-music-http-'));
+    const child = spawn(process.execPath, ['server.js'], {
+      cwd: fileURLToPath(new URL('../', import.meta.url)),
+      env: { ...process.env, PORT: '0', HORSE_DATA_DIR: directory },
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true
+    });
+    t.after(async () => {
+      if (child.exitCode === null) {
+        const exit = once(child, 'exit');
+        child.kill();
+        await exit;
+      }
+      await rm(directory, { recursive: true, force: true });
+    });
+    const base = await new Promise((resolve, reject) => {
+      let output = '';
+      child.stdout.on('data', bytes => {
+        output += bytes;
+        const match = output.match(/http:\/\/127\.0\.0\.1:\d+/);
+        if (match) resolve(match[0]);
+      });
+      child.once('error', reject);
+      child.once('exit', code => reject(Error('Early server exit ' + code)));
+    });
+    const bytes = Buffer.from('ID3abcdefghijklmno');
+    const upload = origin =>
+      fetch(base + '/api/music/import', {
+        method: 'POST',
+        headers: { Origin: origin, 'Content-Type': 'audio/mpeg', 'X-File-Name': encodeURIComponent('Forest song.mp3') },
+        body: bytes
+      });
+    assert.equal((await upload('https://elsewhere.test')).status, 403);
+    const response = await upload(base);
+    assert.equal(response.status, 200);
+    const library = await response.json(),
+      id = library.tracks.find(track => track.name === 'Forest Song').id;
+    const range = await fetch(base + '/api/music/media/' + id, { headers: { Range: 'bytes=3-6' } });
+    assert.equal(range.status, 206);
+    assert.equal(range.headers.get('content-range'), 'bytes 3-6/' + bytes.length);
+    assert.deepEqual(Buffer.from(await range.arrayBuffer()), bytes.subarray(3, 7));
+    const suffix = await fetch(base + '/api/music/media/' + id, { headers: { Range: 'bytes=-4' } });
+    assert.deepEqual(Buffer.from(await suffix.arrayBuffer()), bytes.subarray(-4));
+    assert.equal((await fetch(base + '/api/music/media/' + id, { headers: { Range: 'bytes=9999-' } })).status, 416);
+    const head = await fetch(base + '/api/music/media/' + id, { method: 'HEAD' });
+    assert.equal(head.status, 200);
+    assert.equal(head.headers.get('content-length'), String(bytes.length));
+    assert.equal((await fetch(base + '/api/music/media/not-a-track')).status, 404);
+    const builtin = await fetch(base + '/api/music/media/menu', { headers: { Range: 'bytes=0-3' } });
+    assert.equal(builtin.status, 206);
+    await builtin.arrayBuffer();
+    const post = (endpoint, body) =>
+      fetch(base + '/api/music/' + endpoint, {
+        method: 'POST',
+        headers: { Origin: base, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    assert.equal((await post('settings', { assignments: { 'wilds/aetherion': id }, fadeSeconds: 1.5 })).status, 200);
+    assert.equal((await post('settings', { assignments: { 'wilds/unknown': id }, fadeSeconds: 1 })).status, 400);
+    assert.equal((await post('fade', { fadeSeconds: 3 })).status, 200);
+    assert.equal((await (await fetch(base + '/api/music')).json()).fadeSeconds, 3);
+    assert.equal((await post('fade', { fadeSeconds: 99 })).status, 400);
+    const deleted = await post('delete', { id });
+    assert.equal(deleted.status, 200);
+    const cleared = (await deleted.json()).assignments;
+    assert.deepEqual(cleared['wilds/aetherion'], []);
+    assert.ok(Object.values(cleared).every(ids => Array.isArray(ids) && ids.length === 0));
+    assert.equal((await fetch(base + '/api/music/media/' + id)).status, 404);
+  }
+);

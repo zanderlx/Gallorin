@@ -1,23 +1,149 @@
-#changelog-dialog{width:min(860px,90vw);max-height:80vh;padding:0;overflow:hidden;background:var(--panel,#252b24);color:var(--text,#e9d8b4);border:1px solid var(--gold-soft,#9a8454);border-radius:10px}
-#changelog-dialog::backdrop{background:#101811bd;backdrop-filter:blur(5px)}
-#changelog-dialog[open]{display:flex;flex-direction:column}
-#changelog-dialog .changelog-header{display:flex;align-items:center;justify-content:space-between;padding:24px 30px;border-bottom:1px solid var(--border,#d2b47744);flex-shrink:0}
-#changelog-dialog .changelog-header h2{font:30px Georgia,serif;margin:0}
-#changelog-dialog .changelog-header button{border:0;background:none;color:inherit;font-size:26px;padding:0 8px;cursor:pointer}
-#changelog-dialog .changelog-content{overflow-y:auto;padding:0 30px 26px;min-height:0;font:15px/1.7 'Segoe UI',sans-serif;scrollbar-color:var(--gold-soft,#9a8454) var(--panel,#252b24)}
-#changelog-dialog .changelog-release{padding:24px 0;border-bottom:1px solid var(--border,#d2b47733)}
-#changelog-dialog .changelog-release:last-child{border:0}
-#changelog-dialog .changelog-release h3{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font:26px Georgia,serif;letter-spacing:0;text-transform:none;margin:0 0 4px;color:var(--text,#e9d8b4)}
-#changelog-dialog .changelog-date{display:block;font-size:12px;color:var(--muted,#a5ae9e);margin-bottom:15px}
-#changelog-dialog .changelog-release p{font:15px/1.7 'Segoe UI',sans-serif;font-style:normal;color:var(--muted,#c5ccb9);margin:8px 0 15px}
-#changelog-dialog .changelog-release h4{font-size:16px;color:var(--gold,#d2b477);margin:20px 0 8px;text-transform:none}
-#changelog-dialog .changelog-release ul{padding-left:22px;margin:8px 0}
-#changelog-dialog .changelog-release li{padding-left:3px;margin:7px 0;color:var(--text,#dddcc9)}
-#changelog-dialog .changelog-badge{font:11px 'Segoe UI',sans-serif;border:1px solid var(--gold-soft,#9a8454);border-radius:4px;padding:3px 7px;color:var(--gold,#d2b477)}
-@media(max-width:600px){#changelog-dialog .changelog-header{padding:20px}#changelog-dialog .changelog-content{padding:0 20px 20px}}
-.sidebar-foot{gap:8px;text-transform:none}
-.sidebar-foot button{padding:0;background:none;border:0;color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;text-transform:none}
-.sidebar-foot button:hover{color:var(--gold)}
+#changelog-dialog {
+  width: min(860px, 90vw);
+  max-height: 80vh;
+  padding: 0;
+  overflow: hidden;
+  background: var(--panel, #252b24);
+  color: var(--text, #e9d8b4);
+  border: 1px solid var(--gold-soft, #9a8454);
+  border-radius: 10px;
+}
+#changelog-dialog::backdrop {
+  background: #101811bd;
+  backdrop-filter: blur(5px);
+}
+#changelog-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+#changelog-dialog .changelog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 30px;
+  border-bottom: 1px solid var(--border, #d2b47744);
+  flex-shrink: 0;
+}
+#changelog-dialog .changelog-header h2 {
+  font:
+    30px Georgia,
+    serif;
+  margin: 0;
+}
+#changelog-dialog .changelog-header button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 26px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+#changelog-dialog .changelog-content {
+  overflow-y: auto;
+  padding: 0 30px 26px;
+  min-height: 0;
+  font:
+    15px/1.7 'Segoe UI',
+    sans-serif;
+  scrollbar-color: var(--gold-soft, #9a8454) var(--panel, #252b24);
+}
+#changelog-dialog .changelog-release {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border, #d2b47733);
+}
+#changelog-dialog .changelog-release:last-child {
+  border: 0;
+}
+#changelog-dialog .changelog-release h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font:
+    26px Georgia,
+    serif;
+  letter-spacing: 0;
+  text-transform: none;
+  margin: 0 0 4px;
+  color: var(--text, #e9d8b4);
+}
+#changelog-dialog .changelog-date {
+  display: block;
+  font-size: 12px;
+  color: var(--muted, #a5ae9e);
+  margin-bottom: 15px;
+}
+#changelog-dialog .changelog-release p {
+  font:
+    15px/1.7 'Segoe UI',
+    sans-serif;
+  font-style: normal;
+  color: var(--muted, #c5ccb9);
+  margin: 8px 0 15px;
+}
+#changelog-dialog .changelog-release h4 {
+  font-size: 16px;
+  color: var(--gold, #d2b477);
+  margin: 20px 0 8px;
+  text-transform: none;
+}
+#changelog-dialog .changelog-release ul {
+  padding-left: 22px;
+  margin: 8px 0;
+}
+#changelog-dialog .changelog-release li {
+  padding-left: 3px;
+  margin: 7px 0;
+  color: var(--text, #dddcc9);
+}
+#changelog-dialog .changelog-badge {
+  font:
+    11px 'Segoe UI',
+    sans-serif;
+  border: 1px solid var(--gold-soft, #9a8454);
+  border-radius: 4px;
+  padding: 3px 7px;
+  color: var(--gold, #d2b477);
+}
+@media (max-width: 600px) {
+  #changelog-dialog .changelog-header {
+    padding: 20px;
+  }
+  #changelog-dialog .changelog-content {
+    padding: 0 20px 20px;
+  }
+}
+.sidebar-foot {
+  gap: 8px;
+  text-transform: none;
+}
+.sidebar-foot button {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font: inherit;
+  text-transform: none;
+}
+.sidebar-foot button:hover {
+  color: var(--gold);
+}
 
-#changelog-dialog .changelog-release .changelog-timeline-title{font:21px Georgia,serif;color:var(--text,#e9d8b4);margin:30px 0 14px;padding-top:18px;border-top:1px solid var(--border,#d2b47733)}
-#changelog-dialog .changelog-release h5{font-size:16px;color:var(--gold,#d2b477);margin:20px 0 8px;text-transform:none}
+#changelog-dialog .changelog-release .changelog-timeline-title {
+  font:
+    21px Georgia,
+    serif;
+  color: var(--text, #e9d8b4);
+  margin: 30px 0 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border, #d2b47733);
+}
+#changelog-dialog .changelog-release h5 {
+  font-size: 16px;
+  color: var(--gold, #d2b477);
+  margin: 20px 0 8px;
+  text-transform: none;
+}

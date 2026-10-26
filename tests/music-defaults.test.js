@@ -1,31 +1,40 @@
-import {test} from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {MusicLibrary} from '../src/music-library.js';
-import {defaultAudioPreferences} from '../public/audio-preferences.js';
-import {selectedPlaylist} from '../public/music-context.js';
-const defaults=JSON.parse(await readFile(new URL('../data/defaults/music.json',import.meta.url),'utf8'));
-const seeds=defaults.tracks.map(track=>({...track,source:fileURLToPath(new URL('../desktop/assets/music/'+track.file,import.meta.url))}));
-const builtin=fileURLToPath(new URL('../desktop/assets/music/main-menu.mp3',import.meta.url));
-test('new libraries receive the promoted local playlist and audio defaults',async t=>{
- const dir=await mkdtemp(join(tmpdir(),'gallorin-promoted-defaults-'));t.after(()=>rm(dir,{recursive:true,force:true}));
- const library=await new MusicLibrary(dir,builtin,seeds,defaults).read();
- assert.deepEqual(library.assignments,defaults.assignments);assert.equal(library.fadeSeconds,2);
- assert.deepEqual(defaultAudioPreferences,{volume:15,muted:false,soundEffectsVolume:50});
- const names=context=>selectedPlaylist(library,context).map(id=>library.tracks.find(t=>t.id===id)?.name||'Glades of Gallorin');
- assert.deepEqual(names('wilds/aetherion'),['Aetherion Wilds']);
- assert.deepEqual(names('wilds/hallowhoof'),['Halloween 1','Halloween 2']);
- assert.deepEqual(names('town/cave'),['Town']);
- assert.deepEqual(names('main-menu'),['Glades of Gallorin']);
- assert.equal(library.assignments['effect/cosmic-spawn'].length,1);
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { MusicLibrary } from '../src/music-library.js';
+import { defaultAudioPreferences } from '../public/audio-preferences.js';
+import { selectedPlaylist } from '../public/music-context.js';
+const defaults = JSON.parse(await readFile(new URL('../data/defaults/music.json', import.meta.url), 'utf8'));
+const seeds = defaults.tracks.map(track => ({
+  ...track,
+  source: fileURLToPath(new URL('../desktop/assets/music/' + track.file, import.meta.url))
+}));
+const builtin = fileURLToPath(new URL('../desktop/assets/music/main-menu.mp3', import.meta.url));
+test('new libraries receive the promoted local playlist and audio defaults', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'gallorin-promoted-defaults-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const library = await new MusicLibrary(dir, builtin, seeds, defaults).read();
+  assert.deepEqual(library.assignments, defaults.assignments);
+  assert.equal(library.fadeSeconds, 2);
+  assert.deepEqual(defaultAudioPreferences, { volume: 15, muted: false, soundEffectsVolume: 50 });
+  const names = context =>
+    selectedPlaylist(library, context).map(id => library.tracks.find(t => t.id === id)?.name || 'Glades of Gallorin');
+  assert.deepEqual(names('wilds/aetherion'), ['Aetherion Wilds']);
+  assert.deepEqual(names('wilds/hallowhoof'), ['Halloween 1', 'Halloween 2']);
+  assert.deepEqual(names('town/cave'), ['Town']);
+  assert.deepEqual(names('main-menu'), ['Glades of Gallorin']);
+  assert.equal(library.assignments['effect/cosmic-spawn'].length, 1);
 });
-test('updated repo defaults never replace existing playlist choices or crossfade',async t=>{
- const dir=await mkdtemp(join(tmpdir(),'gallorin-preserved-defaults-'));t.after(()=>rm(dir,{recursive:true,force:true}));
- const store=new MusicLibrary(dir,builtin,seeds,defaults);await store.ready;
- await store.settings({assignments:{default:[]},fadeSeconds:7},['default']);
- const restarted=await new MusicLibrary(dir,builtin,seeds,defaults).read();
- assert.deepEqual(restarted.assignments,Object.fromEntries(Object.keys(defaults.assignments).map(key=>[key,[]])));assert.equal(restarted.fadeSeconds,7);
+test('updated repo defaults never replace existing playlist choices or crossfade', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'gallorin-preserved-defaults-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const store = new MusicLibrary(dir, builtin, seeds, defaults);
+  await store.ready;
+  await store.settings({ assignments: { default: [] }, fadeSeconds: 7 }, ['default']);
+  const restarted = await new MusicLibrary(dir, builtin, seeds, defaults).read();
+  assert.deepEqual(restarted.assignments, Object.fromEntries(Object.keys(defaults.assignments).map(key => [key, []])));
+  assert.equal(restarted.fadeSeconds, 7);
 });

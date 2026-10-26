@@ -1,23 +1,136 @@
-.theme-mode-switch{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-.theme-mode-switch [aria-pressed=true]{outline:2px solid var(--gold);outline-offset:2px}
-.copy-toolbar{position:sticky;top:77px;z-index:15;border:1px solid var(--gold-soft);background:var(--panel);color:var(--text);border-radius:6px;padding:12px 16px;margin:0 0 24px;box-shadow:0 4px 15px #0003;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.copy-toolbar>span{font-size:14px}
-.copy-toolbar>div{display:flex;gap:7px;flex-wrap:wrap}
-.copy-toolbar .button,.copy-toolbar .text-button{font-size:13px}
-.copy-editable{position:relative;outline:1px dashed var(--gold-soft);outline-offset:3px;white-space:pre-wrap}
-.copy-edit-handle{position:absolute;z-index:4;right:0;top:0;transform:translate(40%,-45%);width:28px;height:28px;min-height:28px;display:grid;place-items:center;background:var(--panel);color:var(--gold);border:1px solid var(--gold-soft);border-radius:50%;font:19px var(--sans);box-shadow:0 2px 6px #0003}
-.copy-edit-handle:hover{background:var(--panel-deep)}
-.copy-editor-dialog{width:min(660px,calc(100vw - 28px))}
-.copy-editor-dialog h2{font-size:27px}
-.copy-dialog-body{padding:22px}
-.copy-dialog-body textarea{font:16px/1.6 var(--sans);background:var(--panel-deep);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:12px;width:100%;resize:vertical}
-.copy-dialog-body details{font-size:14px;color:var(--muted)}
-.copy-dialog-body details p{margin-top:12px;white-space:pre-wrap}
-.copy-dialog-body summary{cursor:pointer}
-#sidebar .copy-edit-handle{transform:translate(10%,-35%);width:24px;height:24px;font-size:16px}
-#sidebar .nav-items a>span.copy-editable{margin-right:15px}
-@media(max-width:900px){.copy-toolbar{top:67px}}
-@media(max-width:480px){.copy-toolbar{position:relative;top:0}.copy-toolbar .button{padding:8px}}
+.theme-mode-switch {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.theme-mode-switch [aria-pressed='true'] {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.copy-toolbar {
+  position: sticky;
+  top: 77px;
+  z-index: 15;
+  border: 1px solid var(--gold-soft);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 0 0 24px;
+  box-shadow: 0 4px 15px #0003;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.copy-toolbar > span {
+  font-size: 14px;
+}
+.copy-toolbar > div {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.copy-toolbar .button,
+.copy-toolbar .text-button {
+  font-size: 13px;
+}
+.copy-editable {
+  position: relative;
+  outline: 1px dashed var(--gold-soft);
+  outline-offset: 3px;
+  white-space: pre-wrap;
+}
+.copy-edit-handle {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  top: 0;
+  transform: translate(40%, -45%);
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  color: var(--gold);
+  border: 1px solid var(--gold-soft);
+  border-radius: 50%;
+  font: 19px var(--sans);
+  box-shadow: 0 2px 6px #0003;
+}
+.copy-edit-handle:hover {
+  background: var(--panel-deep);
+}
+.copy-editor-dialog {
+  width: min(660px, calc(100vw - 28px));
+}
+.copy-editor-dialog h2 {
+  font-size: 27px;
+}
+.copy-dialog-body {
+  padding: 22px;
+}
+.copy-dialog-body textarea {
+  font: 16px/1.6 var(--sans);
+  background: var(--panel-deep);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 12px;
+  width: 100%;
+  resize: vertical;
+}
+.copy-dialog-body details {
+  font-size: 14px;
+  color: var(--muted);
+}
+.copy-dialog-body details p {
+  margin-top: 12px;
+  white-space: pre-wrap;
+}
+.copy-dialog-body summary {
+  cursor: pointer;
+}
+#sidebar .copy-edit-handle {
+  transform: translate(10%, -35%);
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+}
+#sidebar .nav-items a > span.copy-editable {
+  margin-right: 15px;
+}
+@media (max-width: 900px) {
+  .copy-toolbar {
+    top: 67px;
+  }
+}
+@media (max-width: 480px) {
+  .copy-toolbar {
+    position: relative;
+    top: 0;
+  }
+  .copy-toolbar .button {
+    padding: 8px;
+  }
+}
 
-.copy-removed{display:none!important}.copy-editable:empty{display:inline-block;min-width:36px;min-height:22px}#profile>.copy-toolbar{position:relative;top:0;margin:12px}.copy-editable{min-height:1em}
-
+.copy-removed {
+  display: none !important;
+}
+.copy-editable:empty {
+  display: inline-block;
+  min-width: 36px;
+  min-height: 22px;
+}
+#profile > .copy-toolbar {
+  position: relative;
+  top: 0;
+  margin: 12px;
+}
+.copy-editable {
+  min-height: 1em;
+}

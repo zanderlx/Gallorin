@@ -38,17 +38,11 @@
     "eye": {
       "name": "Dark Brown",
       "rarity": "Common",
-      "colors": [
-        "#734E49"
-      ]
+      "colors": ["#734E49"]
     },
     "traits": {
-      "Mane": [
-        "Awaiting species data"
-      ],
-      "Tail": [
-        "Awaiting species data"
-      ],
+      "Mane": ["Awaiting species data"],
+      "Tail": ["Awaiting species data"],
       "Pattern": [],
       "Paint": [],
       "Cosmetic": [],

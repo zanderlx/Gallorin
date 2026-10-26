@@ -1,15 +1,19 @@
-import {brandLogo} from './brand-logo.js';
-import {horseGenderIcon} from './gender-icon.js';
+import { brandLogo } from './brand-logo.js';
+import { horseGenderIcon } from './gender-icon.js';
 import { horseArt, horseHeadArt } from './art.js';
-import {horseCardRank} from './horse-rank.js';
-import {raritySettings} from './rarity-settings.js';
+import { horseCardRank } from './horse-rank.js';
+import { raritySettings } from './rarity-settings.js';
 import { locationsFor } from './zones.js';
 
-export const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const escapeHTML = value =>
+  String(value ?? '').replace(
+    /[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
 export const number = value => Number(value).toLocaleString();
 export const icons = {
-  more:'<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
-  music:'<path d="M9 18V5l12-2v13M9 8l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  more: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
+  music: '<path d="M9 18V5l12-2v13M9 8l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   agility: '<path d="m13 2-9 12h7l-1 8 10-13h-8Z"/>',
   strength: '<path d="M7 12h10M3 8v8m4-10v12m10-12v12m4-10v8M3 12h4m10 0h4"/>',
   jump: '<path d="M12 20V4m-6 6 6-6 6 6M4 20h16"/>',
@@ -37,44 +41,146 @@ export const icons = {
   upload: '<path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/>',
   download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>'
 };
-export const icon = name => `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.spark}</svg>`;
+export const icon = name =>
+  `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.spark}</svg>`;
 export const groups = [
-  { title: 'Town', icon: 'town', items: [['town/gacha', 'Gacha Machine'], ['town/spirit', 'Spirit Tame'], ['town/plush', 'Plush Machine'], ['town/cave', 'Ancient Cave'], ['town/digsite', 'Digsite']] },
-  { title: 'Stables', icon: 'stable', open: true, items: [['stable/all', 'My Horses'], ['stable/breeding', 'Breeding']] },
-  { title: 'Inventory', icon: 'bag', items: [['inventory/accessories', 'Accessories'], ['inventory/potions', 'Potions']] },
-  { title: 'Wilds', icon: 'compass', open: true, items: [['wilds/aetherion', 'Aetherion Wilds'], ['wilds/hallowhoof', 'Hallowhoof']] },
-  { title: 'Developer Settings', icon: 'settings', items: [['dev/settings', 'Game Settings'], ['dev/species', 'Species'], ['dev/traits', 'Traits'], ['dev/colors', 'Colors & Palettes'], ['dev/mutations', 'Mutations'], ['dev/items', 'Inventory & Items'], ['dev/locations', 'Events & Locations'], ['dev/saves', 'Save Management']] }
+  {
+    title: 'Town',
+    icon: 'town',
+    items: [
+      ['town/gacha', 'Gacha Machine'],
+      ['town/spirit', 'Spirit Tame'],
+      ['town/plush', 'Plush Machine'],
+      ['town/cave', 'Ancient Cave'],
+      ['town/digsite', 'Digsite']
+    ]
+  },
+  {
+    title: 'Stables',
+    icon: 'stable',
+    open: true,
+    items: [
+      ['stable/all', 'My Horses'],
+      ['stable/breeding', 'Breeding']
+    ]
+  },
+  {
+    title: 'Inventory',
+    icon: 'bag',
+    items: [
+      ['inventory/accessories', 'Accessories'],
+      ['inventory/potions', 'Potions']
+    ]
+  },
+  {
+    title: 'Wilds',
+    icon: 'compass',
+    open: true,
+    items: [
+      ['wilds/aetherion', 'Aetherion Wilds'],
+      ['wilds/hallowhoof', 'Hallowhoof']
+    ]
+  },
+  {
+    title: 'Developer Settings',
+    icon: 'settings',
+    items: [
+      ['dev/settings', 'Game Settings'],
+      ['dev/species', 'Species'],
+      ['dev/traits', 'Traits'],
+      ['dev/colors', 'Colors & Palettes'],
+      ['dev/mutations', 'Mutations'],
+      ['dev/items', 'Inventory & Items'],
+      ['dev/locations', 'Events & Locations'],
+      ['dev/saves', 'Save Management']
+    ]
+  }
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
-workbench.items = [['dev/horse-updates','Horse Updates'],['dev/edit-mode','Edit Mode'],['dev/settings','Game Settings'],['dev/saves','Save Management'],['dev/roadmap','Remaining Features']];
+workbench.items = [
+  ['dev/horse-updates', 'Horse Updates'],
+  ['dev/edit-mode', 'Edit Mode'],
+  ['dev/settings', 'Game Settings'],
+  ['dev/saves', 'Save Management'],
+  ['dev/roadmap', 'Remaining Features']
+];
 groups.push(
-  {title:'Compendium',icon:'book',items:[['dev/species','Species'],['dev/traits','Traits'],['dev/colors','Palettes'],['dev/eyes','Eye Colors'],['dev/personalities','Personalities'],['dev/mutations','Mutations'],['dev/rarities','Rarities'],['dev/locations','Zones'],['dev/atmospheres','Zone Atmospheres'],['dev/items','Items & Potions'],['dev/themes','Item Themes']]},
-  {title:'User Interface',icon:'spark',items:[['dev/appearance','Appearance & Themes'],['dev/profile','My Profile'],['dev/music','Music & Sound Effects']]}
+  {
+    title: 'Compendium',
+    icon: 'book',
+    items: [
+      ['dev/species', 'Species'],
+      ['dev/traits', 'Traits'],
+      ['dev/colors', 'Palettes'],
+      ['dev/eyes', 'Eye Colors'],
+      ['dev/personalities', 'Personalities'],
+      ['dev/mutations', 'Mutations'],
+      ['dev/rarities', 'Rarities'],
+      ['dev/locations', 'Zones'],
+      ['dev/atmospheres', 'Zone Atmospheres'],
+      ['dev/items', 'Items & Potions'],
+      ['dev/themes', 'Item Themes']
+    ]
+  },
+  {
+    title: 'User Interface',
+    icon: 'spark',
+    items: [
+      ['dev/appearance', 'Appearance & Themes'],
+      ['dev/profile', 'My Profile'],
+      ['dev/music', 'Music & Sound Effects']
+    ]
+  }
 );
-groups.splice(groups.indexOf(workbench),1);
+groups.splice(groups.indexOf(workbench), 1);
 groups.push(workbench);
-for (const group of groups) if (group.title !== 'Stables') group.items.sort((a,b) => a[1].localeCompare(b[1]));
+for (const group of groups) if (group.title !== 'Stables') group.items.sort((a, b) => a[1].localeCompare(b[1]));
 export function navigationSection(route) {
-  return groups.find(group => group.items.some(([path]) => path === route))
-    || (route.startsWith('wilds/') ? groups.find(group => group.title === 'Wilds') : {title:'Gallorin',icon:'compass'});
+  return (
+    groups.find(group => group.items.some(([path]) => path === route)) ||
+    (route.startsWith('wilds/')
+      ? groups.find(group => group.title === 'Wilds')
+      : { title: 'Gallorin', icon: 'compass' })
+  );
 }
 export function sidebar(route, state, openGroups, catalog, appVersion = '') {
-  const locations = catalog ? locationsFor(catalog,state) : [{id:'hallowhoof',event:true}];
-  const navigation = groups.map(group => group.title === 'Wilds' && catalog ? { ...group, items: locations.filter(l => l.enabled).map(l => [`wilds/${l.id}`, l.name]) } : group).map(group => ({...group,items:group.title === 'Stables' ? group.items : [...group.items].sort((a,b) => (state.pageCopy?.site?.[`nav-${a[0].replaceAll('/','-')}`] || a[1]).localeCompare(state.pageCopy?.site?.[`nav-${b[0].replaceAll('/','-')}`] || b[1]))}));
+  const locations = catalog ? locationsFor(catalog, state) : [{ id: 'hallowhoof', event: true }];
+  const navigation = groups
+    .map(group =>
+      group.title === 'Wilds' && catalog
+        ? { ...group, items: locations.filter(l => l.enabled).map(l => [`wilds/${l.id}`, l.name]) }
+        : group
+    )
+    .map(group => ({
+      ...group,
+      items:
+        group.title === 'Stables'
+          ? group.items
+          : [...group.items].sort((a, b) =>
+              (state.pageCopy?.site?.[`nav-${a[0].replaceAll('/', '-')}`] || a[1]).localeCompare(
+                state.pageCopy?.site?.[`nav-${b[0].replaceAll('/', '-')}`] || b[1]
+              )
+            )
+    }));
   return `<a href="#wilds/aetherion" class="brand">${brandLogo()}<span><span class="brand-title">GALLORIN</span><small>A HORSEKEEPER’S CHRONICLE</small></span></a>
-    <nav>${navigation.map(group => `<details data-group="${group.title}" ${openGroups.has(group.title) ? 'open' : ''}>
+    <nav>${navigation
+      .map(
+        group => `<details data-group="${group.title}" ${openGroups.has(group.title) ? 'open' : ''}>
       <summary>${group.title === 'Wilds' ? `<a class="nav-group-home" href="#wilds/aetherion" data-action="wilds-home">${icon(group.icon)}<span>Wilds</span></a>` : `${icon(group.icon)}<span>${group.title}</span>`}<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
       <div class="nav-items">${group.items.map(([path, label]) => `<a href="#${path}" ${route === path ? 'aria-current="page"' : ''}><span>${escapeHTML(label)}</span>${path === 'stable/all' ? `<span class="count">${state.horses.length}</span>` : ''}</a>`).join('')}</div>
-    </details>`).join('')}</nav>
+    </details>`
+      )
+      .join('')}</nav>
     <div class="sidebar-foot" data-copy-skip><span>Gallorin${appVersion ? ` v${escapeHTML(appVersion)}` : ''}</span><span aria-hidden="true">|</span><button type="button" id="sidebar-changelog" aria-haspopup="dialog">Changelog</button></div>`;
 }
 export function card(horse, state, mode = 'wild', catalog) {
   const title = horse.name || horse.species;
   const characters = Array.from(title);
-  const cardTitle = characters.length > 13 ? `${characters.slice(0,13).join('')}…` : title;
+  const cardTitle = characters.length > 13 ? `${characters.slice(0, 13).join('')}…` : title;
   const collected = mode === 'stable';
-  const rank = horseCardRank(horse,catalog);
-  const appearance = raritySettings(catalog),rankColor = appearance.colors[rank.key];
+  const rank = horseCardRank(horse, catalog);
+  const appearance = raritySettings(catalog),
+    rankColor = appearance.colors[rank.key];
   const female = horse.gender === 'Female';
 
   return `<article class="horse-card" data-card-rank="${rankColor ? rank.key : 'none'}" ${rankColor && appearance.glow[rank.key] ? 'data-rarity-glow' : ''} ${rankColor ? `style="--horse-rank-color:${rankColor}"` : ''} aria-label="${escapeHTML(title)} · ${rank.label}">
@@ -88,9 +194,3 @@ export function emptyState(title, description, link, linkLabel, symbol = 'stable
 export function heading(kicker, title, description, extra = '') {
   return `<div class="page-heading"><div>${kicker ? `<span class="eyebrow" data-copy-key="page.kicker" data-copy-label="Page eyebrow">${kicker}</span>` : ''}<h1 data-copy-key="page.title" data-copy-label="Page title">${title}</h1><p data-copy-key="page.description" data-copy-label="Page introduction">${description}</p></div>${extra}</div>`;
 }
-
-
-
-
-
-
