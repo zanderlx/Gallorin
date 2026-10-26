@@ -11,15 +11,56 @@ concurrency:
   group: validation-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  checks:
+    name: Code and workflow checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - name: Lint workflows (actionlint 1.7.12)
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color
+      - name: Audit workflow security (zizmor 1.31.1)
+        run: pipx run zizmor==1.31.1 --offline --min-severity medium .github/workflows
+      - name: Flag changes to guarded files
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          guarded=$(git diff --name-only "origin/$BASE_REF...HEAD" -- .github AGENTS.md tests/fixtures electron-builder.json package.json)
+          if [ -n "$guarded" ]; then
+            echo "### Guarded files changed (review closely)" >> "$GITHUB_STEP_SUMMARY"
+            while IFS= read -r file; do
+              echo "::warning file=$file::Guarded file changed; review this diff closely."
+              echo "- \`$file\`" >> "$GITHUB_STEP_SUMMARY"
+            done <<< "$guarded"
+          fi
   windows:
+    needs: checks
     uses: ./.github/workflows/windows-validation.yml
   required:
     name: Required validation
     if: always()
-    needs: windows
+    needs: [checks, windows]
     runs-on: ubuntu-latest
     steps:
       - name: Require every validation job to pass
         env:
-          RESULT: ${{ needs.windows.result }}
-        run: test "$RESULT" = success
+          CHECKS: ${{ needs.checks.result }}
+          WINDOWS: ${{ needs.windows.result }}
+        run: test "$CHECKS" = success && test "$WINDOWS" = success
