@@ -1,4 +1,5 @@
 // @ts-check
+import { limits, formatLimit } from '../public/limits.js';
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { regenerateHorse, horseFingerprint } from './horse-regeneration.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
@@ -404,7 +405,8 @@ export class GameStore {
           else next.encounters[key].splice(index, 1);
         }
       } else if (type === 'import-horse') {
-        if (JSON.stringify(payload).length > 524288) throw new Error('Horse files must be 512 KB or smaller.');
+        if (JSON.stringify(payload).length > limits.horseFileBytes)
+          throw new Error(`Horse files must be ${formatLimit(limits.horseFileBytes)} or smaller.`);
         const horse = readHorseDocument(payload);
         if (!next.settings.ignoreStableLimit && next.horses.length >= next.settings.stableCapacity)
           throw new Error('Your stable is full. Adjust capacity in Game Settings.');

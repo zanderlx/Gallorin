@@ -1,4 +1,5 @@
 import { createHorseDocument, readHorseDocument } from './horse-transfer.js';
+import { limits, formatLimit } from './limits.js';
 import { profileContent } from './profile.js';
 
 export function createHorseTransfers({ getCatalog, getState, save, notify, onImported }) {
@@ -70,7 +71,8 @@ export function createHorseTransfers({ getCatalog, getState, save, notify, onImp
         if (!file || importing) return;
         importing = true;
         try {
-          if (file.size > 524288) throw new Error('Horse files must be 512 KB or smaller.');
+          if (file.size > limits.horseFileBytes)
+            throw new Error(`Horse files must be ${formatLimit(limits.horseFileBytes)} or smaller.`);
           let document;
           try {
             document = JSON.parse(await file.text());
