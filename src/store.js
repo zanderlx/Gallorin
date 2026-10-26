@@ -169,7 +169,8 @@ export class GameStore {
       await copyFile(this.file, join(this.directory, 'backups', 'previous-save.json'));
       await this.snapshotIfDue();
     }
-    await replaceDurable(this.file, JSON.stringify(next, null, 2) + '\n');
+    // Compact JSON: about a third smaller and faster to write than pretty-printed saves.
+    await replaceDurable(this.file, JSON.stringify(next) + '\n');
   }
   // Keeps a point-in-time copy before the first change of each session and at most hourly after.
   async snapshotIfDue() {
@@ -732,7 +733,9 @@ export class GameStore {
       } else await this.persist(next);
       this.state = next;
       if (type === 'apply-horse-updates') this.horseUpdatePreviews.delete(payload.token);
-      return this.snapshot();
+      // Each action builds a fresh copy, so the stored state is returned without cloning it again.
+      // Callers only serialize it and must not mutate it.
+      return this.state;
     });
     this.queue = run.catch(() => {});
     return run;
