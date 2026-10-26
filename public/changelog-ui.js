@@ -1,3 +1,4 @@
+import { icon } from './ui.js';
 import { parseChangelog } from './changelog.js';
 export function createChangelog({ loadSource, getVersion }) {
   const dialog = document.createElement('dialog');
@@ -5,7 +6,9 @@ export function createChangelog({ loadSource, getVersion }) {
   dialog.setAttribute('aria-labelledby', 'changelog-title');
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   dialog.innerHTML =
-    '<header class="changelog-header"><h2 id="changelog-title">Changelog</h2><button type="button" data-close-changelog aria-label="Close changelog">×</button></header><div class="changelog-content" tabindex="0"></div>';
+    '<header class="changelog-header"><h2 id="changelog-title">Changelog</h2><button type="button" class="button secondary" data-close-changelog aria-label="Close changelog" title="Close changelog">' +
+    icon('close') +
+    '</button></header><div class="changelog-content" tabindex="0"></div>';
   document.body.append(dialog);
   const body = dialog.querySelector('.changelog-content');
   let loaded = false;

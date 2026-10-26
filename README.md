@@ -77,8 +77,6 @@ On Windows, **Launch Gallorin.vbs** starts the browser edition after setup; **St
 
 Horses, configuration, imported audio, and playlists stay local. Updates replace app files while retaining saved data. Use **Developer Settings → Save Management** for exports and backups; copy the music folder separately when transferring imported audio.
 
-## Versions & guides
+## Guides
 
-Versions use **major.minor.patch**. New features can increase the minor version; subsequent small fix releases increase the patch number.
-
-[Changelog and Aetherion legacy history](CHANGELOG.md) · [Desktop guide](desktop/README.md) · [Music guide](docs/music.md)
+[Changelog](CHANGELOG.md) · [Desktop guide](desktop/README.md) · [Music guide](docs/music.md)

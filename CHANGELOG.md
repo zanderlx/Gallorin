@@ -6,9 +6,9 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.2.3] - Unreleased
+## [1.2.3] - 2026-10-26
 
-More control over sound events and Cosmic eye colors, consistent button feedback, and safer, faster local saves.
+More control over sound events and Cosmic eye colors, with consistent button feedback.
 
 ### Added
 
@@ -33,6 +33,20 @@ More control over sound events and Cosmic eye colors, consistent button feedback
 - **Interface**
   - Removed visual keyboard-focus rings and focus-only highlights throughout gameplay, dialogs, and the main menu. Native keyboard controls and mouse-hover feedback remain available.
 
+### Fixed
+
+- **Navigation & Buttons**
+  - Selecting a sidebar page preserves the navigation's scroll position.
+  - Action buttons darken on hover without lifting. Search The Wilds uses the shared styling without its previous glow.
+  - Escape-menu buttons visibly darken on hover while keeping their base colors and dimensions.
+  - Play and Back To Game no longer appear permanently highlighted when their menus open.
+
+## [1.2.2] - 2026-10-25
+
+Safer saves and faster page loads. Included in v1.2.3 without a separate release.
+
+### Updated
+
 - **Saves & Backups**
   - Saves, settings, and the music library are written to disk safely before replacing the previous file, so a power cut or crash cannot leave them empty.
   - A backup snapshot is kept before your first change each session and at most hourly after, keeping the newest 20.
@@ -44,14 +58,6 @@ More control over sound events and Cosmic eye colors, consistent button feedback
   - Clicks and page loads are about twice as fast, and faster still with long sale histories.
   - Settings files are reloaded only when they change, including changes you make by hand.
   - Imported songs stream to disk instead of being held in memory.
-
-### Fixed
-
-- **Navigation & Buttons**
-  - Selecting a sidebar page preserves the navigation's scroll position.
-  - Action buttons darken on hover without lifting. Search The Wilds uses the shared styling without its previous glow.
-  - Escape-menu buttons visibly darken on hover while keeping their base colors and dimensions.
-  - Play and Back To Game no longer appear permanently highlighted when their menus open.
 
 ## [1.2.1] - 2026-10-25
 
