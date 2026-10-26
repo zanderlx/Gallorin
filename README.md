@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.2.2 — Patient Equines Yearn Toward Overgrown Nature](docs/assets/gallorin-banner.svg)
+![Gallorin v1.2.3](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.2.2: Patient Equines Yearn Toward Overgrown Nature
+# Gallorin v1.2.3
 
 **Desktop horse collection game · Windows**
 
@@ -15,9 +15,9 @@
 - Explore zones and tame, rename, favorite, sell, import, and export horses.
 - Inspect horse details, palettes, traits, mutations, notes, and skill XP.
 - Customize species, traits, palettes, eye colors, personalities, rarities, and zones through the Compendium.
-- Configure rarity borders and glow independently.
+- Configure rarity borders and glow independently, and customize Cosmic artwork eye colors without changing generated eye traits.
 - Manage location playlists and a separate sound-effect library, with event assignments, crossfades, and a compact player.
-- Control music and sound-effect volumes independently.
+- Control music and sound-effect volumes independently, with individual event levels and configurable text-button click sounds.
 - Generate horses with an expanded set of categorized color palettes.
 - Configure optional Wilds search cooldowns with a persistent countdown and completion sound.
 - Adjust themes, page text, profiles, economy, and spawning settings.
@@ -77,8 +77,6 @@ On Windows, **Launch Gallorin.vbs** starts the browser edition after setup; **St
 
 Horses, configuration, imported audio, and playlists stay local. Updates replace app files while retaining saved data. Use **Developer Settings → Save Management** for exports and backups; copy the music folder separately when transferring imported audio.
 
-## Versions & guides
+## Guides
 
-Versions use **major.minor.patch**. New features can increase the minor version; subsequent small fix releases increase the patch number.
-
-[Changelog and Aetherion legacy history](CHANGELOG.md) · [Desktop guide](desktop/README.md) · [Music guide](docs/music.md)
+[Changelog](CHANGELOG.md) · [Desktop guide](desktop/README.md) · [Music guide](docs/music.md)

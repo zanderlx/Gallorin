@@ -484,7 +484,10 @@ test('all existing definitions and blank editor forms render without missing val
 test('Eye Color Manager lists cards with colors and modal edit actions', () => {
   const html = eyesManagerPage(catalog);
   assert.match(html, /Create Eye Color/);
-  assert.equal((html.match(/class="panel eye-definition-card"/g) || []).length, catalog.eyes.length);
+  assert.equal(
+    (html.match(/<button type="button" class="panel eye-definition-card"/g) || []).length,
+    catalog.eyes.length
+  );
   for (const eye of catalog.eyes) {
     assert.ok(html.includes(eye.name));
     assert.ok(html.includes(eye.rarity));

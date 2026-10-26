@@ -108,10 +108,6 @@
   width: var(--profile-border-width);
   background: var(--profile-rarity-color, var(--border));
 }
-.profile-tab-rail button:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-}
 .horse-profile-shell .profile-grid {
   display: grid;
   grid-template-columns: var(--profile-columns);

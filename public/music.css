@@ -151,9 +151,15 @@ body.has-music-player {
   justify-content: flex-start;
 }
 .music-import {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  width: 43px;
+  min-width: 43px;
+  height: 43px;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
   cursor: pointer;
 }
 .music-import input[hidden] {
@@ -705,7 +711,7 @@ body.has-music-player {
 .music-all-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 20px;
   flex-wrap: wrap;
 }
@@ -889,7 +895,7 @@ body.has-music-player {
   color: #fff0e8;
 }
 .music-delete-dialog .button.danger:hover {
-  background: #984b56;
+  background: color-mix(in srgb, #803f48, black 15%);
 }
 @media (max-width: 850px) {
   .music-player .music-art {
@@ -951,8 +957,7 @@ body.has-music-player {
   color: inherit;
   cursor: pointer;
 }
-.music-options-menu button:hover,
-.music-options-menu button:focus-visible {
+.music-options-menu button:hover {
   background: var(--panel-deep);
   color: var(--gold);
 }
@@ -1116,7 +1121,7 @@ body.has-music-player {
 .music-playlist-picker .music-dialog-actions {
   justify-content: center;
 }
-.music-table .music-order .music-row-save {
+.music-table .music-row-save {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1396,4 +1401,60 @@ body.has-music-player.music-player-compact {
 .music-library-table td.music-event {
   font-size: 13px;
   overflow-wrap: anywhere;
+}
+
+.music-inline-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.music-inline-edit input {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+.music-inline-edit .music-row-save {
+  flex-shrink: 0;
+}
+/* Match Audio Settings; percentages stay aligned beside each slider. */
+.effect-volume {
+  display: grid;
+  grid-template-columns: minmax(70px, 180px) 48px;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+}
+.music-inline-edit input,
+.music-inline-edit select {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 52px);
+}
+/* Share the available width evenly between the three data columns. */
+[data-library-table='sound-events'] th.music-event,
+[data-library-table='sound-events'] th.music-sound-effect,
+[data-library-table='sound-events'] th.music-effect-volume {
+  width: auto;
+}
+[data-library-table='sound-events'] .music-sound-effect {
+  text-align: left;
+}
+[data-library-table='sound-events'] .music-sound-effect .music-sort-button,
+[data-library-table='sound-events'] .music-sound-effect .music-inline-edit {
+  justify-content: flex-start;
+}
+
+/* Volume starts where Artist starts in the library tables; it shares Artist + Duration space. */
+@media (min-width: 601px) {
+  [data-library-table='sound-events'] th.music-effect-volume {
+    box-sizing: content-box;
+    width: 28%;
+    padding-right: 97px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1050px) {
+  [data-library-table='sound-events'] th.music-effect-volume {
+    padding-right: 103px;
+  }
 }

@@ -1,4 +1,5 @@
 import { rarityTier, systemID, validateThresholds, defaultSpeciesTiers } from './spawn-config.js';
+import { withCosmicEyes, cosmicEyeColors } from './cosmic-types.js';
 import { mutatedPalettes } from './mutated-palettes.js';
 export const regions = ['Coat Top', 'Coat Bottom', 'Hair', 'Hoof', 'Nose', 'Sock', 'Keratin', 'Paint', 'Pattern'];
 export const traitCategories = ['Mane', 'Tail', 'Pattern', 'Paint', 'Cosmetic', 'Keratin', 'Ears', 'Whiskers'];
@@ -259,7 +260,9 @@ export function normalizeCatalog(source) {
     speciesIds: p.speciesIds || [],
     assetSkins: p.assetSkins || []
   }));
-  catalog.eyes = catalog.eyes.map(p => ({ ...p, textureId: p.textureId || '', layers: p.layers || [] }));
+  catalog.eyes = withCosmicEyes(
+    catalog.eyes.map(p => ({ ...p, textureId: p.textureId || '', layers: p.layers || [] }))
+  );
   catalog.traits = Object.fromEntries(catalog.species.map(s => [s.name, s.traits]));
   catalog.locations = catalog.locations.map(l => ({
     ...l,
@@ -426,6 +429,13 @@ export function validateDefinition(kind, input) {
       throw new Error('Choose one to six eye colors.');
     result.colors = input.colors.map(color);
     result.rarity = text('rarity', 60, true);
+    if (input.cosmicType) {
+      if (!Object.hasOwn(cosmicEyeColors, input.cosmicType)) throw new Error('Choose a valid Cosmic horse type.');
+      result.cosmicType = input.cosmicType;
+      result.name = input.cosmicType;
+      result.rarity = 'Cosmic';
+      result.systemId = `cosmic-eye-${input.cosmicType.toLowerCase()}`;
+    } else if (result.rarity === 'Cosmic') throw new Error('Cosmic eyes are reserved for Cosmic artwork.');
     result.textureId = text('textureId', 200) || `eye-${systemID(result.name)}`;
     if (!Array.isArray(input.layers ?? []) || (input.layers || []).length > 20)
       throw new Error('Provide up to 20 eye layers.');

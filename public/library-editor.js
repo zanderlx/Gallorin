@@ -135,9 +135,10 @@ export function libraryEditorPage(kind, catalog, state, draft) {
     <input type="hidden" name="assetSkins" value="${e((draft.assetSkins || []).join('\n'))}">`;
   if (kind === 'eyes')
     fields =
+      `<input type="hidden" name="cosmicType" value="${e(draft.cosmicType || '')}">` +
       `<input type="hidden" name="textureId" value="${e(draft.textureId || '')}">` +
       `<input type="hidden" name="layers" value="${e(JSON.stringify(draft.layers || []))}">` +
-      `<label class="zone-field">Rarity<select name="rarity">${[...new Set(['Common', 'Uncommon', 'Rare', ...catalog.eyes.map(d => d.rarity), draft.rarity].filter(rarity => rarity && rarity.toLowerCase() !== 'custom'))].map(rarity => `<option value="${e(rarity)}" ${rarity === draft.rarity ? 'selected' : ''}>${e(rarity)}</option>`).join('')}</select></label>` +
+      `<label class="zone-field">Rarity<select name="rarity">${[...new Set(['Common', 'Uncommon', 'Rare', ...(draft.cosmicType ? ['Cosmic'] : []), ...catalog.eyes.filter(d => !d.cosmicType).map(d => d.rarity), draft.rarity].filter(rarity => rarity && rarity.toLowerCase() !== 'custom' && (draft.cosmicType || rarity !== 'Cosmic')))].map(rarity => `<option value="${e(rarity)}" ${rarity === draft.rarity ? 'selected' : ''}>${e(rarity)}</option>`).join('')}</select></label>` +
       `<div id="eye-color-rows" class="color-editor-grid">${(draft.colors || ['#8A689E']).map((c, i) => `<div class="eye-color-row">${colorControl(String(i), c, `Eye color ${i + 1}`)}<button class="text-button" type="button" data-action="remove-eye-color">Remove color</button></div>`).join('')}</div><button class="button secondary" type="button" data-action="add-eye-color">Add eye color</button>`;
   if (kind === 'mutations')
     fields =

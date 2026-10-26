@@ -9,6 +9,7 @@ test('music manager groups playlist tables by navigation and uses requested labe
   for (const title of ['Stables', 'My Horses', 'Breeding', 'Town', 'Wilds', 'Aetherion Wilds', 'Main Menu'])
     assert.ok(html.includes(title), title);
   assert.ok(html.includes('Import Music'));
+  assert.match(html, /class="button primary music-audio-settings"/);
   assert.ok(html.includes('Gallorin Studios'));
   assert.ok(!html.includes('(default)'));
   assert.ok(!html.includes('data-playlist-add'));

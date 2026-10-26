@@ -31,12 +31,36 @@
   margin: 0;
 }
 #changelog-dialog .changelog-header button {
-  border: 0;
-  background: none;
-  color: inherit;
-  font-size: 26px;
-  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  min-width: 43px;
+  height: 43px;
+  min-height: 43px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
+}
+#changelog-dialog .changelog-header button .icon {
+  display: block;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+/* The title screen does not load the gameplay button stylesheet. */
+:root:not([data-theme]) #changelog-dialog .button.secondary {
+  border: 1px solid #65513b;
+  background: #332b23;
+  color: #ead6ad;
+}
+:root:not([data-theme]) #changelog-dialog .button.secondary:hover {
+  background: color-mix(in srgb, #332b23, black 15%);
+  border-color: #65513b;
 }
 #changelog-dialog .changelog-content {
   overflow-y: auto;

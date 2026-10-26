@@ -1,6 +1,6 @@
 import { escapeHTML as e, icon, html } from './ui.js';
 import { musicTracks, formatMusicDuration } from './music-context.js';
-import { soundEffectGroups, isSoundEffect } from './music-effects.js';
+import { soundEffectGroups, isSoundEffect, soundEventVolume } from './music-effects.js';
 export const rowPlay = (track, index, context = '') =>
   String(
     html`<td class="music-order"><span class="music-index-control"><span class="music-row-number">${index + 1}</span><button type="button" class="music-row-play" data-preview-song="${track.id}"${context ? html` data-playlist-context="${context}"` : ''} title="Play" aria-label="Play ${track.name}">▶</button></span></td>`
@@ -17,15 +17,18 @@ export function musicLibrarySections(library) {
         kind +
         '"><header class="music-all-heading"><h2>' +
         (effect ? 'All Sound Effects' : 'All Songs') +
-        '</h2><label class="button primary music-import" role="button" tabindex="0">' +
-        icon('music') +
-        ' Import ' +
-        (effect ? 'Sound Effects' : 'Music') +
+        '</h2><label class="button secondary music-import" role="button" tabindex="0" title="' +
+        (effect ? 'Import Sound Effects' : 'Import Music') +
+        '" aria-label="' +
+        (effect ? 'Import Sound Effects' : 'Import Music') +
+        '">' +
+        icon('download') +
         '<input type="file" data-music-import="' +
         kind +
         '" accept=".mp3,audio/mpeg" multiple hidden></label></header><div class="music-table-scroll"><table class="music-table music-library-table" data-library-table="' +
         kind +
-        '"><thead><tr><th scope="col" class="music-order">#</th><th scope="col">Title</th><th scope="col" class="music-artist">Artist</th><th scope="col" class="music-duration">Duration</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
+        '"><thead><tr><th scope="col" class="music-order">#</th><th scope="col">Title</th><th scope="col" class="music-artist">Artist</th><th scope="col" class="music-duration">Duration</th>' +
+        '<th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
         tracks
           .map(
             (t, index) =>
@@ -41,7 +44,8 @@ export function musicLibrarySections(library) {
               e(t.artist) +
               '</td><td class="music-duration">' +
               formatMusicDuration(t.durationSeconds) +
-              '</td><td class="music-row-actions"><button type="button" class="music-row-options" data-song-options="' +
+              '</td>' +
+              '<td class="music-row-actions"><button type="button" class="music-row-options" data-song-options="' +
               e(t.id) +
               '" aria-haspopup="menu" aria-expanded="false" title="Options" aria-label="Options for ' +
               e(t.name) +
@@ -69,7 +73,7 @@ function soundEventTable(library, tracks) {
     .map((event, index) => {
       const track = tracks.find(track => (library.assignments?.[event.id] || []).includes(track.id));
       const number = track
-        ? rowPlay(track, index)
+        ? rowPlay(track, index, event.id)
         : '<td class="music-order"><span class="music-row-number">' + (index + 1) + '</span></td>';
       return (
         '<tr data-music-track="' +
@@ -80,9 +84,14 @@ function soundEventTable(library, tracks) {
         number +
         '<td class="music-event">' +
         e(event.name) +
-        '</td><td class="music-sound-effect">' +
+        '</td>' +
+        '<td class="music-sound-effect">' +
         e(track?.name || 'None') +
-        '</td><td class="music-row-actions"><button type="button" class="music-row-options" data-song-options="' +
+        '</td>' +
+        String(
+          html`<td class="music-effect-volume"><label class="effect-volume"><input type="range" min="0" max="100" step="1" value="${soundEventVolume(library, event.id, track)}" data-effect-volume="${track?.id || ''}" data-volume-event="${event.id}" aria-label="${event.name} sound effect volume"${!track ? ' disabled' : ''}><output>${soundEventVolume(library, event.id, track)}%</output></label></td>`
+        ) +
+        '<td class="music-row-actions"><button type="button" class="music-row-options" data-song-options="' +
         e(track?.id || '') +
         '" data-sound-event="' +
         e(event.id) +
@@ -95,7 +104,7 @@ function soundEventTable(library, tracks) {
     })
     .join('');
   return (
-    '<section class="music-library" data-library-kind="events"><header class="music-all-heading"><h2>Sound Events</h2></header><div class="music-table-scroll"><table class="music-table music-library-table" data-library-table="sound-events"><thead><tr><th scope="col" class="music-order">#</th><th scope="col" class="music-event">Event</th><th scope="col" class="music-sound-effect">Sound Effect</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
+    '<section class="music-library" data-library-kind="events"><header class="music-all-heading"><h2>Sound Events</h2></header><div class="music-table-scroll"><table class="music-table music-library-table" data-library-table="sound-events"><thead><tr><th scope="col" class="music-order">#</th><th scope="col" class="music-event">Event</th><th scope="col" class="music-sound-effect">Sound Effect</th><th scope="col" class="music-effect-volume">Volume</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
     rows +
     '</tbody></table></div></section>'
   );

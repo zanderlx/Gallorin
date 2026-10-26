@@ -1,3 +1,5 @@
+import { cosmicArtworkEye } from './cosmic-types.js';
+
 // Original, deliberately stylized placeholder artwork. Species anatomy is not simulated.
 export function horseHeadArt(horse, large = false) {
   return horseArt(horse, large).replace('viewBox="0 0 460 310"', 'viewBox="240 25 135 145"');
@@ -7,7 +9,8 @@ export function horseArt(horse, large = false) {
   const coat = palette['Coat Top'];
   const bottom = palette['Coat Bottom'];
   const hair = palette.Hair;
-  const eye = horse.eye.colors[0];
+  // Cosmic artwork does not alter the saved/generated eye trait.
+  const eye = cosmicArtworkEye(horse) || horse.eye.colors[0];
   const uid = `h${horse.id.replaceAll('-', '')}${large ? 'l' : ''}`;
   const horn = horse.species === 'Unicorn';
   return `<svg class="horse-art" viewBox="0 0 460 310" role="img" aria-label="Decorative horse illustration; placeholder artwork">

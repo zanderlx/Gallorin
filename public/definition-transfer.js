@@ -21,6 +21,10 @@ export function readDefinitionDocument(kind, document, catalog) {
   delete input.systemId;
   const value = validateDefinition(kind, input);
   delete value.systemId;
+  if (kind === 'eyes' && value.cosmicType) {
+    const existing = catalog.eyes.find(eye => eye.cosmicType === value.cosmicType);
+    return { ...value, ...(existing ? { id: existing.id } : {}) };
+  }
   const base = value.name.slice(0, 65);
   let suffix = 1;
   while (catalog[kind].some(entry => entry.name.toLowerCase() === value.name.toLowerCase()))

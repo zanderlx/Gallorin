@@ -1,4 +1,5 @@
 @import url('/typography.css');
+@import url('/focus.css');
 
 :root {
   color-scheme: dark;
@@ -59,14 +60,6 @@ a {
 }
 button {
   border: 0;
-}
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-summary:focus-visible {
-  outline: 2px solid #efd192;
-  outline-offset: 4px;
 }
 input,
 select {
@@ -160,19 +153,19 @@ strong {
   white-space: nowrap;
 }
 .button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: none;
 }
 .button.primary {
   color: #f7e6c4;
-  background: linear-gradient(125deg, #80424a, #603039);
+  background: var(--burgundy);
   border-color: #a06a64;
   box-shadow:
     inset 0 1px 0 #ffffff0a,
     0 3px 10px #0002;
 }
 .button.primary:hover:not(:disabled) {
-  background: #8a4a50;
-  border-color: #bf8b77;
+  background: color-mix(in srgb, var(--burgundy), black 15%);
+  border-color: #a06a64;
 }
 .button.secondary {
   background: #332b23;
@@ -180,8 +173,8 @@ strong {
   color: #ead6ad;
 }
 .button.secondary:hover {
-  background: #403428;
-  border-color: #98784a;
+  background: color-mix(in srgb, #332b23, black 15%);
+  border-color: #65513b;
 }
 .button .icon {
   width: 17px;
@@ -2422,31 +2415,7 @@ body::-webkit-scrollbar {
   padding-bottom: 100px;
 }
 
-/* Avoid interpolating a gradient background to a transparent color on hover. */
-#main .wilds-search-row .search-button {
-  background: var(--burgundy);
-  box-shadow: none;
-  transition:
-    border-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
-}
-#main .wilds-search-row .search-button:hover {
-  background: var(--burgundy);
-  transform: none;
-}
-#main .wilds-search-row .search-button:hover:not(:disabled) {
-  background: var(--burgundy);
-  filter: none;
-  border-color: var(--gold);
-  transform: translateY(-2px);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--gold), transparent 82%);
-}
-@media (prefers-reduced-motion: reduce) {
-  #main .wilds-search-row .search-button {
-    transition: none;
-  }
-  #main .wilds-search-row .search-button:hover {
-    transform: none;
-  }
+/* Action controls darken their existing color without lifting or flashing. */
+.icon-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--panel), black 15%);
 }

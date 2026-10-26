@@ -21,10 +21,6 @@
   color: var(--text);
   padding: 12px;
 }
-.zone-field textarea:focus-visible {
-  outline: 2px solid #efd192;
-  outline-offset: 4px;
-}
 .zone-draft-actions {
   display: flex;
   align-items: center;

@@ -1,3 +1,5 @@
+@import url('../public/focus.css');
+
 * {
   box-sizing: border-box;
 }
@@ -95,11 +97,6 @@ button {
 button:hover {
   background: #48503c;
   border-color: #ddc48c;
-}
-button:focus-visible,
-input:focus-visible {
-  outline: 2px solid #efd192;
-  outline-offset: 4px;
 }
 .primary {
   background: #9b7d414d;

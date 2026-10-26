@@ -6,9 +6,44 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.2.2] - Unreleased
+## [1.2.3] - 2026-10-26
 
-Safer saves with point-in-time backups, and faster clicks and page loads in large stables.
+More control over sound events and Cosmic eye colors, with consistent button feedback.
+
+### Added
+
+- **Music & Sound Effects**
+  - Button Click sound event for text buttons, using Justsomesounds Click Sound by default. Icon-only controls and dropdown menus remain silent.
+  - Individual volume sliders in Sound Events, multiplied by the master Sound Effects volume. Events sharing an audio file can have independent levels.
+
+- **Compendium**
+  - Cosmic eye-color section for Solar, Lunar, Heavenly, Void, and Astral. Artwork colors can be edited locally and apply to existing and future Cosmic horses without changing their generated Eye Color traits.
+  - Cosmic names and rarity are fixed, shown in disabled-style boxes, and protected from deletion. Cosmic artwork colors stay outside normal eye-trait generation and horse-update choices.
+
+### Updated
+
+- **Music & Sound Effects**
+  - Horse Sold now defaults to Alexzavesa Clinking Coins. Existing saved assignments are preserved.
+  - Assigning a sound to an empty event starts its volume at 100%. Replacing an assigned sound preserves the event's level; clearing it and assigning again starts at 100%.
+  - Song and sound-effect name/artist editors fit their text and have adjacent checkmark buttons that save the entire row. Sound-event selection uses the same inline confirmation layout.
+  - Icon-only import controls sit beside All Songs and All Sound Effects, with tooltips and no button-click sound.
+  - Sound Events uses Event, Sound Effect, and Volume columns, with volume meters aligned to the Artist column in the library tables.
+  - Audio Settings uses the same primary button style as Compendium Create/Add actions.
+
+- **Interface**
+  - Removed visual keyboard-focus rings and focus-only highlights throughout gameplay, dialogs, and the main menu. Native keyboard controls and mouse-hover feedback remain available.
+
+### Fixed
+
+- **Navigation & Buttons**
+  - Selecting a sidebar page preserves the navigation's scroll position.
+  - Action buttons darken on hover without lifting. Search The Wilds uses the shared styling without its previous glow.
+  - Escape-menu buttons visibly darken on hover while keeping their base colors and dimensions.
+  - Play and Back To Game no longer appear permanently highlighted when their menus open.
+
+## [1.2.2] - 2026-10-25
+
+Safer saves and faster page loads. Included in v1.2.3 without a separate release.
 
 ### Updated
 

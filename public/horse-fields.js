@@ -1,3 +1,4 @@
+import { regularEyes } from './cosmic-types.js';
 export const ages = ['Adult', 'Elder', 'Foal'];
 export const sizes = {
   Mammoth: 125,
@@ -39,7 +40,7 @@ export function horseFieldOptions(field, catalog, state) {
         .map(name => ({ value: name, label: name }))
         .sort((a, b) => (field === 'size' ? sizes[a.value] - sizes[b.value] : a.label.localeCompare(b.label)))
     : ['personality', 'eye'].includes(field)
-      ? catalog[field === 'eye' ? 'eyes' : 'personalities']
+      ? (field === 'eye' ? regularEyes(catalog.eyes) : catalog.personalities)
           .map(item => ({ value: item.id, label: item.name }))
           .sort((a, b) => a.label.localeCompare(b.label))
       : [];
@@ -62,7 +63,9 @@ export function updateHorseField(horse, field, value, catalog, state) {
   if (!horseFieldOptions(field, catalog, state).some(option => option.value === value))
     throw new Error('Choose an available option.');
   if (field === 'personality' || field === 'eye')
-    horse[field] = structuredClone(catalog[field === 'eye' ? 'eyes' : 'personalities'].find(item => item.id === value));
+    horse[field] = structuredClone(
+      (field === 'eye' ? regularEyes(catalog.eyes) : catalog.personalities).find(item => item.id === value)
+    );
   else {
     horse[field] = value;
     if (field === 'size') horse.sizePercent = sizes[value];

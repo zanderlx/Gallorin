@@ -230,6 +230,7 @@ async function start() {
       ![
         'select',
         'effect',
+        'effect-level',
         'metadata',
         'playlist',
         'next',
@@ -245,6 +246,16 @@ async function start() {
       ].includes(value.type)
     )
       return null;
+    if (value.type === 'effect-level') {
+      if (typeof value.id !== 'string' || !Number.isFinite(value.value) || value.value < 0 || value.value > 1)
+        return null;
+      value = {
+        type: 'effect-level',
+        id: value.id,
+        eventId: typeof value.eventId === 'string' ? value.eventId.slice(0, 100) : undefined,
+        value: value.value
+      };
+    }
     if (value.type === 'metadata') {
       if (
         typeof value.id !== 'string' ||
@@ -292,11 +303,15 @@ async function start() {
         return null;
       value = {
         type: value.type,
+        eventId: typeof value.eventId === 'string' ? value.eventId.slice(0, 100) : undefined,
         track: {
           id: String(value.track.id),
           name: String(value.track.name),
           artist: String(value.track.artist ?? 'Gallorin Studios'),
-          url: value.track.url
+          url: value.track.url,
+          volumePercent: Number.isFinite(value.track.volumePercent)
+            ? Math.max(0, Math.min(100, value.track.volumePercent))
+            : 100
         },
         fadeSeconds: Math.max(0, Math.min(10, Number(value.fadeSeconds) || 0))
       };

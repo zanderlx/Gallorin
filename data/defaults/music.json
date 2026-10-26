@@ -75,6 +75,20 @@
       "file": "loot-coin-small.mp3",
       "durationSeconds": 0.7053061224489796,
       "kind": "effect"
+    },
+    {
+      "id": "621020ae-06fb-4385-b693-d8abe8d34d89",
+      "name": "Alexzavesa Clinking Coins 9 468428",
+      "file": "alexzavesa-clinking-coins-9-468428.mp3",
+      "kind": "effect",
+      "durationSeconds": 0.8359183673469388
+    },
+    {
+      "id": "0ae78e9f-5679-49f8-b2c9-a3829a215640",
+      "name": "Justsomesounds Click Sound 432501",
+      "file": "justsomesounds-click-sound-432501.mp3",
+      "kind": "effect",
+      "durationSeconds": 0.168
     }
   ],
   "assignments": {
@@ -95,10 +109,13 @@
       "9eb1bb80-f34a-4aeb-b2c6-6a0fa3c97d3b"
     ],
     "effect/horse-sold": [
-      "5284fe28-c440-4e12-901c-0ac2d2fb8cf8"
+      "621020ae-06fb-4385-b693-d8abe8d34d89"
     ],
     "effect/respawn-ready": [
       "b3f0c272-1922-47e7-9ef3-d30dd0399e96"
+    ],
+    "effect/button-click": [
+      "0ae78e9f-5679-49f8-b2c9-a3829a215640"
     ]
   },
   "fadeSeconds": 2

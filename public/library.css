@@ -226,10 +226,6 @@ svg.gender-symbol.gender-female {
   z-index: 1;
   cursor: pointer;
 }
-.horse-card:has(.horse-card-open:focus-visible) {
-  outline: 2px solid var(--gold);
-  outline-offset: 4px;
-}
 .horse-card .favorite {
   z-index: 2;
 }
@@ -373,10 +369,6 @@ svg.gender-symbol.gender-female {
   display: block;
   width: 100%;
 }
-.definition-list-item:focus-visible {
-  background: var(--panel-deep);
-  border-color: var(--gold);
-}
 .location-tabs {
   overflow-x: auto;
   overflow-y: hidden;
@@ -419,8 +411,7 @@ h4,
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.site-search-result:hover,
-.site-search-result:focus-visible {
+.site-search-result:hover {
   border-color: var(--gold);
   background: var(--panel);
 }
@@ -1222,8 +1213,7 @@ option:not(nav option) {
     box-shadow 0.15s,
     transform 0.15s;
 }
-.eye-definition-card:hover,
-.eye-definition-card:focus-within {
+.eye-definition-card:hover {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px var(--gold-soft);
   transform: translateY(-2px);
@@ -2333,8 +2323,7 @@ select:not([multiple]) {
   font-size: 25px;
   cursor: pointer;
 }
-.emoji-choice:hover,
-.emoji-choice:focus-visible {
+.emoji-choice:hover {
   border-color: var(--gold);
   background: var(--panel);
 }
@@ -2429,4 +2418,21 @@ select:not([multiple]) {
   .palette-definition-dialog .eye-name-rarity > .zone-field:first-child {
     grid-column: 1/-1;
   }
+}
+
+.cosmic-eye-note {
+  margin: 6px 0 18px;
+  font-size: 14px;
+}
+
+.eye-locked-value {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--panel-deep), var(--panel) 45%);
+  color: var(--muted);
+  cursor: not-allowed;
 }

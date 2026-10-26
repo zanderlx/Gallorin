@@ -14,10 +14,10 @@ const seed = defaults.tracks.find(track => track.id === saleId);
 const source = fileURLToPath(new URL('../desktop/assets/music/' + seed.file, import.meta.url));
 const bytes = Buffer.from('ID3test custom audio');
 
-test('Horse Sold is configurable and defaults to a playable Loot Coin Small effect', async () => {
+test('Horse Sold is configurable and defaults to a playable Clinking Coins effect', async () => {
   assert.ok(soundEffectGroups.some(g => g.items.some(e => e.id === 'effect/horse-sold' && e.name === 'Horse Sold')));
   assert.equal(seed.kind, 'effect');
-  assert.equal(seed.name, 'Loot Coin Small');
+  assert.equal(seed.name, 'Alexzavesa Clinking Coins 9 468428');
   assert.ok((await durationOfFile(source)) > 0);
   const library = {
     tracks: [seed, { id: 'music', kind: 'music' }],

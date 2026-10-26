@@ -1,5 +1,6 @@
 import { definitionTransferControls } from './definition-transfer-controls.js';
-import { escapeHTML as e, icon } from './ui.js';
+import { regularEyes, withCosmicEyes, isCosmicEye, cosmicEyeColors } from './cosmic-types.js';
+import { escapeHTML as e, icon, html, raw } from './ui.js';
 import { colorControl } from './library-editor.js';
 import { trackForms, updateFormState, restoreBaseline, formSignature, formBaseline } from './form-state.js';
 
@@ -55,6 +56,14 @@ export function eyeResults(eyes, sort = 'az', allEyes = eyes, showPercent = true
     .join('');
 }
 
+export function cosmicEyeSection(query = '', rarity = '', direction = 'asc', allEyes = []) {
+  const eyes = filterEyes(withCosmicEyes(allEyes).filter(isCosmicEye), query, rarity, 'name', direction);
+  if (!eyes.length) return '';
+  return String(
+    html`<section class="eye-rarity-section cosmic-eye-section"><h2>Cosmic</h2><p class="cosmic-eye-note">Artwork only. Generated Eye Color traits stay unchanged.</p><div class="eye-definition-grid">${raw(eyeCards(eyes, eyes, false))}</div></section>`
+  );
+}
+
 export function updateEyeGrid(root, catalog) {
   const toggle = root.querySelector('[data-action="eye-sort-direction"]');
   const direction = toggle.dataset.direction;
@@ -62,7 +71,7 @@ export function updateEyeGrid(root, catalog) {
   toggle.setAttribute('aria-label', label);
   toggle.title = label;
   const eyes = filterEyes(
-    catalog.eyes,
+    regularEyes(catalog.eyes),
     root.querySelector('#eye-search').value,
     root.querySelector('#eye-rarity').value,
     root.querySelector('#eye-sort').value,
@@ -72,21 +81,34 @@ export function updateEyeGrid(root, catalog) {
   const sort = root.querySelector('#eye-sort').value;
   grid.classList.toggle('eye-definition-grid', sort !== 'rarity');
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-  grid.innerHTML = eyeResults(eyes, sort, catalog.eyes, root.querySelector('#eye-percent').checked, direction);
-  root.querySelector('#eye-empty').hidden = eyes.length > 0;
+  grid.innerHTML = eyeResults(
+    eyes,
+    sort,
+    regularEyes(catalog.eyes),
+    root.querySelector('#eye-percent').checked,
+    direction
+  );
+  const cosmic = cosmicEyeSection(
+    root.querySelector('#eye-search').value,
+    root.querySelector('#eye-rarity').value,
+    direction,
+    catalog.eyes
+  );
+  root.querySelector('#cosmic-eye-grid').replaceChildren(document.createRange().createContextualFragment(cosmic));
+  root.querySelector('#eye-empty').hidden = eyes.length > 0 || !!cosmic;
 }
 
 export function eyesManagerPage(catalog) {
   return `<div class="definitions-header eye-manager-header"><h1 class="manager-heading">Eye Color Manager</h1><button type="button" class="button secondary definition-import" data-action="import-definition" data-kind="eyes" title="Import Eye Color" aria-label="Import Eye Color">${icon('download')}</button><button class="button primary" data-action="new-definition" data-kind="eyes">${icon('spark')} Create Eye Color</button></div>
     <div class="eye-grid-controls"><label class="zone-field"><input id="eye-search" type="search" placeholder="Search..." aria-label="Search eye colors"></label><label class="zone-field">Rarity<select id="eye-rarity"><option value="">All Rarities</option>${[
-      ...new Set(catalog.eyes.map(eye => eye.rarity))
+      ...new Set([...catalog.eyes.map(eye => eye.rarity), 'Cosmic'])
     ]
       .sort((a, b) => a.localeCompare(b))
       .map(rarity => `<option value="${e(rarity)}">${e(rarity)}</option>`)
       .join(
         ''
       )}</select></label><label class="zone-field eye-percent-control"><span><input id="eye-percent" type="checkbox"> Show Percentages</span></label><div class="definition-sort-controls"><label class="zone-field">Sort By<select id="eye-sort"><option value="rarity" selected>Rarity</option><option value="name">Name</option></select></label><button type="button" class="icon-button sort-direction" data-action="eye-sort-direction" data-direction="asc" aria-label="Ascending order. Switch to descending" title="Ascending order. Switch to descending">${icon('arrow')}</button></div></div>
-    <div id="eye-grid">${eyeResults(filterEyes(catalog.eyes, '', '', 'rarity'), 'rarity', catalog.eyes, false)}</div><p id="eye-empty" role="status" hidden>No eye colors match your filters.</p>`;
+    <div id="eye-grid">${eyeResults(filterEyes(regularEyes(catalog.eyes), '', '', 'rarity'), 'rarity', regularEyes(catalog.eyes), false)}</div><div id="cosmic-eye-grid">${cosmicEyeSection('', '', 'asc', catalog.eyes)}</div><p id="eye-empty" role="status" hidden>No eye colors match your filters.</p>`;
 }
 
 export function eyeIndividualChance(eye, allEyes) {
@@ -198,6 +220,14 @@ export function createEyeEditor(renderEditor, getEyes) {
   const editor = {
     dialog,
     open(draft) {
+      // Cosmic artwork reads its first color; show exactly that editable value.
+      if (draft?.cosmicType)
+        draft = {
+          ...draft,
+          name: draft.cosmicType,
+          rarity: 'Cosmic',
+          colors: [draft.colors?.[0] || cosmicEyeColors[draft.cosmicType]]
+        };
       if (!draft?.id && !draft?.name)
         draft = { ...draft, name: 'Custom Color', rarity: 'Common', colors: [randomEyeColor()] };
       const template = document.createElement('template');
@@ -208,6 +238,7 @@ export function createEyeEditor(renderEditor, getEyes) {
       const form = template.content.querySelector('#definition-form');
       form.querySelector('.panel-heading')?.remove();
       definitionTransferControls(form, dialog, draft, 'eyes', 'Eye Color');
+      if (draft.cosmicType) form.querySelector('[data-action="delete-definition"]')?.remove();
       form.querySelector('[data-action="duplicate-definition"]')?.remove();
       form.querySelector('[data-action="add-eye-color"]')?.remove();
       const colors = form.querySelector('#eye-color-rows');
@@ -217,7 +248,8 @@ export function createEyeEditor(renderEditor, getEyes) {
         'beforeend',
         `<div class="eye-add-tile" ${colors.children.length >= 6 ? 'hidden' : ''}><span class="eye-add-label" aria-hidden="true">Eye Color</span><div class="eye-add-actions"><button type="button" class="icon-button" data-eye-add="manual" title="Add a color (default: white)" aria-label="Add a color (default: white)">${icon('plus')}</button><button type="button" class="icon-button" data-eye-add="random" title="Add a random color" aria-label="Add a random color">${icon('refresh')}</button></div></div>`
       );
-      if (!draft?.id && !draft?.imported) {
+      if (draft.cosmicType) colors.querySelector('.eye-add-tile')?.remove();
+      if (!draft?.id && !draft?.imported && !draft?.cosmicType) {
         const random = document.createElement('button');
         random.type = 'button';
         random.className = 'button secondary definition-footer-secondary';
@@ -238,6 +270,24 @@ export function createEyeEditor(renderEditor, getEyes) {
       const fields = form.querySelector('.definition-fields');
       const name = fields.querySelector('[name="name"]').closest('label');
       const rarity = fields.querySelector('[name="rarity"]').closest('label');
+      if (draft.cosmicType) {
+        for (const [label, key, value] of [
+          [name, 'name', draft.cosmicType],
+          [rarity, 'rarity', 'Cosmic']
+        ]) {
+          const field = document.createElement('input');
+          field.type = 'hidden';
+          field.name = key;
+          field.value = value;
+          field.readOnly = true;
+          label.querySelector('input,select').replaceWith(field);
+          const text = document.createElement('span');
+          text.className = 'eye-locked-value';
+          text.setAttribute('aria-disabled', 'true');
+          text.textContent = value;
+          label.append(text);
+        }
+      }
       const row = document.createElement('div');
       row.className = 'eye-name-rarity';
       row.append(name, rarity);
@@ -245,7 +295,7 @@ export function createEyeEditor(renderEditor, getEyes) {
       dialog.append(form);
       dialog.scrollTop = 0;
       if (!dialog.open) dialog.showModal();
-      dialog.querySelector('[name="name"]').focus();
+      dialog.querySelector(draft.cosmicType ? '[data-color-hex]' : '[name="name"]').focus();
     }
   };
   return editor;

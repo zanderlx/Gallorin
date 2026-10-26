@@ -24,7 +24,7 @@
 
 - Display full major.minor.patch versions on the README banner and runtime labels. Use patch increments for subsequent small fix releases; a feature release can include fixes and start at patch 0.
 - Named major/minor releases use Gallorin v<version>: <release name>. Patch releases have no changelog/release codename: use Gallorin v<version>, with the workflow run titled Release gallorin-v<version> (derived from the pushed tag). Keep any summary as prose below the changelog heading, not a title.
-- Keep README desktop-first and concise: installer play/updating, npm run desktop for local testing, first-time dependency setup, optional browser play, and brief feature/storage information.
+- Keep README desktop-first and concise: installer play/updating, npm run desktop for local testing, first-time dependency setup, optional browser play, and brief feature/storage information. Keep release-specific changes and version comparisons in CHANGELOG.md, not README; the README links to that history. Minor cosmetic adjustments such as close-button styling do not need their own README or changelog entries.
 
 # Enforced deployment workflow
 
@@ -38,7 +38,7 @@
 
 # App-only release documentation
 
-- Only player-facing app changes belong in README change summaries, CHANGELOG.md, and GitHub release notes.
+- README describes the current app, its features, and how to play; it does not include release-change summaries. Only player-facing app changes belong in CHANGELOG.md and GitHub release notes.
 - CI, tests, branch protection, deployment workflows, and contributor/process documentation do not warrant an app version bump, release tag, installer release, or in-app changelog entry on their own.
 - Keep infrastructure-only changes in PR descriptions, commit messages, and dedicated development documentation such as docs/deployment.md. Do not add them as app features in README.
 - For infrastructure-only pushes, preserve the published app version and release documentation. The personal review checkpoint still applies to the proposed changes before pushing.
