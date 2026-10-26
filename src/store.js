@@ -43,6 +43,22 @@ const upgradeBackupPrefixes = [
   'pre-sound-effects-'
 ];
 
+/** Applies save-format upgrades to one horse in place and reports which kinds changed. */
+function upgradeHorse(horse) {
+  const version = migrateHorseVersion(horse);
+  let details = false;
+  if (horse.species === 'Friesan') {
+    horse.species = 'Friesian';
+    details = true;
+  }
+  const skills = readHorseSkills(horse.skills);
+  if (JSON.stringify(skills) !== JSON.stringify(horse.skills)) {
+    horse.skills = skills;
+    details = true;
+  }
+  return { version, details };
+}
+
 export class GameStore {
   constructor(directory, catalog, defaults, options = {}) {
     this.directory = directory;
@@ -107,6 +123,7 @@ export class GameStore {
       this.state = next;
     }
     await this.addBundledPalettes();
+    await this.upgradeHorses();
     await this.readConfiguration();
     await this.pruneOldBackups();
     return this;
@@ -180,7 +197,29 @@ export class GameStore {
     }
     return catalog;
   }
+  // Reloads configuration only when its files changed (game edits or hand edits), then reapplies
+  // the cleanups that depend on it. Unchanged files cost one stat per file.
   async readConfiguration() {
+    const signature = await this.files.signature();
+    if (this.configuration && signature === this.configurationSignature) return;
+    await this.loadConfiguration();
+    this.configurationSignature = await this.files.signature();
+  }
+  // Save-only upgrades run once at startup; imported horses get the same upgrade on import.
+  async upgradeHorses() {
+    const next = this.snapshot();
+    const results = horseRecords(next).map(upgradeHorse);
+    const prefixes = [
+      results.some(result => result.version) && 'pre-horse-version-',
+      results.some(result => result.details) && 'pre-horse-skills-'
+    ].filter(Boolean);
+    if (!prefixes.length) return;
+    for (const prefix of prefixes)
+      await copyFile(this.file, join(this.directory, 'backups', `${prefix}${Date.now()}-${randomUUID()}.json`));
+    await this.persist(next);
+    this.state = next;
+  }
+  async loadConfiguration() {
     const configuration = await this.files.read(catalogFor(this.catalog, this.state));
     const overrides = new Set(this.state.customLocations.map(z => z.id));
     this.state.customLocations = configuration.zones
@@ -199,34 +238,7 @@ export class GameStore {
       });
       this.state = next;
     }
-    const versioned = this.snapshot();
-    const upgraded = horseRecords(versioned).map(migrateHorseVersion).some(Boolean);
-    if (upgraded) {
-      await copyFile(
-        this.file,
-        join(this.directory, 'backups', 'pre-horse-version-' + Date.now() + '-' + randomUUID() + '.json')
-      );
-      await this.persist(versioned);
-      this.state = versioned;
-    }
     const next = this.snapshot();
-    let skillsChanged = false;
-    for (const horse of horseRecords(next)) {
-      if (horse.species === 'Friesan') {
-        horse.species = 'Friesian';
-        skillsChanged = true;
-      }
-      const skills = readHorseSkills(horse.skills);
-      if (JSON.stringify(skills) !== JSON.stringify(horse.skills)) {
-        horse.skills = skills;
-        skillsChanged = true;
-      }
-    }
-    if (skillsChanged) {
-      await copyFile(this.file, join(this.directory, 'backups', `pre-horse-skills-${Date.now()}-${randomUUID()}.json`));
-      await this.persist(next);
-      this.state = next;
-    }
     if (synchronizeCosmicPalettes(horseRecords(next), this.getCatalog(next))) {
       await copyFile(
         this.file,
@@ -396,7 +408,9 @@ export class GameStore {
         if (!next.settings.ignoreStableLimit && next.horses.length >= next.settings.stableCapacity)
           throw new Error('Your stable is full. Adjust capacity in Game Settings.');
         const caughtAt = new Date().toISOString();
-        next.horses.push({ ...horse, id: randomUUID(), birthday: localCalendarDate(caughtAt), caughtAt });
+        const imported = { ...horse, id: randomUUID(), birthday: localCalendarDate(caughtAt), caughtAt };
+        upgradeHorse(imported);
+        next.horses.push(imported);
       } else if (type === 'rename' || type === 'favorite') {
         const horse = next.horses.find(h => h.id === payload.id);
         if (!horse) throw new Error('Horse not found in your stable.');
