@@ -1,7 +1,8 @@
 // @ts-check
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
-import { mkdir, readFile, writeFile, rename, unlink } from 'node:fs/promises';
+import { mkdir, readFile, unlink } from 'node:fs/promises';
+import { replaceDurable } from './durable-file.js';
 import { resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { defaultRaritySettings, validateRaritySettings } from '../public/rarity-settings.js';
@@ -40,9 +41,7 @@ export class ConfigurationFiles {
       return;
     }
     await mkdir(resolve(path, '..'), { recursive: true });
-    const temporary = `${path}.${randomUUID()}.tmp`;
-    await writeFile(temporary, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
-    await rename(temporary, path);
+    await replaceDurable(path, JSON.stringify(value, null, 2) + '\n');
   }
   async apply(files) {
     for (const [path, value] of Object.entries(files)) await this.atomic(path, value);

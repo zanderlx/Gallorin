@@ -18,7 +18,8 @@ import {
 import { localCalendarDate } from '../public/dates.js';
 import { readHorseDocument } from '../public/horse-transfer.js';
 import { validateHorseName, horseRecords, updateHorseField } from '../public/horse-fields.js';
-import { mkdir, readFile, writeFile, rename, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, copyFile } from 'node:fs/promises';
+import { replaceDurable, writeDurable, copyDurable, pruneBackups } from './durable-file.js';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { cooldownSeconds } from '../public/encounter-cooldown.js';
@@ -27,6 +28,20 @@ import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
 import { validateKeeper } from '../public/keeper.js';
 import { validateCopyPatch } from '../public/page-copy.js';
+
+const snapshotIntervalMs = 60 * 60 * 1000;
+const backupsPerKind = 20;
+// Automatic upgrade backups. Manual `save-` backups are never pruned.
+const upgradeBackupPrefixes = [
+  'pre-spawning-',
+  'pre-palette-additions-',
+  'pre-cosmic-zone-cleanup-',
+  'pre-horse-version-',
+  'pre-horse-skills-',
+  'pre-cosmic-palettes-',
+  'pre-horse-updates-',
+  'pre-sound-effects-'
+];
 
 export class GameStore {
   constructor(directory, catalog, defaults, options = {}) {
@@ -93,6 +108,7 @@ export class GameStore {
     }
     await this.addBundledPalettes();
     await this.readConfiguration();
+    await this.pruneOldBackups();
     return this;
   }
   // One-time additive upgrade: appends known bundled palettes to an existing registry without touching local entries.
@@ -130,11 +146,25 @@ export class GameStore {
     this.state = next;
   }
   async persist(next, backup = true) {
-    const tmp = `${this.file}.${randomUUID()}.tmp`;
     next.savedAt = new Date().toISOString();
-    if (backup) await copyFile(this.file, join(this.directory, 'backups', 'previous-save.json'));
-    await writeFile(tmp, JSON.stringify(next, null, 2) + '\n', { flag: 'wx' });
-    await rename(tmp, this.file);
+    if (backup) {
+      // One-step undo for the change being saved; the delete dialog promises this file.
+      await copyFile(this.file, join(this.directory, 'backups', 'previous-save.json'));
+      await this.snapshotIfDue();
+    }
+    await replaceDurable(this.file, JSON.stringify(next, null, 2) + '\n');
+  }
+  // Keeps a point-in-time copy before the first change of each session and at most hourly after.
+  async snapshotIfDue() {
+    const now = Date.now();
+    if (this.lastSnapshotAt !== undefined && now - this.lastSnapshotAt < snapshotIntervalMs) return;
+    await copyDurable(this.file, join(this.directory, 'backups', `snapshot-${now}.json`));
+    this.lastSnapshotAt = now;
+    await pruneBackups(join(this.directory, 'backups'), 'snapshot-', backupsPerKind);
+  }
+  async pruneOldBackups() {
+    const directory = join(this.directory, 'backups');
+    for (const prefix of upgradeBackupPrefixes) await pruneBackups(directory, prefix, backupsPerKind);
   }
   snapshot() {
     return structuredClone(this.state);
@@ -648,10 +678,10 @@ export class GameStore {
         if (Object.keys(page).length) next.pageCopy[payload.scope] = page;
         else delete next.pageCopy[payload.scope];
       } else if (type === 'backup') {
-        await writeFile(
+        await writeDurable(
           join(this.directory, 'backups', `save-${Date.now()}-${randomUUID().slice(0, 8)}.json`),
           JSON.stringify(next, null, 2) + '\n',
-          { flag: 'wx' }
+          { exclusive: true }
         );
       } else throw new Error('Unknown action.');
       synchronizeCosmicPalettes(horseRecords(next), catalog);

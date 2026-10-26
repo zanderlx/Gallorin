@@ -10,6 +10,7 @@ import { desktopDataPath } from './data-paths.js';
 import updater from 'electron-updater';
 import { app, BrowserWindow, Menu, dialog, shell, session, ipcMain } from 'electron';
 import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { rotateLog } from '../src/log-rotation.js';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -37,12 +38,15 @@ let main,
   backend,
   stopping = false,
   stopped = false;
+let logRotated = false;
 const log = message => {
   try {
-    appendFileSync(
-      join(app.getPath('userData'), 'desktop.log'),
-      new Date().toISOString() + ' ' + String(message) + '\n'
-    );
+    const file = join(app.getPath('userData'), 'desktop.log');
+    if (!logRotated) {
+      rotateLog(file);
+      logRotated = true;
+    }
+    appendFileSync(file, new Date().toISOString() + ' ' + String(message) + '\n');
   } catch {}
 };
 async function shutdown() {

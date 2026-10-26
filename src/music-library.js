@@ -2,7 +2,8 @@
 import { soundEffectGroups, isSoundEffect } from '../public/music-effects.js';
 import { durationOfFile, durationOfBuffer } from './music-duration.js';
 import { assignmentTracks, formatMusicName, normalizePlaylistSelections } from '../public/music-context.js';
-import { mkdir, readFile, writeFile, rename, unlink, open, stat, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, open, stat, copyFile } from 'node:fs/promises';
+import { replaceDurable, writeDurable } from './durable-file.js';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 const validId = id => /^[a-f0-9-]{36}$/.test(id);
@@ -147,9 +148,7 @@ export class MusicLibrary {
   }
   async write(value) {
     await mkdir(this.root, { recursive: true });
-    const temp = join(this.root, randomUUID() + '.tmp');
-    await writeFile(temp, JSON.stringify(value, null, 2) + '\n');
-    await rename(temp, join(this.root, 'library.json'));
+    await replaceDurable(join(this.root, 'library.json'), JSON.stringify(value, null, 2) + '\n');
   }
   edit(fn) {
     const job = this.queue.then(fn);
@@ -181,7 +180,7 @@ export class MusicLibrary {
           addedAt: new Date().toISOString()
         };
       await mkdir(this.root, { recursive: true });
-      await writeFile(join(this.root, track.id + '.mp3'), bytes);
+      await writeDurable(join(this.root, track.id + '.mp3'), bytes, { exclusive: true });
       try {
         library.tracks.push(track);
         await this.write(library);
