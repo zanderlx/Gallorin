@@ -65,6 +65,7 @@ ipcRenderer.on('desktop-pause', () => {
     ipcRenderer
       .invoke('desktop-logo')
       .then(markup => {
+        // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
         logo.innerHTML = markup;
       })
       .catch(() => {});

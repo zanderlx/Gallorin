@@ -21,8 +21,6 @@ const textField = (label, key, value, required = false, suggestions = []) =>
   `<label class="zone-field">${label}<input name="${key}" value="${e(value || '')}" maxlength="${key === 'name' ? 80 : 100}" ${required ? 'required' : ''} ${suggestions.length ? `list="${key}-suggestions"` : ''}></label>${suggestions.length ? `<datalist id="${key}-suggestions">${[...new Set(suggestions.filter(Boolean))].map(v => `<option value="${e(v)}"></option>`).join('')}</datalist>` : ''}`;
 const jsonField = (label, key, value) =>
   `<label class="zone-field">${label}<textarea name="${key}" rows="4" maxlength="8192">${e(JSON.stringify(value, null, 2))}</textarea></label>`;
-const linesField = (label, key, values) =>
-  `<label class="zone-field">${label}<textarea name="${key}" rows="3">${e((values || []).join('\n'))}</textarea></label>`;
 const checkbox = (label, key, checked) =>
   `<label class="zone-choice"><input type="checkbox" name="${key}" ${checked ? 'checked' : ''}><span>${label}</span></label>`;
 const editorGuidance = {

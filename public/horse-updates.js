@@ -164,6 +164,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       const choices = [...new Set(species[0]?.traits?.[category] || [])].filter(
         v => v !== 'None' && species.every(s => s.traits?.[category]?.includes(v))
       );
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       select.innerHTML = choices
         .map(
           value =>
@@ -286,6 +287,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
         });
         token = result.preview.token;
         const changed = result.preview.items.filter(item => item.changes.length);
+        // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
         root.querySelector('#horse-update-preview').innerHTML =
           '<section class="panel"><h2>Review Changes</h2><p>' +
           changed.length +

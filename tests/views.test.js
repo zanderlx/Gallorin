@@ -50,7 +50,6 @@ import {
   collectionCards,
   settingsPage,
   editModePage,
-  libraryPage,
   savesPage,
   plannedPage
 } from '../public/pages.js';

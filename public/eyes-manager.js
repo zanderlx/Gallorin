@@ -71,6 +71,7 @@ export function updateEyeGrid(root, catalog) {
   const grid = root.querySelector('#eye-grid');
   const sort = root.querySelector('#eye-sort').value;
   grid.classList.toggle('eye-definition-grid', sort !== 'rarity');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   grid.innerHTML = eyeResults(eyes, sort, catalog.eyes, root.querySelector('#eye-percent').checked, direction);
   root.querySelector('#eye-empty').hidden = eyes.length > 0;
 }
@@ -138,6 +139,7 @@ export function createEyeEditor(renderEditor, getEyes) {
   const savePrompt = document.createElement('dialog');
   savePrompt.className = 'eye-save-confirm';
   savePrompt.setAttribute('aria-labelledby', 'eye-save-title');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   savePrompt.innerHTML = `<div class="dialog-top"><h2 id="eye-save-title">Save Changes?</h2></div><p>You have unsaved eye color changes. Save them before closing?</p><div class="form-actions"><button type="button" class="button secondary" data-eye-decision="keep" autofocus>Keep Editing</button><button type="button" class="button secondary" data-eye-decision="discard">Discard Changes</button><button type="button" class="button primary" data-eye-decision="save">Save</button></div>`;
   document.body.append(savePrompt);
   function requestClose() {
@@ -184,6 +186,7 @@ export function createEyeEditor(renderEditor, getEyes) {
       button.dataset.eyeAdd === 'manual' ? '#FFFFFF' : colors[Math.floor(Math.random() * colors.length)] || '#FFFFFF';
     const row = document.createElement('div');
     row.className = 'eye-color-row';
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     row.innerHTML = `${colorControl(crypto.randomUUID(), color, 'Eye Color')}<button type="button" class="text-button" data-action="remove-eye-color">Remove Color</button>`;
     rows.insertBefore(row, rows.querySelector('.eye-add-tile'));
     labelEyeColors(rows);
@@ -198,7 +201,9 @@ export function createEyeEditor(renderEditor, getEyes) {
       if (!draft?.id && !draft?.name)
         draft = { ...draft, name: 'Custom Color', rarity: 'Common', colors: [randomEyeColor()] };
       const template = document.createElement('template');
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       template.innerHTML = renderEditor(draft);
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       dialog.innerHTML = `<div class="dialog-top"><h2 id="eye-editor-title">${draft?.id ? `Edit ${e(draft.name)}` : draft?.imported ? 'Import Eye Color' : 'Create Eye Color'}</h2><button type="button" class="icon-button" data-action="close-eye-editor" aria-label="Close eye color editor">${icon('close')}</button></div>`;
       const form = template.content.querySelector('#definition-form');
       form.querySelector('.panel-heading')?.remove();
@@ -207,6 +212,7 @@ export function createEyeEditor(renderEditor, getEyes) {
       form.querySelector('[data-action="add-eye-color"]')?.remove();
       const colors = form.querySelector('#eye-color-rows');
       labelEyeColors(colors);
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       colors.insertAdjacentHTML(
         'beforeend',
         `<div class="eye-add-tile" ${colors.children.length >= 6 ? 'hidden' : ''}><span class="eye-add-label" aria-hidden="true">Eye Color</span><div class="eye-add-actions"><button type="button" class="icon-button" data-eye-add="manual" title="Add a color (default: white)" aria-label="Add a color (default: white)">${icon('plus')}</button><button type="button" class="icon-button" data-eye-add="random" title="Add a random color" aria-label="Add a random color">${icon('refresh')}</button></div></div>`

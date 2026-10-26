@@ -77,6 +77,7 @@ export function updatePaletteGrid(root, catalog) {
   const grid = root.querySelector('#palette-grid');
   grid.classList.toggle('eye-definition-grid', sort !== 'group');
   grid.classList.toggle('mutation-definition-grid', sort !== 'group');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   grid.innerHTML = paletteResults(entries, sort, direction);
   root.querySelector('#palette-empty').hidden = entries.length > 0;
 }
@@ -88,6 +89,7 @@ export function createPaletteEditor(renderEditor) {
   const prompt = document.createElement('dialog');
   prompt.className = 'eye-save-confirm';
   prompt.setAttribute('aria-labelledby', 'palette-save-title');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   prompt.innerHTML = `<div class="dialog-top"><h2 id="palette-save-title">Save Changes?</h2></div><p>You have unsaved palette changes. Save them before closing?</p><div class="form-actions"><button type="button" class="button secondary" data-palette-decision="keep" autofocus>Keep Editing</button><button type="button" class="button secondary" data-palette-decision="discard">Discard Changes</button><button type="button" class="button primary" data-palette-decision="save">Save</button></div>`;
   document.body.append(dialog, prompt);
   function requestClose() {
@@ -125,9 +127,11 @@ export function createPaletteEditor(renderEditor) {
     dialog,
     open(draft) {
       const template = document.createElement('template');
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       template.innerHTML = renderEditor(draft);
       const form = template.content.querySelector('#definition-form');
       form.querySelector('.panel-heading')?.remove();
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       dialog.innerHTML = `<div class="dialog-top"><h2 id="palette-editor-title">${draft?.id ? `Edit ${e(draft.name)}` : draft?.imported ? 'Import Palette' : 'Create Palette'}</h2><button type="button" class="icon-button" data-palette-close aria-label="Close palette editor">${icon('close')}</button></div>`;
       definitionTransferControls(form, dialog, draft, 'palettes', 'Palette');
       const fields = form.querySelector('.definition-fields');

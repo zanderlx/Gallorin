@@ -8,6 +8,7 @@ export function confirmPlaylistRemoval({ library, locations, context, id, signal
   const dialog = document.createElement('dialog');
   dialog.className = 'music-delete-dialog music-playlist-remove-dialog';
   dialog.setAttribute('aria-label', 'Remove Song from Playlist?');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   dialog.innerHTML =
     '<h2>Remove Song from Playlist?</h2><p></p><div><button type="button" class="button secondary" data-no>Cancel</button><button type="button" class="button danger" data-yes>Remove</button></div>';
   dialog.querySelector('p').textContent = 'Remove “' + track.name + '” from “' + (playlist?.name || context) + '”?';

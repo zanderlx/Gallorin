@@ -186,6 +186,7 @@ export function updateMutationGrid(root, catalog) {
   grid.classList.toggle('eye-definition-grid', sort !== 'type');
   grid.classList.toggle('mutation-definition-grid', sort !== 'type');
   grid.classList.toggle('personality-card-grid', sort !== 'type');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   grid.innerHTML = mutationResults(entries, sort, root.querySelector('#mutation-weights').checked, direction, expanded);
   refreshMutationExpansion(root);
   root.querySelector('#mutation-empty').hidden = entries.length > 0;
@@ -198,6 +199,7 @@ export function createMutationEditor(renderEditor) {
   const prompt = document.createElement('dialog');
   prompt.className = 'eye-save-confirm';
   prompt.setAttribute('aria-labelledby', 'mutation-save-title');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   prompt.innerHTML = `<div class="dialog-top"><h2 id="mutation-save-title">Save Changes?</h2></div><p>You have unsaved mutation changes. Save them before closing?</p><div class="form-actions"><button type="button" class="button secondary" data-mutation-decision="keep" autofocus>Keep Editing</button><button type="button" class="button secondary" data-mutation-decision="discard">Discard Changes</button><button type="button" class="button primary" data-mutation-decision="save">Save</button></div>`;
   document.body.append(dialog, prompt);
   function requestClose() {
@@ -248,10 +250,12 @@ export function createMutationEditor(renderEditor) {
     dialog,
     open(draft) {
       const template = document.createElement('template');
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       template.innerHTML = renderEditor(draft);
       const form = template.content.querySelector('#definition-form');
       form.querySelector('.panel-heading')?.remove();
       form.querySelector('[data-action="duplicate-definition"]')?.remove();
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       dialog.innerHTML = `<div class="dialog-top"><h2 id="mutation-editor-title">${draft?.id ? `Edit ${e(draft.name)}` : draft?.imported ? 'Import Mutation' : 'Create Mutation'}</h2><button type="button" class="icon-button" data-mutation-close aria-label="Close mutation editor">${icon('close')}</button></div>`;
       definitionTransferControls(form, dialog, draft, 'mutations', 'Mutation');
       const fields = form.querySelector('.definition-fields');
@@ -264,6 +268,7 @@ export function createMutationEditor(renderEditor) {
       row.classList.add('mutation-name-type-row');
       const emojiField = document.createElement('label');
       emojiField.className = 'zone-field mutation-emoji-field';
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       emojiField.innerHTML = `Emoji<button type="button" class="button secondary" data-mutation-emoji aria-label="Choose mutation emoji">${e(mutationEmoji(draft))}</button><input type="hidden" name="emoji" value="${e(mutationEmoji(draft))}">`;
       row.prepend(emojiField);
       fields.prepend(row);

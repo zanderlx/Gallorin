@@ -28,6 +28,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
     const dialog = document.createElement('dialog');
     dialog.className = className;
     dialog.setAttribute('aria-label', title);
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     dialog.innerHTML =
       '<header><h2>' +
       e(title) +
@@ -42,16 +43,22 @@ export function bindSongActions(root, services, { signal, redraw }) {
   const restoreEdit = () => {
     if (!edit) return;
     if (edit.soundSelect) {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       edit.orderCell.innerHTML = edit.oldOrder;
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       edit.soundCell.innerHTML = edit.oldSound;
       edit.row.classList.remove('music-editing');
       edit.buttons.forEach(button => (button.disabled = false));
       edit = null;
       return;
     }
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     edit.orderCell.innerHTML = edit.oldOrder;
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     edit.titleCell.innerHTML = edit.oldTitle;
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     edit.artistCell.innerHTML = edit.oldArtist;
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     if (edit.eventCell) edit.eventCell.innerHTML = edit.oldEvent;
     edit.row.classList.remove('music-editing');
     edit.buttons.forEach(button => (button.disabled = false));
@@ -87,6 +94,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
     dialog.append(error);
     const actions = document.createElement('div');
     actions.className = 'music-dialog-actions';
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     actions.innerHTML =
       '<button type="button" class="button secondary" data-discard-song>Discard</button><button type="button" class="button primary" data-save-song>Save</button>';
     dialog.append(actions);
@@ -165,6 +173,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
         soundCell = row.querySelector('.music-sound-effect'),
         soundSelect = document.createElement('select');
       soundSelect.setAttribute('aria-label', 'Sound effect');
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       soundSelect.innerHTML =
         '<option value="">None</option>' +
         tracks.map(track => '<option value="' + e(track.id) + '">' + e(track.name) + '</option>').join('');
@@ -184,6 +193,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
       };
       edit.buttons.forEach(button => (button.disabled = true));
       soundCell.replaceChildren(soundSelect);
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       edit.orderCell.innerHTML =
         '<button type="button" class="music-row-save" data-save-song-row title="Save sound effect" aria-label="Save sound effect">' +
         icon('check') +
@@ -240,6 +250,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
       buttons: [...row.querySelectorAll('button')]
     };
     edit.buttons.forEach(button => (button.disabled = true));
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     edit.orderCell.innerHTML =
       '<button type="button" class="music-row-save" data-save-song-row title="Save song" aria-label="Save song name and artist">' +
       icon('check') +
@@ -293,6 +304,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
       );
       group.items = [all, ...items];
     }
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     section.innerHTML =
       '<option value="">All Sections</option>' +
       groups.map(group => '<option value="' + e(group.id) + '">' + e(group.name) + '</option>').join('');
@@ -302,6 +314,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
     const tableBox = document.createElement('div');
     tableBox.className = 'music-picker-table';
     if (effect) {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       tableBox.innerHTML =
         '<table><thead><tr><th scope="col">Sound Event</th></tr></thead><tbody>' +
         groups
@@ -326,6 +339,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
           .join('') +
         '</tbody></table>';
     } else {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       tableBox.innerHTML =
         '<table><thead><tr><th scope="col">Section</th><th scope="col">' +
         (effect ? 'Sound Event' : 'Playlist') +
@@ -388,6 +402,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
     dialog.append(error);
     const actions = document.createElement('div');
     actions.className = 'music-dialog-actions';
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     actions.innerHTML =
       '<button type="button" class="button secondary" data-cancel-playlists>Cancel</button><button type="button" class="button primary" data-save-playlists>Save</button>';
     dialog.append(actions);
@@ -419,6 +434,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
     if (id === 'menu') return;
     const dialog = document.createElement('dialog');
     dialog.className = 'music-delete-dialog';
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     dialog.innerHTML =
       '<h2>' +
       (isSoundEffect(track) ? 'Delete Sound Effect?' : 'Delete Song?') +
@@ -462,6 +478,7 @@ export function bindSongActions(root, services, { signal, redraw }) {
         node = document.createElement('div');
       node.className = 'music-options-menu';
       node.setAttribute('role', 'menu');
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       node.innerHTML =
         (anchor.dataset.soundEvent || isSoundEffect(musicTracks(services.getLibrary()).find(track => track.id === id))
           ? ''

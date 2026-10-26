@@ -123,6 +123,7 @@ export function bindMusicManager(root, services) {
         .filter(d => (d.dataset.expanding ? d.dataset.expanding === 'true' : d.open))
         .map(d => d.dataset.musicGroup || d.dataset.playlist)
     );
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     root.innerHTML = musicManagerPage(services.getLibrary(), services.getLocations());
     root
       .querySelectorAll('[data-music-group],[data-playlist]')

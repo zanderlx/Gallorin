@@ -82,6 +82,7 @@ export function createHorseDialogs({ getState, getCatalog, findHorse, save, onSa
         : horse[field];
       input = `<label>${e(field === 'eye' ? 'Eye Color' : field)}<select name="value" required>${selected && options.some(option => option.value === selected) ? '' : '<option value="" selected disabled>Choose an option</option>'}${options.map(option => `<option value="${e(option.value)}" ${option.value === selected ? 'selected' : ''}>${e(option.label)}</option>`).join('')}</select></label>`;
     }
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     dialog.innerHTML = `<form><div class="dialog-top"><h2 id="horse-edit-title">${e(title)}</h2>${kind === 'catch' ? '' : '<button type="button" class="icon-button" data-horse-cancel aria-label="Close">×</button>'}</div><div class="horse-edit-body">${kind === 'catch' ? '<p>Choose a name before saving this horse to your stable</p>' : ''}${input}<p role="status"></p><div class="form-actions"><button type="submit" class="button primary">${kind === 'catch' ? 'Save' : 'Save Changes'}</button><button type="button" class="text-button" data-horse-cancel>Cancel</button>${kind === 'catch' ? `<button type="button" class="button secondary catch-sell" data-action="sell" data-id="${e(horse.id)}">Sell for ${number(horseSalePrice(horse, getState().settings).total)} Gold</button>` : ''}</div></div></form>`;
     dialog.showModal();
     dialog.querySelector('input,select').focus();

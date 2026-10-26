@@ -14,6 +14,7 @@ export function definitionTransferControls(form, dialog, draft, kind, label) {
   const remove = form.querySelector('[data-action="delete-definition"]');
   if (!remove) return;
   remove.className = 'button secondary definition-transfer-button';
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   remove.innerHTML = icon('trash');
   remove.title = `Delete ${label}`;
   remove.setAttribute('aria-label', `Delete ${draft.name}`);
@@ -24,6 +25,7 @@ export function definitionTransferControls(form, dialog, draft, kind, label) {
   exportButton.dataset.action = kind === 'palettes' ? 'export-palette' : 'export-definition';
   exportButton.dataset.kind = kind;
   exportButton.dataset.id = draft.id;
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   exportButton.innerHTML = icon('upload');
   exportButton.title = `Export ${label}`;
   exportButton.setAttribute('aria-label', `Export ${label}`);

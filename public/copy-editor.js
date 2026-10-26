@@ -11,7 +11,6 @@ export function createCopyEditor({ getState, getRoute, save, notify, includeChro
   let fields = [],
     dialog,
     selected,
-    root,
     toolbar,
     saving = false;
   const tokenValues = () => {
@@ -34,6 +33,7 @@ export function createCopyEditor({ getState, getRoute, save, notify, includeChro
   const dirtyCount = scope => Object.keys(drafts.get(scope) || {}).length;
   function paint(field) {
     if (pending(field) === null || (pending(field) === undefined && saved(field) === undefined))
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       field.element.innerHTML = originalMarkup.get(field.element);
     else field.element.textContent = renderCopy(value(field), tokenValues());
     field.element.classList.toggle('copy-removed', value(field) === '' && !getState().settings.developerEditMode);
@@ -98,7 +98,9 @@ export function createCopyEditor({ getState, getRoute, save, notify, includeChro
       dialog.className = 'copy-editor-dialog';
       dialog.setAttribute('aria-labelledby', uid + '-dialog-title');
       dialog.dataset.copyUi = '';
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       dialog.innerHTML = `<form id="copy-text-form"><div class="dialog-top"><h2 id="copy-dialog-title">Edit text</h2><button type="button" class="icon-button" data-copy-command="close" aria-label="Close text editor">×</button></div><div class="copy-dialog-body"><p id="copy-field-label"></p><label class="zone-field">Text<textarea id="copy-text-value" rows="7" maxlength="4000"></textarea></label><details><summary>Original wording</summary><p id="copy-original"></p></details><p class="preview-note">Plain text only. Live values: ${copyTokens.map(t => `{${t}}`).join(', ')}.</p><p class="form-status" role="status" id="copy-dialog-status"></p><div class="form-actions"><button class="button primary" type="submit">Save this section</button><button type="button" class="button secondary" data-copy-command="preview">Preview change</button><button type="button" class="text-button" data-copy-command="delete">Delete text</button><button type="button" class="text-button" data-copy-command="default">Use original wording</button><button type="button" class="text-button" data-copy-command="close">Cancel</button></div></div></form>`;
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       dialog.innerHTML = dialog.innerHTML.replaceAll('id="copy-', 'id="' + uid + '-');
       document.body.append(dialog);
       query('form').addEventListener('submit', async event => {
@@ -147,7 +149,6 @@ export function createCopyEditor({ getState, getRoute, save, notify, includeChro
     query('textarea').focus();
   }
   function attach(main) {
-    root = main;
     toolbar = null;
     fields = [];
     main.querySelectorAll('.copy-toolbar').forEach(el => el.remove());
@@ -204,6 +205,7 @@ export function createCopyEditor({ getState, getRoute, save, notify, includeChro
     toolbar = document.createElement('div');
     toolbar.className = 'copy-toolbar';
     toolbar.dataset.copyUi = '';
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     toolbar.innerHTML = `<span data-copy-status role="status"></span><div><button class="button primary" data-copy-command="save">Save page</button><button class="button secondary" data-copy-command="discard">Discard drafts</button><button class="text-button" data-copy-command="restore">Restore page defaults</button><button class="text-button" data-action="toggle-copy-mode">Exit edit mode</button></div>`;
     main.prepend(toolbar);
     toolbar.addEventListener('click', event => {

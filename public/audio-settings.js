@@ -12,6 +12,7 @@ export function createAudioSettings({
   dialog.id = id;
   dialog.className = 'audio-settings-dialog';
   dialog.setAttribute('aria-labelledby', id + '-title');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   dialog.innerHTML =
     '<header><h2 id="' +
     id +

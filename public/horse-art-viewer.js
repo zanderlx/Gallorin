@@ -40,6 +40,7 @@ export function bindHorseArtViewer() {
         node.setAttribute(attr.name, value);
       }
     }
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     dialog.innerHTML = `<div class="horse-art-viewer-header"><button type="button" class="icon-button" data-close-horse-art aria-label="Close full horse illustration">${icon('close')}</button></div><div class="horse-art-viewer-stage"></div>`;
     const stage = dialog.querySelector('.horse-art-viewer-stage');
     stage.append(art);

@@ -39,6 +39,7 @@ export function createMusicPlayer({ notify, getLocations }) {
   const bar = document.createElement('footer');
   bar.className = 'music-player';
   bar.setAttribute('aria-label', 'Music player');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   bar.innerHTML =
     '<div class="music-now"><button type="button" class="music-art" data-now-playing-link aria-label="Show current song" title="Show current song">♫</button><span class="music-compact-note" aria-hidden="true">♫</span><div><button type="button" class="music-track-link" data-song title="Show current song">Music</button><small data-context>Gallorin Studios</small></div><button type="button" class="music-collapse" data-player-collapse aria-expanded="true" aria-label="Minimize music player" title="Minimize music player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div><div class="music-transport"><div class="music-buttons"><button type="button" data-music="stop" title="Stop" aria-label="Stop music">■</button><button type="button" data-music="previous" title="Previous song" aria-label="Previous song">⏮</button><button type="button" class="music-play" data-music="toggle" title="Play / Pause" aria-label="Play music">▶</button><button type="button" data-music="next" title="Next song" aria-label="Next song">⏭</button><button type="button" data-music="restart" title="Restart song" aria-label="Restart song">↺</button></div><div class="music-timeline"><span data-current>0:00</span><input type="range" data-seek min="0" max="0" step="0.1" value="0" aria-label="Song progress"><span data-duration>0:00</span></div></div><div class="music-volume"><button type="button" data-music="mute" title="Mute music" aria-label="Mute music">' +
     speakerIcon(false) +
@@ -65,6 +66,7 @@ export function createMusicPlayer({ notify, getLocations }) {
     const mute = q('[data-music="mute"]'),
       key = String(value.muted);
     if (mute.dataset.muted !== key) {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       mute.innerHTML = speakerIcon(value.muted);
       mute.dataset.muted = key;
     }
@@ -258,7 +260,7 @@ export function createMusicPlayer({ notify, getLocations }) {
   }
   async function spawnEffects(previous, next, zone) {
     const cosmic = newCosmicEncounters(previous, next, zone);
-    for (const horse of cosmic) await playEvent('effect/cosmic-spawn');
+    for (const _ of cosmic) await playEvent('effect/cosmic-spawn');
   }
   function page() {
     return musicManagerPage(library, getLocations());

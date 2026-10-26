@@ -29,14 +29,13 @@ import { traitsEditorPage, readTraitsForm } from './traits-editor.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
-import { icon, sidebar, groups, navigationSection, escapeHTML as e, number } from './ui.js';
+import { icon, sidebar, navigationSection, escapeHTML as e, number } from './ui.js';
 import {
   wildPage,
   stablePage,
   collectionCards,
   settingsPage,
   editModePage,
-  libraryPage,
   savesPage,
   plannedPage,
   routeTitle
@@ -221,13 +220,13 @@ function notify(message, error = false) {
   setTimeout(() => toast.remove(), error ? 8000 : 4500);
 }
 function renderChrome() {
-  const navScroll = $('#sidebar nav')?.scrollTop || 0;
   for (const details of $('#sidebar').querySelectorAll('details')) {
     if (details.dataset.navExpanded ? details.dataset.navExpanded === 'true' : details.open)
       openGroups.add(details.dataset.group);
     else openGroups.delete(details.dataset.group);
   }
   applyWebsiteTheme(catalog, state);
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   $('#sidebar').innerHTML = sidebar(route, state, openGroups, catalog, appVersion);
   bindNavigationDisclosures($('#sidebar'), {
     onChange: (group, open) => (open ? openGroups.add(group) : openGroups.delete(group)),
@@ -240,6 +239,7 @@ function renderChrome() {
   const definitionKind =
     route === 'dev/rarities' ? 'rarities' : route === 'dev/traits' ? 'species' : editorRoutes[route.split('/')[1]];
   const definitionPath = section.title === 'Compendium' && definitionKind ? `data/config/${definitionKind}.json` : '';
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   $('#topbar').innerHTML =
     `<div class="breadcrumb"><button class="icon-button mobile-menu" data-action="menu" aria-label="Open navigation" aria-expanded="${document.body.classList.contains('nav-open')}">${icon('menu')}</button>${icon(section.icon)}<span>${e(sectionName)}</span><span class="crumb-separator">/</span><strong>${e(routeTitle(route, locationsFor(catalog, state)))}</strong>${definitionPath ? `<span class="breadcrumb-path" title="${e(definitionPath)}">— ${e(definitionPath)}</span>` : ''}</div><div class="header-right"><div class="gold-balance" role="group" aria-label="Current gold balance">${icon('coin')}<strong>${number(state.gold)}</strong><span>GOLD</span></div><a href="#dev/profile" class="keeper-avatar" aria-label="Open my profile">${avatarSVG(state.keeper?.avatarSeed ?? 11)}</a></div>`;
 }
@@ -276,11 +276,13 @@ function pageContent(pageRoute, pageState = state) {
 }
 function render() {
   renderChrome();
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
   updateEncounterCooldown();
   if (route === 'dev/music') musicPlayer.bind(main);
   void musicPlayer.route(route).then(() => {
     if (route === 'dev/music') {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       main.innerHTML = musicPlayer.page();
       musicPlayer.bind(main);
     }
@@ -380,6 +382,7 @@ function readZoneForm(form) {
   };
 }
 function showZoneDraft(draft) {
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = zoneEditorPage(catalog, state, draft);
   copyEditor.attach(main);
   trackForms(main);
@@ -404,6 +407,7 @@ function showDefinition(kind, draft) {
   if (kind === 'personalities') {
     render();
     personalityCreation.setAttribute('aria-label', draft.id ? 'Edit Personality' : 'Create Personality');
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     personalityCreation.innerHTML = personalityForm(draft);
     if (!personalityCreation.open) personalityCreation.showModal();
     trackForms(personalityCreation);
@@ -416,6 +420,7 @@ function showDefinition(kind, draft) {
     if (!draft?.id && draft?.name) restoreBaseline(eyeEditor.dialog.querySelector('#definition-form'), 'new-eye-draft');
     return;
   }
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = libraryEditorPage(kind, catalog, state, draft);
   copyEditor.attach(main);
   trackForms(main);
@@ -435,6 +440,7 @@ function inspect(id) {
   profile.toggleAttribute('data-rarity-border', Boolean(rankColor));
   if (rankColor) profile.style.setProperty('--profile-rarity-color', rankColor);
   else profile.style.removeProperty('--profile-rarity-color');
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   profile.innerHTML = profileContent(horse, state, { catalog });
   selectProfileTab(profile, currentTab || 'overview');
   profileCopyEditor.attach(profile);
@@ -456,6 +462,7 @@ function syncResponsiveMenu() {
 function askToSell(id) {
   confirmation.classList.remove('eye-delete-confirm');
   const horse = findHorse(id);
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   confirmation.innerHTML = `<div class="dialog-top"><button class="icon-button" data-action="cancel-sell" aria-label="Cancel sale">${icon('close')}</button></div><h2 id="confirm-title">Sell ${e(horse.name || horse.species)}?</h2><p>You’ll receive <strong>${number(horseSalePrice(horse, state.settings).total)} gold</strong>. This horse will leave your care, and its full profile will be kept in your sold-horse history.</p>${saleQuoteBreakdown(horseSalePrice(horse, state.settings))}<div class="form-actions"><button class="button secondary" data-action="cancel-sell" autofocus>Keep this horse</button><button class="button primary" data-action="confirm-sell" data-id="${id}">Sell horse</button></div>`;
   confirmation.showModal();
 }
@@ -463,6 +470,7 @@ function updateAvatarPreview() {
   const form = $('#keeper-form');
   if (!form) return;
   const seed = Number(form.elements.avatarSeed.value);
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   $('#keeper-preview').innerHTML = avatarSVG(seed);
   form
     .querySelectorAll('[data-seed]')
@@ -475,6 +483,7 @@ function askToDelete(type, payload, name, detail, verb = type === 'delete-profil
     'eye-delete-confirm',
     type === 'delete-definition' && ['eyes', 'mutations', 'palettes'].includes(payload.kind)
   );
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   confirmation.innerHTML = `<div class="dialog-top"><h2 id="confirm-title">${verb} ${e(name)}?</h2></div><p class="delete-warning">${e(detail)} This is saved immediately. The previous save is kept in your backup folder.</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>${verb === 'Release' ? 'No' : 'Keep It'}</button><button class="button primary" data-action="confirm-delete">${verb === 'Release' ? 'Yes' : `Confirm ${verb}`}</button></div>`;
   confirmation.showModal();
 }
@@ -484,6 +493,7 @@ function updateStableSort(direction = $('[data-action="sort-direction"]')?.datas
   const label = direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending';
   toggle.setAttribute('aria-label', label);
   toggle.title = label;
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   $('#collection-grid').innerHTML = collectionCards(
     route.split('/')[1],
     state,
@@ -682,6 +692,7 @@ document.addEventListener('click', async event => {
     return showDefinition(kind, copy);
   }
   if (intent === 'add-trait-category') {
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     $('#trait-rows').insertAdjacentHTML('beforeend', traitRow());
     $('#trait-rows').lastElementChild.querySelector('input').focus();
     updateFormState($('#traits-form') || $('#definition-form'));
@@ -696,6 +707,7 @@ document.addEventListener('click', async event => {
     const rows = [...$('#eye-color-rows').children];
     if (rows.length >= 6) return notify('You can combine up to six eye colors.', true);
     const key = crypto.randomUUID();
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     $('#eye-color-rows').insertAdjacentHTML(
       'beforeend',
       `<div class="eye-color-row">${colorControl(key, '#8A689E', 'Additional eye color')}<button class="text-button" type="button" data-action="remove-eye-color">Remove color</button></div>`
@@ -902,6 +914,7 @@ document.addEventListener('submit', async event => {
     } else if (form.id === 'traits-form') {
       const payload = readTraitsForm(form);
       await action('save-traits', payload);
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       main.innerHTML = traitsEditorPage(catalog, payload.id);
       trackForms(main);
       notify('Traits saved.');
@@ -1036,6 +1049,7 @@ document.addEventListener('input', event => {
     $('#definition-no-results').hidden = matches > 0;
   }
   if (event.target.closest('#zone-form'))
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     $('#zone-preview').innerHTML = zonePreview(readZoneForm($('#zone-form')), catalog);
   if (event.target.id === 'horse-search') updateStableSort();
   if (event.target.id === 'palette-search') updatePaletteGrid(main, catalog);
@@ -1054,6 +1068,7 @@ document.addEventListener('change', event => {
     main.querySelector('[data-action="eye-sort-direction"]').dataset.direction = 'asc';
   if (['eye-rarity', 'eye-sort', 'eye-percent'].includes(event.target.id)) updateEyeGrid(main, catalog);
   if (event.target.id === 'traits-species') {
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     main.innerHTML = traitsEditorPage(catalog, event.target.value);
     trackForms(main);
     return;
@@ -1066,6 +1081,7 @@ document.addEventListener('change', event => {
 document.addEventListener('reset', event => {
   if (event.target.id === 'traits-form') {
     event.preventDefault();
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     main.innerHTML = traitsEditorPage(catalog, event.target.dataset.id);
     trackForms(main);
     return;
@@ -1129,6 +1145,7 @@ try {
   await navigate({ initializeNavigation: true });
   syncResponsiveMenu();
 } catch (error) {
+  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = `<section class="panel"><h1>The sanctuary couldn’t open</h1><p>${e(error.message)}</p><p>Check that the local server is running, then reload this page. Existing save files have been preserved.</p><button class="button primary" id="retry-load">Try again</button></section>`;
   $('#retry-load').addEventListener('click', () => location.reload());
 }

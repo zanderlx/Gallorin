@@ -48,6 +48,7 @@ export function createHorseTransfers({ getCatalog, getState, save, notify, onImp
       });
     }
     const state = getState();
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     previewDialog.innerHTML = profileContent(
       { ...horse, id: 'import-preview' },
       { ...state, horses: [], sold: [], settings: { ...state.settings, developerEditMode: false } },

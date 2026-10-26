@@ -365,7 +365,7 @@ test('invalid settings and full stable fail without mutating the save', async t 
   await assert.rejects(store.action('settings', { ...defaults, sellingPrice: -1 }));
   await store.action('settings', { ...defaults, stableCapacity: 1, ignoreStableLimit: false });
   await store.action('visit', { locationId: 'aetherion' });
-  const [a, b] = store.state.encounters.aetherion;
+  const [a] = store.state.encounters.aetherion;
   await store.action('catch', { id: a.id });
   const before = store.snapshot();
   await assert.rejects(store.action('catch', { id: store.state.encounters.aetherion[0].id }), /full/);

@@ -172,6 +172,7 @@ export class MusicLibrary {
         track = {
           id: randomUUID(),
           kind,
+          // eslint-disable-next-line no-control-regex -- strips control characters from file names
           filename: name.replace(/[\x00-\x1f]/g, ''),
           name: formatMusicName(name),
           artist: 'Gallorin Studios',
@@ -241,6 +242,7 @@ export class MusicLibrary {
         throw Error('Only the name, artist, and sound events can be edited.');
       const text = (key, max) => {
         const value = values[key];
+        // eslint-disable-next-line no-control-regex -- rejects control characters in names
         if (typeof value !== 'string' || !value.trim() || value.trim().length > max || /[\x00-\x1f]/.test(value))
           throw Error('Enter a valid ' + key + ' (maximum ' + max + ' characters).');
         return value.trim();

@@ -53,7 +53,7 @@ export class GameStore {
         throw new Error('Invalid save structure');
     } catch (error) {
       if (error.code !== 'ENOENT')
-        throw new Error(`Cannot read save; existing file has been preserved. ${error.message}`);
+        throw new Error(`Cannot read save; existing file has been preserved. ${error.message}`, { cause: error });
       existingSave = false;
       this.state = {
         version: 1,

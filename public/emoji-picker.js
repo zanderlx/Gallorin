@@ -77,6 +77,7 @@ export function openEmojiPicker({ value, onSelect }) {
     dialog = document.createElement('dialog');
     dialog.className = 'emoji-picker-dialog';
     dialog.setAttribute('aria-labelledby', 'emoji-picker-title');
+    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     dialog.innerHTML = `<div class="dialog-top"><h2 id="emoji-picker-title">Choose Emoji</h2><button type="button" class="icon-button" data-emoji-close aria-label="Close emoji picker">${icon('close')}</button></div><div class="emoji-picker-content"><div class="emoji-picker-filters"><input type="search" placeholder="Search emojis..." aria-label="Search emojis"><select aria-label="Emoji category"><option value="">All Categories</option>${Object.keys(
       groups
     )
@@ -90,6 +91,7 @@ export function openEmojiPicker({ value, onSelect }) {
         dialog.querySelector('[type="search"]').value,
         dialog.querySelector('select').value
       );
+      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
       dialog.querySelector('.emoji-picker-grid').innerHTML = results
         .map(
           choice =>
