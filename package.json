@@ -24,8 +24,13 @@
     "music-metadata": "12.2.3"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "electron": "45.0.0",
-    "electron-builder": "26.15.3"
+    "electron-builder": "26.15.3",
+    "eslint": "10.13.0",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2"
   },
   "main": "desktop/main.js",
   "author": "Gallorin",
