@@ -1,12 +1,18 @@
 // @ts-check
 import { soundEffectGroups, isSoundEffect } from '../public/music-effects.js';
-import { durationOfFile, durationOfBuffer } from './music-duration.js';
+import { durationOfFile } from './music-duration.js';
 import { assignmentTracks, formatMusicName, normalizePlaylistSelections } from '../public/music-context.js';
-import { mkdir, readFile, unlink, open, stat, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, open, stat, copyFile, rename } from 'node:fs/promises';
 import { replaceDurable, writeDurable } from './durable-file.js';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 const validId = id => /^[a-f0-9-]{36}$/.test(id);
+const maxTrackBytes = 50 * 1024 * 1024;
+function checkImport(name, kind) {
+  if (!['music', 'effect'].includes(kind)) throw Error('Choose music or sound effect.');
+  if (typeof name !== 'string' || !name.toLowerCase().endsWith('.mp3') || name.length > 200)
+    throw Error('Choose an MP3 file with a name under 200 characters.');
+}
 export class MusicLibrary {
   constructor(directory, builtin, seeds = [], defaults = {}) {
     this.builtin = builtin;
@@ -125,7 +131,12 @@ export class MusicLibrary {
   async read() {
     await this.ready;
     try {
-      const library = JSON.parse(await readFile(join(this.root, 'library.json'), 'utf8'));
+      // Re-read library.json only when it changed; each call still returns fresh objects.
+      const file = join(this.root, 'library.json');
+      const info = await stat(file);
+      const key = `${info.size}:${info.mtimeMs}`;
+      if (this.cached?.key !== key) this.cached = { key, text: await readFile(file, 'utf8') };
+      const library = JSON.parse(this.cached.text);
       return {
         ...library,
         version: 2,
@@ -156,39 +167,84 @@ export class MusicLibrary {
     return job;
   }
   async import(name, bytes, kind = 'music') {
-    if (!['music', 'effect'].includes(kind)) throw Error('Choose music or sound effect.');
-    return this.edit(async () => {
-      if (typeof name !== 'string' || !name.toLowerCase().endsWith('.mp3') || name.length > 200)
-        throw Error('Choose an MP3 file with a name under 200 characters.');
-      // Accept ID3-tagged files or an MPEG frame header.
-      if (
-        !Buffer.isBuffer(bytes) ||
-        bytes.length < 4 ||
-        bytes.length > 50 * 1024 * 1024 ||
-        !(bytes.subarray(0, 3).toString() === 'ID3' || (bytes[0] === 255 && (bytes[1] & 224) === 224))
-      )
-        throw Error('Choose a valid MP3 file (maximum 50 MB).');
-      const library = await this.read(),
-        track = {
-          id: randomUUID(),
-          kind,
-          // eslint-disable-next-line no-control-regex -- strips control characters from file names
-          filename: name.replace(/[\x00-\x1f]/g, ''),
-          name: formatMusicName(name),
-          artist: 'Gallorin Studios',
-          durationSeconds: await durationOfBuffer(bytes),
-          addedAt: new Date().toISOString()
-        };
-      await mkdir(this.root, { recursive: true });
-      await writeDurable(join(this.root, track.id + '.mp3'), bytes, { exclusive: true });
-      try {
-        library.tracks.push(track);
-        await this.write(library);
-      } catch (error) {
-        await unlink(join(this.root, track.id + '.mp3'));
-        throw error;
+    if (!Buffer.isBuffer(bytes)) throw Error('Choose a valid MP3 file (maximum 50 MB).');
+    checkImport(name, kind);
+    const temporary = await this.temporaryFile();
+    await writeDurable(temporary, bytes, { exclusive: true });
+    return this.importFile(name, temporary, kind);
+  }
+  /**
+   * Streams an upload to a temporary file instead of holding it in memory.
+   * Throws an error with code 'TOO_LARGE' once it exceeds maxBytes.
+   */
+  async upload(name, stream, kind = 'music', maxBytes = maxTrackBytes) {
+    checkImport(name, kind);
+    const temporary = await this.temporaryFile();
+    const handle = await open(temporary, 'wx');
+    let size = 0;
+    try {
+      for await (const chunk of stream) {
+        size += chunk.length;
+        if (size > maxBytes) throw Object.assign(Error('File is too large (maximum 50 MB).'), { code: 'TOO_LARGE' });
+        await handle.write(chunk);
       }
-      return library;
+      await handle.sync();
+    } catch (error) {
+      await handle.close();
+      await unlink(temporary).catch(() => {});
+      throw error;
+    }
+    await handle.close();
+    return this.importFile(name, temporary, kind);
+  }
+  async temporaryFile() {
+    await mkdir(this.root, { recursive: true });
+    return join(this.root, `upload-${randomUUID()}.tmp`);
+  }
+  // Validates an MP3 already written to `temporary` in the music folder and adds it to the library.
+  // The temporary file is always moved into place or removed.
+  async importFile(name, temporary, kind = 'music') {
+    return this.edit(async () => {
+      try {
+        const { size } = await stat(temporary);
+        const head = Buffer.alloc(4);
+        const handle = await open(temporary, 'r');
+        try {
+          await handle.read(head, 0, 4, 0);
+        } finally {
+          await handle.close();
+        }
+        // Accept ID3-tagged files or an MPEG frame header.
+        if (
+          size < 4 ||
+          size > maxTrackBytes ||
+          !(head.subarray(0, 3).toString() === 'ID3' || (head[0] === 255 && (head[1] & 224) === 224))
+        )
+          throw Error('Choose a valid MP3 file (maximum 50 MB).');
+        const library = await this.read(),
+          track = {
+            id: randomUUID(),
+            kind,
+            // eslint-disable-next-line no-control-regex -- strips control characters from file names
+            filename: name.replace(/[\x00-\x1f]/g, ''),
+            name: formatMusicName(name),
+            artist: 'Gallorin Studios',
+            durationSeconds: await durationOfFile(temporary),
+            addedAt: new Date().toISOString()
+          };
+        const target = join(this.root, track.id + '.mp3');
+        await rename(temporary, target);
+        try {
+          library.tracks.push(track);
+          await this.write(library);
+        } catch (error) {
+          await unlink(target);
+          throw error;
+        }
+        return library;
+      } finally {
+        await unlink(temporary).catch(() => {});
+      }
     });
   }
   async settings(input, contexts) {

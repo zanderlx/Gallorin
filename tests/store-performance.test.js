@@ -47,3 +47,24 @@ test('the game picks up its own configuration edits', async t => {
   await store.refreshConfiguration();
   assert.ok(store.getCatalog().species.some(entry => entry.name === 'Renamed Species'));
 });
+
+test('music uploads stream to disk, reject oversized or invalid files, and leave no temporary files', async t => {
+  const { MusicLibrary } = await import('../src/music-library.js');
+  const { Readable } = await import('node:stream');
+  const { readdir } = await import('node:fs/promises');
+  const directory = await mkdtemp(join(tmpdir(), 'gallorin-upload-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const music = new MusicLibrary(directory);
+  const mp3 = Buffer.concat([Buffer.from('ID3'), Buffer.alloc(2048)]);
+  const library = await music.upload('song.mp3', Readable.from([mp3.subarray(0, 1000), mp3.subarray(1000)]));
+  assert.equal(library.tracks.length, 1);
+  await assert.rejects(music.upload('big.mp3', Readable.from([mp3, mp3]), 'music', 3000), { code: 'TOO_LARGE' });
+  await assert.rejects(music.upload('fake.mp3', Readable.from([Buffer.from('not audio')])), /valid MP3/);
+  const files = await readdir(join(directory, 'music'));
+  assert.deepEqual(
+    files.filter(name => name.endsWith('.tmp')),
+    []
+  );
+  assert.equal(files.filter(name => name.endsWith('.mp3')).length, 1);
+  assert.equal((await music.read()).tracks.length, 1);
+});
