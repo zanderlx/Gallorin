@@ -23,7 +23,7 @@
 - Repeat the review checkpoint if later changes materially alter the approved version or release scope.
 
 - Display full major.minor.patch versions on the README banner and runtime labels. Use patch increments for subsequent small fix releases; a feature release can include fixes and start at patch 0.
-- Named major/minor releases use Gallorin v<version>: <release name>. Patch releases have no changelog/release codename: use Gallorin v<version>, with workflow/run title Release v<version>. Keep any summary as prose below the changelog heading, not a title.
+- Named major/minor releases use Gallorin v<version>: <release name>. Patch releases have no changelog/release codename: use Gallorin v<version>, with the workflow run titled Release gallorin-v<version> (derived from the pushed tag). Keep any summary as prose below the changelog heading, not a title.
 - Keep README desktop-first and concise: installer play/updating, npm run desktop for local testing, first-time dependency setup, optional browser play, and brief feature/storage information.
 
 # Enforced deployment workflow

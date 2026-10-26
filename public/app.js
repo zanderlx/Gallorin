@@ -488,7 +488,8 @@ document.addEventListener('click', async event => {
     } else if (intent === 'search') {
       await action('search', { locationId: route.split('/')[1] });
       render();
-      main.querySelector('[data-action="search"]')?.focus({ preventScroll: true });    } else if (intent === 'confirm-sell') {
+      main.querySelector('[data-action="search"]')?.focus({ preventScroll: true });
+    } else if (intent === 'confirm-sell') {
       await action('sell', { id });
       horseDialogs.close();
       confirmation.close();
