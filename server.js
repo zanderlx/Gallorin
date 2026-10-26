@@ -57,25 +57,24 @@ const server = createServer(async (req, res) => {
         const upload = url.pathname === '/api/music/import';
         if (!(req.headers['content-type'] || '').startsWith(upload ? 'audio/mpeg' : 'application/json'))
           return send(res, 415, { error: 'Unsupported file type.' });
+        if (upload) {
+          try {
+            const name = decodeURIComponent(String(req.headers['x-file-name'] || ''));
+            return send(res, 200, await music.upload(name, req, url.searchParams.get('kind') || 'music'));
+          } catch (error) {
+            if (error.code !== 'TOO_LARGE') throw error;
+            send(res, 413, { error: error.message });
+            return req.destroy();
+          }
+        }
         const chunks = [];
         let size = 0;
         for await (const chunk of req) {
           size += chunk.length;
-          if (size > (upload ? 50 * 1024 * 1024 : 65536))
-            return send(res, 413, { error: 'File is too large (maximum 50 MB).' });
+          if (size > 65536) return send(res, 413, { error: 'Request too large.' });
           chunks.push(chunk);
         }
         const bytes = Buffer.concat(chunks);
-        if (upload)
-          return send(
-            res,
-            200,
-            await music.import(
-              decodeURIComponent(String(req.headers['x-file-name'] || '')),
-              bytes,
-              url.searchParams.get('kind') || 'music'
-            )
-          );
         const input = JSON.parse(bytes.toString());
         if (url.pathname === '/api/music/settings') {
           const contexts = musicContexts([

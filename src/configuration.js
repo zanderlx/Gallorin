@@ -1,7 +1,7 @@
 // @ts-check
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
-import { mkdir, readFile, unlink } from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, unlink } from 'node:fs/promises';
 import { replaceDurable } from './durable-file.js';
 import { resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -106,6 +106,30 @@ export class ConfigurationFiles {
     }
     const zones = locationsFor(catalog, state).map(z => ({ ...z, creatures: zoneCreatures(z, catalog, settings) }));
     return { catalog, zones, settings };
+  }
+  // Size and modification time of every configuration file, so callers can skip re-reading
+  // unchanged files. The recovery journal is excluded because it never holds live settings.
+  async signature() {
+    const entries = [];
+    const walk = async (directory, prefix) => {
+      let names;
+      try {
+        names = await readdir(directory, { withFileTypes: true });
+      } catch (error) {
+        if (error.code === 'ENOENT') return;
+        throw error;
+      }
+      for (const entry of names) {
+        const relative = prefix + entry.name;
+        if (entry.isDirectory()) await walk(resolve(directory, entry.name), relative + '/');
+        else if (entry.name.endsWith('.json') && relative !== 'transaction.json') {
+          const info = await stat(resolve(directory, entry.name));
+          entries.push(`${relative}:${info.size}:${info.mtimeMs}`);
+        }
+      }
+    };
+    await walk(this.root, '');
+    return entries.sort().join('|');
   }
   async exists() {
     try {
