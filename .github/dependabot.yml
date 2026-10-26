@@ -16,6 +16,10 @@ updates:
       dev-tooling:
         dependency-type: development
         exclude-patterns: ['electron', 'electron-builder']
+    ignore:
+      # Keep Node type definitions on the Node major that Electron bundles (see .node-version).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
