@@ -4,3 +4,4 @@ data/
 docs/references/
 package-lock.json
 *.md
+tests/fixtures/

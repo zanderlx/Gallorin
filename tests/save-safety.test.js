@@ -93,3 +93,19 @@ for (const name of ['current-with-history.json', 'before-palette-additions.json'
     assert.deepEqual(ids(saved), ids(original));
   });
 }
+
+test('logs over the size cap move to a single .1 copy', async t => {
+  const { rotateLog } = await import('../src/log-rotation.js');
+  const directory = await tempDir(t);
+  const file = join(directory, 'desktop.log');
+  rotateLog(file, 10);
+  await writeFile(file, 'small');
+  rotateLog(file, 10);
+  assert.deepEqual(await readdir(directory), ['desktop.log']);
+  await writeFile(file, 'more than ten bytes');
+  rotateLog(file, 10);
+  assert.deepEqual((await readdir(directory)).sort(), ['desktop.log.1']);
+  await writeFile(file, 'another long entry');
+  rotateLog(file, 10);
+  assert.equal(await readFile(file + '.1', 'utf8'), 'another long entry');
+});

@@ -3,6 +3,7 @@ import { mkdir, open } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { rotateLog } from '../src/log-rotation.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const projectId = createHash('sha256').update(resolve(root).toLowerCase()).digest('hex');
 const port = Number(process.env.PORT || 4173);
@@ -70,6 +71,7 @@ async function run() {
   if (!current) {
     const directory = resolve(process.env.HORSE_DATA_DIR || resolve(root, 'data'));
     await mkdir(directory, { recursive: true });
+    rotateLog(resolve(directory, 'desktop-launcher.log'));
     const log = await open(resolve(directory, 'desktop-launcher.log'), 'a');
     const child = spawn(process.execPath, [resolve(root, 'server.js')], {
       cwd: root,
