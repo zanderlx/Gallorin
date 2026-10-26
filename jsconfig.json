@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "es2023",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"],
+    "checkJs": false,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["server.js", "src/**/*.js", "public/**/*.js"]
+}

@@ -1,3 +1,4 @@
+// @ts-check
 import { musicContexts } from './public/music-context.js';
 import { MusicLibrary } from './src/music-library.js';
 import { createHash } from 'node:crypto';
@@ -41,7 +42,7 @@ const server = createServer(async (req, res) => {
     'Content-Security-Policy',
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'self'"
   );
-  const boundPort = server.address().port;
+  const boundPort = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
   const allowedHosts = new Set([`localhost:${boundPort}`, `127.0.0.1:${boundPort}`]);
   if (!allowedHosts.has(req.headers.host)) return send(res, 403, { error: 'Local connections only.' });
   try {
@@ -70,7 +71,7 @@ const server = createServer(async (req, res) => {
             res,
             200,
             await music.import(
-              decodeURIComponent(req.headers['x-file-name'] || ''),
+              decodeURIComponent(String(req.headers['x-file-name'] || '')),
               bytes,
               url.searchParams.get('kind') || 'music'
             )
@@ -144,14 +145,16 @@ const server = createServer(async (req, res) => {
 export const serverReady = new Promise((resolve, reject) => {
   server.once('error', reject);
   server.listen(port, '127.0.0.1', () => {
-    const origin = `http://127.0.0.1:${server.address().port}`;
+    const origin = `http://127.0.0.1:${/** @type {import('node:net').AddressInfo} */ (server.address()).port}`;
     console.log(`Gallorin is ready at ${origin}`);
     resolve(origin);
   });
 });
 serverReady.catch(() => {}); // CLI errors are reported by the existing error handler.
 export async function closeGameServer() {
-  await new Promise((resolve, reject) => server.close(error => (error ? reject(error) : resolve())));
+  await /** @type {Promise<void>} */ (
+    new Promise((resolve, reject) => server.close(error => (error ? reject(error) : resolve())))
+  );
   await music.queue;
   await store.queue; // Let every accepted write finish before desktop shutdown or updates.
 }

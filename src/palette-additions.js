@@ -1,3 +1,4 @@
+// @ts-check
 import { normalizeCatalog, validateDefinition } from '../public/definitions.js';
 
 // Bundled palettes added after earlier installs had already written config/palettes.json.

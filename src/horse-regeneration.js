@@ -1,3 +1,4 @@
+// @ts-check
 import { createHash } from 'node:crypto';
 import { pickUniform, pickWeighted, randomFloat, rollSize, meetsThresholds } from './spawning.js';
 import { cosmicPalette } from './cosmic-palettes.js';

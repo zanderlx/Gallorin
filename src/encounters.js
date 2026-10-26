@@ -1,3 +1,4 @@
+// @ts-check
 import { spawnHorse } from './spawning.js';
 import { normalizeCatalog } from '../public/definitions.js';
 import { locationsFor } from '../public/zones.js';

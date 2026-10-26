@@ -1,3 +1,4 @@
+// @ts-check
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { regenerateHorse, horseFingerprint } from './horse-regeneration.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
@@ -32,10 +33,13 @@ export class GameStore {
     this.directory = directory;
     this.catalog = catalog;
     this.defaults = defaults;
+    /** @type {Promise<unknown>} */
     this.queue = Promise.resolve();
     this.files = new ConfigurationFiles(directory);
     this.rng = options.rng;
     this.horseUpdatePreviews = new Map();
+    /** @type {import('./types.js').SaveState | undefined} */
+    this.state = undefined;
   }
   async init() {
     await mkdir(join(this.directory, 'player'), { recursive: true });

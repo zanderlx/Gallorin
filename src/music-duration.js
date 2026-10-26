@@ -1,3 +1,4 @@
+// @ts-check
 import { parseBuffer, parseFile } from 'music-metadata';
 const seconds = metadata =>
   Number.isFinite(metadata.format.duration) && metadata.format.duration >= 0 ? metadata.format.duration : null;

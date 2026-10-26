@@ -1,3 +1,4 @@
+// @ts-check
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
 import { mkdir, readFile, writeFile, rename, unlink } from 'node:fs/promises';

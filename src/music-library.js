@@ -1,3 +1,4 @@
+// @ts-check
 import { soundEffectGroups, isSoundEffect } from '../public/music-effects.js';
 import { durationOfFile, durationOfBuffer } from './music-duration.js';
 import { assignmentTracks, formatMusicName, normalizePlaylistSelections } from '../public/music-context.js';

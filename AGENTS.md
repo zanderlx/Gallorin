@@ -43,6 +43,11 @@
 - Keep infrastructure-only changes in PR descriptions, commit messages, and dedicated development documentation such as docs/deployment.md. Do not add them as app features in README.
 - For infrastructure-only pushes, preserve the published app version and release documentation. The personal review checkpoint still applies to the proposed changes before pushing.
 
+# Code checks
+
+- Before every commit, run `npm run lint`, `npm run format:check`, and `npm run typecheck`, plus the relevant tests (full `npm test` before merging). Fix the cause of a failure; never weaken a rule or skip a check to get green.
+- Build HTML through public/ui.js helpers. Lines marked `TODO(html-template)` are existing exemptions awaiting migration; do not add new ones.
+
 # Efficient testing
 
 - Smoke tests skip the splash by default. When the splash/startup reveal changes, explicitly test it with --test-splash (or scripts/desktop-smoke.ps1 -TestSplash); do not remove the player splash.

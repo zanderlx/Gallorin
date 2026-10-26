@@ -1,3 +1,4 @@
+// @ts-check
 const cosmicNames = new Set(['solar', 'lunar', 'heavenly', 'void', 'astral']);
 const normalized = value =>
   String(value || '')

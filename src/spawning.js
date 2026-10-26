@@ -1,3 +1,4 @@
+// @ts-check
 import { horseSchemaVersion, horseGenerationVersion } from '../public/horse-version.js';
 import { varyPalette } from '../public/palette-variation.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
