@@ -18,7 +18,8 @@ async function health() {
     return null;
   }
 }
-const matches = value => value?.application === 'aetherion' && value.projectId === projectId;
+// Servers from releases before the rename report 'aetherion'; recognise both so they can still be stopped.
+const matches = value => ['gallorin', 'aetherion'].includes(value?.application) && value.projectId === projectId;
 async function message(text, error = false) {
   if (process.env.AETHERION_NO_BROWSER === '1') {
     console[error ? 'error' : 'log'](text);

@@ -1,4 +1,5 @@
 import { readHorseVersion } from './horse-version.js';
+import { limits, formatLimit } from './limits.js';
 import { horseAcquisitionDate } from './dates.js';
 import { readHorseSkills } from './skill-progress.js';
 import { ages, sizes } from './horse-fields.js';
@@ -188,6 +189,7 @@ export function createHorseDocument(horse) {
     exportedAt: new Date().toISOString(),
     horse: { id: horse.id, ...snapshot }
   };
-  if (JSON.stringify(document).length > 524288) throw new Error('This horse exceeds the 512 KB transfer limit.');
+  if (JSON.stringify(document).length > limits.horseFileBytes)
+    throw new Error(`This horse exceeds the ${formatLimit(limits.horseFileBytes)} transfer limit.`);
   return document;
 }

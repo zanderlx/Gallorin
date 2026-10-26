@@ -1,4 +1,5 @@
 // @ts-check
+import { limits, formatLimit } from '../public/limits.js';
 import { soundEffectGroups, isSoundEffect } from '../public/music-effects.js';
 import { durationOfFile } from './music-duration.js';
 import { assignmentTracks, formatMusicName, normalizePlaylistSelections } from '../public/music-context.js';
@@ -7,7 +8,7 @@ import { replaceDurable, writeDurable } from './durable-file.js';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 const validId = id => /^[a-f0-9-]{36}$/.test(id);
-const maxTrackBytes = 50 * 1024 * 1024;
+const invalidTrack = `Choose a valid MP3 file (maximum ${formatLimit(limits.trackBytes)}).`;
 function checkImport(name, kind) {
   if (!['music', 'effect'].includes(kind)) throw Error('Choose music or sound effect.');
   if (typeof name !== 'string' || !name.toLowerCase().endsWith('.mp3') || name.length > 200)
@@ -167,7 +168,7 @@ export class MusicLibrary {
     return job;
   }
   async import(name, bytes, kind = 'music') {
-    if (!Buffer.isBuffer(bytes)) throw Error('Choose a valid MP3 file (maximum 50 MB).');
+    if (!Buffer.isBuffer(bytes)) throw Error(invalidTrack);
     checkImport(name, kind);
     const temporary = await this.temporaryFile();
     await writeDurable(temporary, bytes, { exclusive: true });
@@ -177,7 +178,7 @@ export class MusicLibrary {
    * Streams an upload to a temporary file instead of holding it in memory.
    * Throws an error with code 'TOO_LARGE' once it exceeds maxBytes.
    */
-  async upload(name, stream, kind = 'music', maxBytes = maxTrackBytes) {
+  async upload(name, stream, kind = 'music', maxBytes = limits.trackBytes) {
     checkImport(name, kind);
     const temporary = await this.temporaryFile();
     const handle = await open(temporary, 'wx');
@@ -185,7 +186,10 @@ export class MusicLibrary {
     try {
       for await (const chunk of stream) {
         size += chunk.length;
-        if (size > maxBytes) throw Object.assign(Error('File is too large (maximum 50 MB).'), { code: 'TOO_LARGE' });
+        if (size > maxBytes)
+          throw Object.assign(Error(`File is too large (maximum ${formatLimit(limits.trackBytes)}).`), {
+            code: 'TOO_LARGE'
+          });
         await handle.write(chunk);
       }
       await handle.sync();
@@ -217,10 +221,10 @@ export class MusicLibrary {
         // Accept ID3-tagged files or an MPEG frame header.
         if (
           size < 4 ||
-          size > maxTrackBytes ||
+          size > limits.trackBytes ||
           !(head.subarray(0, 3).toString() === 'ID3' || (head[0] === 255 && (head[1] & 224) === 224))
         )
-          throw Error('Choose a valid MP3 file (maximum 50 MB).');
+          throw Error(invalidTrack);
         const library = await this.read(),
           track = {
             id: randomUUID(),

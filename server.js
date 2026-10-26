@@ -1,4 +1,5 @@
 // @ts-check
+import { limits } from './public/limits.js';
 import { musicContexts } from './public/music-context.js';
 import { MusicLibrary } from './src/music-library.js';
 import { createHash } from 'node:crypto';
@@ -71,7 +72,7 @@ const server = createServer(async (req, res) => {
         let size = 0;
         for await (const chunk of req) {
           size += chunk.length;
-          if (size > 65536) return send(res, 413, { error: 'Request too large.' });
+          if (size > limits.musicJsonBytes) return send(res, 413, { error: 'Request too large.' });
           chunks.push(chunk);
         }
         const bytes = Buffer.concat(chunks);
@@ -98,7 +99,7 @@ const server = createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/health')
       return send(res, 200, {
-        application: 'aetherion',
+        application: 'gallorin',
         projectId: createHash('sha256').update(resolve(root).toLowerCase()).digest('hex'),
         pid: process.pid
       });
@@ -122,7 +123,10 @@ const server = createServer(async (req, res) => {
       let body = '';
       for await (const chunk of req) {
         body += chunk;
-        if (body.length > 1048576) return send(res, 413, { error: 'Request too large.' });
+        if (Buffer.byteLength(body) > limits.actionBodyBytes) {
+          send(res, 413, { error: 'Request too large.' });
+          return req.destroy();
+        }
       }
       const { type, payload } = JSON.parse(body);
       if (type === 'preview-horse-updates') return send(res, 200, await store.previewHorseUpdates(payload));
@@ -138,6 +142,8 @@ const server = createServer(async (req, res) => {
     });
     res.end(req.method === 'HEAD' ? undefined : content);
   } catch (error) {
+    // A reply already under way (such as a streamed song) cannot be replaced by an error message.
+    if (res.headersSent) return res.destroy();
     send(res, error.code === 'ENOENT' ? 404 : 400, { error: error.code === 'ENOENT' ? 'Not found.' : error.message });
   }
 });

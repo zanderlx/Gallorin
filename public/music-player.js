@@ -1,4 +1,5 @@
 import { bindPlayerLayout } from './music-player-layout.js';
+import { limits, formatLimit } from './limits.js';
 import { soundEffectGroups, isSoundEffect, newCosmicEncounters, effectForEvent } from './music-effects.js';
 import { createAudioPreferenceStore } from './audio-preference-store.js';
 import { revealPlayingSong } from './music-navigation.js';
@@ -279,8 +280,8 @@ export function createMusicPlayer({ notify, getLocations }) {
       },
       async importFiles(files, kind = 'music') {
         for (const file of files) {
-          if (!file.name.toLowerCase().endsWith('.mp3') || file.size > 50 * 1024 * 1024)
-            throw Error('Choose MP3 files up to 50 MB each.');
+          if (!file.name.toLowerCase().endsWith('.mp3') || file.size > limits.trackBytes)
+            throw Error(`Choose MP3 files up to ${formatLimit(limits.trackBytes)} each.`);
           const response = await fetch('/api/music/import?kind=' + encodeURIComponent(kind), {
             method: 'POST',
             headers: { 'Content-Type': 'audio/mpeg', 'X-File-Name': encodeURIComponent(file.name) },
