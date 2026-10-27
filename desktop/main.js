@@ -356,6 +356,11 @@ async function start() {
     if (event.sender === main.webContents && event.senderFrame.url === menuURL) app.quit();
   });
   const fromGame = event => event.sender === main.webContents && event.senderFrame.url.startsWith(origin + '/');
+  ipcMain.handle('check-for-updates', async event => {
+    if (!fromGame(event) || event.senderFrame !== main.webContents.mainFrame)
+      throw new Error('Update checks are only available in the game.');
+    await checkUpdates(true);
+  });
   ipcMain.handle('open-local-save', async event => {
     if (!fromGame(event) || event.senderFrame !== main.webContents.mainFrame)
       throw new Error('Open Local Save is only available in the game.');

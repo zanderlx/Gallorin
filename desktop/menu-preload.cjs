@@ -82,6 +82,18 @@ ipcRenderer.on('desktop-pause', () => {
       ['Back To Game', () => modal.close()],
       ['Settings', () => showAudioSettings()],
       [
+        'Check For Updates',
+        async event => {
+          const button = event.currentTarget;
+          button.disabled = true;
+          try {
+            await ipcRenderer.invoke('check-for-updates');
+          } finally {
+            button.disabled = false;
+          }
+        }
+      ],
+      [
         'Main Menu',
         async () => {
           if (!matchMedia('(prefers-reduced-motion: reduce)').matches)
