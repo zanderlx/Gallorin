@@ -111,8 +111,7 @@ export const groups = [
       ['dev/colors', 'Colors & Palettes'],
       ['dev/mutations', 'Mutations'],
       ['dev/items', 'Inventory & Items'],
-      ['dev/locations', 'Events & Locations'],
-      ['dev/saves', 'Save Management']
+      ['dev/locations', 'Events & Locations']
     ]
   }
 ];
@@ -121,7 +120,6 @@ workbench.items = [
   ['dev/horse-updates', 'Horse Updates'],
   ['dev/edit-mode', 'Edit Mode'],
   ['dev/settings', 'Game Settings'],
-  ['dev/saves', 'Save Management'],
   ['dev/roadmap', 'Remaining Features']
 ];
 groups.push(
@@ -147,7 +145,7 @@ groups.push(
     icon: 'spark',
     items: [
       ['dev/appearance', 'Appearance & Themes'],
-      ['dev/profile', 'My Profile'],
+      ['dev/saves', 'Save Management'],
       ['dev/music', 'Music & Sound Effects']
     ]
   }
