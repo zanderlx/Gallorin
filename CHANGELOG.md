@@ -6,7 +6,7 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.2.4] - Unreleased
+## [1.2.4] - 2026-10-27
 
 Simpler desktop navigation, local save access, and more reliable startup. #i<3horses
 
