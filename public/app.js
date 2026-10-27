@@ -775,7 +775,8 @@ document.addEventListener('click', async event => {
     return;
   }
   busy = true;
-  button.disabled = true;
+  // The busy guard blocks duplicate searches without flashing the cooldown styling.
+  button.disabled = intent !== 'search';
   try {
     if (intent === 'confirm-delete') {
       if (!pendingDeletion) return;
