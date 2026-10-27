@@ -388,7 +388,7 @@
     },
     {
       "name": "Template",
-      "group": "Other",
+      "group": "Developer",
       "natural": false,
       "colors": {},
       "complete": false
@@ -617,7 +617,7 @@
     },
     {
       "name": "Enchanted",
-      "group": "Other",
+      "group": "Developer",
       "natural": false,
       "colors": {
         "Coat Top": "#D35BE5",
@@ -634,7 +634,7 @@
     },
     {
       "name": "Monarch Butterfly",
-      "group": "Other",
+      "group": "Developer",
       "natural": false,
       "colors": {
         "Coat Top": "#000000",
@@ -651,7 +651,7 @@
     },
     {
       "name": "Evil",
-      "group": "Other",
+      "group": "Developer",
       "natural": false,
       "colors": {
         "Coat Top": "#161616",
@@ -1373,7 +1373,7 @@
         "Paint": "#58F3FE",
         "Pattern": "#260745"
       },
-      "group": "Other",
+      "group": "Developer",
       "complete": true,
       "id": "palettes-vaporwave"
     },
@@ -1396,7 +1396,7 @@
         "Paint": "#DAAF52",
         "Pattern": "#C0E3F2"
       },
-      "group": "Other",
+      "group": "Developer",
       "complete": true,
       "id": "palettes-vibrant-pastel"
     },

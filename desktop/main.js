@@ -115,7 +115,7 @@ async function start() {
   const started = Date.now();
   if (!smoke && !existsSync(data)) await offerImport();
   process.env.HORSE_DATA_DIR = data;
-  process.env.PORT = '0'; // An independent, OS-assigned port cannot collide with the browser server.
+  process.env.PORT = '0'; // The server selects an available, browser-safe private port.
   backend = await import('../server.js');
   const origin = await backend.serverReady;
   session.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
@@ -157,48 +157,7 @@ async function start() {
     shutdown,
     log
   });
-  const openFolder = async folder => {
-    await mkdir(folder, { recursive: true });
-    const error = await shell.openPath(folder);
-    if (error) log(error);
-  };
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
-      {
-        label: 'Gallorin',
-        submenu: [
-          { label: 'Open Save Folder', click: () => openFolder(join(data, 'player')) },
-          { label: 'Open Configuration Folder', click: () => openFolder(join(data, 'config')) },
-          { label: 'Open Backups Folder', click: () => openFolder(join(data, 'backups')) },
-          { type: 'separator' },
-          { label: 'Check for Updates', click: () => checkUpdates(true) },
-          { role: 'quit' }
-        ]
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          { role: 'undo' },
-          { role: 'redo' },
-          { type: 'separator' },
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          { role: 'selectAll' }
-        ]
-      },
-      {
-        label: 'View',
-        submenu: [
-          { role: 'reload' },
-          { role: 'resetZoom' },
-          { role: 'zoomIn' },
-          { role: 'zoomOut' },
-          { role: 'togglefullscreen' }
-        ]
-      }
-    ])
-  );
+  Menu.setApplicationMenu(null);
   let audioPreferences = normalizeAudio();
   const audioFile = join(app.getPath('userData'), 'audio-settings.json');
   try {
@@ -356,6 +315,17 @@ async function start() {
     if (event.sender === main.webContents && event.senderFrame.url === menuURL) app.quit();
   });
   const fromGame = event => event.sender === main.webContents && event.senderFrame.url.startsWith(origin + '/');
+  ipcMain.handle('check-for-updates', async event => {
+    if (!fromGame(event) || event.senderFrame !== main.webContents.mainFrame)
+      throw new Error('Update checks are only available in the game.');
+    await checkUpdates(true);
+  });
+  ipcMain.handle('open-local-save', async event => {
+    if (!fromGame(event) || event.senderFrame !== main.webContents.mainFrame)
+      throw new Error('Open Local Save is only available in the game.');
+    const error = await shell.openPath(data);
+    if (error) throw new Error('Unable to open the local save folder: ' + error);
+  });
   const playMenuMusic = async () => {
     const library = await (await fetch(origin + '/api/music')).json();
     const tracks = selectedPlaylist(library, 'main-menu').map(id => {
@@ -374,6 +344,19 @@ async function start() {
     if (fromGame(event)) app.quit();
   });
   main.webContents.on('before-input-event', (event, input) => {
+    if (
+      !app.isPackaged &&
+      input.type === 'keyDown' &&
+      input.control &&
+      !input.alt &&
+      !input.meta &&
+      !input.shift &&
+      input.key.toLowerCase() === 'r'
+    ) {
+      event.preventDefault();
+      if (!input.isAutoRepeat) main.webContents.reload();
+      return;
+    }
     if (input.type !== 'keyDown' || input.key !== 'Escape' || input.isAutoRepeat) return;
     if (main.webContents.getURL().startsWith(origin + '/')) {
       event.preventDefault();

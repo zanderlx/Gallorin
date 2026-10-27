@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GameStore } from './src/store.js';
+import { listenLocal } from './src/local-server.js';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const { version: appVersion } = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
@@ -149,13 +150,9 @@ const server = createServer(async (req, res) => {
     send(res, error.code === 'ENOENT' ? 404 : 400, { error: error.code === 'ENOENT' ? 'Not found.' : error.message });
   }
 });
-export const serverReady = new Promise((resolve, reject) => {
-  server.once('error', reject);
-  server.listen(port, '127.0.0.1', () => {
-    const origin = `http://127.0.0.1:${/** @type {import('node:net').AddressInfo} */ (server.address()).port}`;
-    console.log(`Gallorin is ready at ${origin}`);
-    resolve(origin);
-  });
+export const serverReady = listenLocal(server, port).then(origin => {
+  console.log(`Gallorin is ready at ${origin}`);
+  return origin;
 });
 serverReady.catch(() => {}); // CLI errors are reported by the existing error handler.
 export async function closeGameServer() {

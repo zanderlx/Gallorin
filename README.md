@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.2.3](docs/assets/gallorin-banner.svg)
+![Gallorin v1.2.4](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.2.3
+# Gallorin v1.2.4
 
 **Desktop horse collection game · Windows**
 
@@ -33,7 +33,7 @@ Breeding, Town activities, equipment gameplay, and skill training remain planned
 
 The installer includes everything needed. Players do not need Node.js, Git, npm, or the source folder.
 
-**Future updates:** the installed app checks for published releases. Use **Gallorin → Check for Updates**, choose **Download**, then **Restart and Install**. You can update inside the app without downloading another installer manually. Saves and personal settings are retained.
+**Future updates:** the installed app checks for published releases. Use **Esc → Check For Updates**, choose **Download**, then **Restart and Install**. You can update inside the app without downloading another installer manually. Saves and personal settings are retained.
 
 ## Local development
 
@@ -75,7 +75,7 @@ On Windows, **Launch Gallorin.vbs** starts the browser edition after setup; **St
 | Desktop development | `%APPDATA%\Gallorin Development\data` |
 | Browser | `data` inside the repo |
 
-Horses, configuration, imported audio, and playlists stay local. Updates replace app files while retaining saved data. Use **Developer Settings → Save Management** for exports and backups; copy the music folder separately when transferring imported audio.
+Horses, configuration, imported audio, and playlists stay local. Updates replace app files while retaining saved data. Use **User Interface → Save Management** for exports and backups; use **Open Local Save** in the desktop app to open the active data folder, and copy the music folder separately when transferring imported audio.
 
 ## Guides
 

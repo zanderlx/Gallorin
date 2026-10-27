@@ -178,6 +178,7 @@ export class ConfigurationFiles {
           entry = { ...entry, name: 'Friesian' };
           needsSpeciesSpellingCleanup = true;
         }
+        if (kind === 'palettes' && entry.group === 'Other') entry = { ...entry, group: 'Developer' };
         if (kind === 'palettes' && entry.complete === false) return entry; // Preserve incomplete imported reference palettes, never spawn them.
         return { ...entry, ...validateDefinition(kind, entry) };
       });

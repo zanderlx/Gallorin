@@ -256,6 +256,7 @@ export function normalizeCatalog(source) {
   }));
   catalog.palettes = catalog.palettes.map(p => ({
     ...p,
+    group: p.group === 'Other' ? 'Developer' : p.group,
     global: p.global ?? !p.speciesIds?.length,
     speciesIds: p.speciesIds || [],
     assetSkins: p.assetSkins || []

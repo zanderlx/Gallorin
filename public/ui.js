@@ -111,8 +111,7 @@ export const groups = [
       ['dev/colors', 'Colors & Palettes'],
       ['dev/mutations', 'Mutations'],
       ['dev/items', 'Inventory & Items'],
-      ['dev/locations', 'Events & Locations'],
-      ['dev/saves', 'Save Management']
+      ['dev/locations', 'Events & Locations']
     ]
   }
 ];
@@ -121,7 +120,6 @@ workbench.items = [
   ['dev/horse-updates', 'Horse Updates'],
   ['dev/edit-mode', 'Edit Mode'],
   ['dev/settings', 'Game Settings'],
-  ['dev/saves', 'Save Management'],
   ['dev/roadmap', 'Remaining Features']
 ];
 groups.push(
@@ -147,7 +145,7 @@ groups.push(
     icon: 'spark',
     items: [
       ['dev/appearance', 'Appearance & Themes'],
-      ['dev/profile', 'My Profile'],
+      ['dev/saves', 'Save Management'],
       ['dev/music', 'Music & Sound Effects']
     ]
   }
@@ -166,6 +164,7 @@ export function navigationSection(route) {
 export function sidebar(route, state, openGroups, catalog, appVersion = '') {
   const locations = catalog ? locationsFor(catalog, state) : [{ id: 'hallowhoof', event: true }];
   const navigation = groups
+    .filter(group => group.title !== 'Developer Settings' || state.settings?.developerSettingsVisible === true)
     .map(group =>
       group.title === 'Wilds' && catalog
         ? { ...group, items: locations.filter(l => l.enabled).map(l => [`wilds/${l.id}`, l.name]) }

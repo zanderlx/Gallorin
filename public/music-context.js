@@ -67,7 +67,7 @@ const sectionDefinitions = [
     [
       ['dev/appearance', 'Appearance & Themes'],
       ['dev/music', 'Music'],
-      ['dev/profile', 'My Profile']
+      ['dev/saves', 'Save Management']
     ]
   ],
   [
@@ -77,8 +77,7 @@ const sectionDefinitions = [
       ['dev/edit-mode', 'Edit Mode'],
       ['dev/settings', 'Game Settings'],
       ['dev/horse-updates', 'Horse Updates'],
-      ['dev/roadmap', 'Remaining Features'],
-      ['dev/saves', 'Save Management']
+      ['dev/roadmap', 'Remaining Features']
     ]
   ]
 ];

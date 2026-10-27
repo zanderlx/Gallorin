@@ -4,7 +4,7 @@ The Electron build wraps the same local game/server. The browser launchers and `
 
 ## Develop and package (Windows x64)
 
-1. Install Node.js 22.12+ and run `npm ci`.
+1. Install Node.js 24+ and run `npm ci`.
 2. `npm run desktop` opens the desktop app.
 3. `npm run desktop:build` creates `dist/Gallorin-Setup-<version>.exe`.
 4. Install that file. Players do not need Node, npm, Git, or the repository.
@@ -15,7 +15,7 @@ If a graphics driver causes problems, set `AETHERION_SOFTWARE_RENDERING=1` befor
 
 ## Gallorin version series
 
-Current source: **v1.1.0 — The Melodies of Gallorin**. Release preparation has been approved.
+Current source: **v1.2.4** (release preparation).
 
 Gallorin starts at **v1.0.0 — The Symphony of the Wilds**. Aetherion releases are legacy history. Gallorin tags use gallorin-v followed by major.minor.patch to avoid collisions with legacy tags. The updater accepts only this series. Legacy Aetherion users need a one-time manual Gallorin install because the version resets from 2.0.0 to 1.0.0; saves remain compatible.
 
@@ -71,7 +71,7 @@ After replacing the master, run npx electron scripts/build-desktop-icon.cjs. Thi
 
 ## Changelog and release notes
 
-CHANGELOG.md is the single source for the offline main-menu Changelog popup and GitHub release notes. Legacy milestones are displayed as 0.1.0–0.7.0, with their original Aetherion versions retained as context. Gallorin 1.0.0 is published; 1.1.0 is the current release.
+CHANGELOG.md is the single source for the offline main-menu Changelog popup and GitHub release notes. Legacy milestones are displayed as 0.1.0–0.7.0, with their original Aetherion versions retained as context. Gallorin release history is recorded in CHANGELOG.md.
 
 Before every push, add meaningful changes to the current entry and run npm run release:check. Keep package.json, its lockfile, README, banner, and changelog consistent. Runtime version labels read the package automatically.
 
