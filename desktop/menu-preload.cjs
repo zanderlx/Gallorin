@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('gallorinMusic', {
 contextBridge.exposeInMainWorld('desktopMenu', {
   exit: () => ipcRenderer.send('menu-exit'),
   version: () => ipcRenderer.invoke('desktop-version'),
+  openLocalSave: () => ipcRenderer.invoke('open-local-save'),
   changelog: () => ipcRenderer.invoke('desktop-changelog'),
   audio: () => ipcRenderer.invoke('audio-state'),
   setAudio: value => ipcRenderer.invoke('audio-set', value),

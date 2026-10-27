@@ -356,6 +356,12 @@ async function start() {
     if (event.sender === main.webContents && event.senderFrame.url === menuURL) app.quit();
   });
   const fromGame = event => event.sender === main.webContents && event.senderFrame.url.startsWith(origin + '/');
+  ipcMain.handle('open-local-save', async event => {
+    if (!fromGame(event) || event.senderFrame !== main.webContents.mainFrame)
+      throw new Error('Open Local Save is only available in the game.');
+    const error = await shell.openPath(data);
+    if (error) throw new Error('Unable to open the local save folder: ' + error);
+  });
   const playMenuMusic = async () => {
     const library = await (await fetch(origin + '/api/music')).json();
     const tracks = selectedPlaylist(library, 'main-menu').map(id => {

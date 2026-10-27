@@ -832,6 +832,8 @@ document.addEventListener('click', async event => {
         profile.querySelector('[data-action="favorite"]')?.focus();
       } else main.querySelector(`[data-action="favorite"][data-id="${id}"]`)?.focus({ preventScroll: true });
       notify(findHorse(id).favorite ? 'A special place in your heart.' : 'Removed from favorites.');
+    } else if (intent === 'open-local-save') {
+      await window.desktopMenu.openLocalSave();
     } else if (intent === 'backup') {
       await action('backup');
       render();
