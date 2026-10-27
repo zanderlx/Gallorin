@@ -344,6 +344,19 @@ async function start() {
     if (fromGame(event)) app.quit();
   });
   main.webContents.on('before-input-event', (event, input) => {
+    if (
+      !app.isPackaged &&
+      input.type === 'keyDown' &&
+      input.control &&
+      !input.alt &&
+      !input.meta &&
+      !input.shift &&
+      input.key.toLowerCase() === 'r'
+    ) {
+      event.preventDefault();
+      if (!input.isAutoRepeat) main.webContents.reload();
+      return;
+    }
     if (input.type !== 'keyDown' || input.key !== 'Escape' || input.isAutoRepeat) return;
     if (main.webContents.getURL().startsWith(origin + '/')) {
       event.preventDefault();
