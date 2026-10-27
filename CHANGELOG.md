@@ -8,16 +8,13 @@ Dates for legacy entries come from their release commits.
 
 ## [1.2.4] - Unreleased
 
-Simpler desktop navigation, local save access, and more reliable startup.
+Simpler desktop navigation, local save access, and more reliable startup. #i<3horses
 
 ### Added
 
 - **Desktop & Saves**
   - Open Local Save in Save Management opens the active development or installed app's data folder.
   - Check For Updates in the Escape menu.
-
-- **Interface**
-  - Added secret setting.
 
 ### Updated
 
