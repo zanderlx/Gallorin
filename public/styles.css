@@ -2419,3 +2419,11 @@ body::-webkit-scrollbar {
 .icon-button:hover:not(:disabled) {
   background: color-mix(in srgb, var(--panel), black 15%);
 }
+
+#keeper-form .keeper-developer-toggle {
+  justify-content: flex-start;
+  gap: 10px;
+}
+#keeper-form .keeper-developer-toggle > span {
+  flex: 0 1 auto;
+}
