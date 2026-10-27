@@ -8,6 +8,8 @@ Dates for legacy entries come from their release commits.
 
 ## [1.2.4] - Unreleased
 
+Simpler desktop navigation, local save access, and more reliable startup.
+
 ### Added
 
 - **Desktop & Saves**
@@ -28,6 +30,9 @@ Dates for legacy entries come from their release commits.
   - Renamed the Other palette category to Developer, including existing saved palettes.
 
 ### Fixed
+
+- **Desktop**
+  - Prevented occasional startup failures caused by automatically selecting a blocked network port.
 
 - **Wilds**
   - Search The Wilds no longer briefly flashes a blocked cursor while processing a search. Configured cooldowns still disable the button.

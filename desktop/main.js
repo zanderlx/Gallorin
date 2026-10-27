@@ -115,7 +115,7 @@ async function start() {
   const started = Date.now();
   if (!smoke && !existsSync(data)) await offerImport();
   process.env.HORSE_DATA_DIR = data;
-  process.env.PORT = '0'; // An independent, OS-assigned port cannot collide with the browser server.
+  process.env.PORT = '0'; // The server selects an available, browser-safe private port.
   backend = await import('../server.js');
   const origin = await backend.serverReady;
   session.defaultSession.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
