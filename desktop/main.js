@@ -157,48 +157,7 @@ async function start() {
     shutdown,
     log
   });
-  const openFolder = async folder => {
-    await mkdir(folder, { recursive: true });
-    const error = await shell.openPath(folder);
-    if (error) log(error);
-  };
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
-      {
-        label: 'Gallorin',
-        submenu: [
-          { label: 'Open Save Folder', click: () => openFolder(join(data, 'player')) },
-          { label: 'Open Configuration Folder', click: () => openFolder(join(data, 'config')) },
-          { label: 'Open Backups Folder', click: () => openFolder(join(data, 'backups')) },
-          { type: 'separator' },
-          { label: 'Check for Updates', click: () => checkUpdates(true) },
-          { role: 'quit' }
-        ]
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          { role: 'undo' },
-          { role: 'redo' },
-          { type: 'separator' },
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          { role: 'selectAll' }
-        ]
-      },
-      {
-        label: 'View',
-        submenu: [
-          { role: 'reload' },
-          { role: 'resetZoom' },
-          { role: 'zoomIn' },
-          { role: 'zoomOut' },
-          { role: 'togglefullscreen' }
-        ]
-      }
-    ])
-  );
+  Menu.setApplicationMenu(null);
   let audioPreferences = normalizeAudio();
   const audioFile = join(app.getPath('userData'), 'audio-settings.json');
   try {
