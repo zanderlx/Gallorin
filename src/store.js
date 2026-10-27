@@ -444,10 +444,13 @@ export class GameStore {
           throw new Error('Notes must be 4,000 characters or fewer.');
         horse.notes = payload.notes;
       } else if (type === 'save-profile') {
-        const previousAbout = next.keeper?.about;
         next.keeper = validateKeeper(payload);
-        if (next.keeper.about.includes('i<3horses') && previousAbout !== next.keeper.about)
+        if (next.keeper.about.includes('i<3horses')) {
           next.settings.developerSettingsVisible = true;
+          next.keeper.about = next.keeper.about.replace(/([ \t]?)i<3horses([ \t]?)/g, (_match, before, after) =>
+            before && after ? before : ''
+          );
+        }
       } else if (type === 'disable-developer-settings') {
         next.settings.developerSettingsVisible = false;
         next.settings.developerEditMode = false;

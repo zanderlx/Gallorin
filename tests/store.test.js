@@ -679,11 +679,27 @@ test('developer settings detect the secret within About Me, persist, and preserv
   await reopened.action('disable-developer-settings');
   assert.equal(reopened.state.settings.developerSettingsVisible, false);
   assert.equal(reopened.state.settings.developerEditMode, false);
-  assert.equal(reopened.state.keeper.about, about);
-  await reopened.action('save-profile', { ...profile, about });
+  const cleaned = 'My favorite horses live here. More about me.';
+  assert.equal(reopened.state.keeper.about, cleaned);
+  await reopened.action('save-profile', { ...profile, about: cleaned });
   assert.equal(reopened.state.settings.developerSettingsVisible, false);
   await reopened.action('save-profile', profile);
   assert.equal(reopened.state.settings.developerSettingsVisible, false);
   await reopened.action('save-profile', { ...profile, about: 'i<3horses' });
   assert.equal(reopened.state.settings.developerSettingsVisible, true);
+});
+
+test('profile unlock removes the secret without changing surrounding text or paragraph spacing', async t => {
+  const { store } = await fixture(t);
+  for (const [about, expected] of [
+    ['i<3horses', ''],
+    ['My horses i<3horses', 'My horses'],
+    ['i<3horses My horses', 'My horses'],
+    ['My i<3horses horses', 'My horses'],
+    ['My  horses.\n\nMore text. i<3horses', 'My  horses.\n\nMore text.'],
+    ['Myi<3horseshorses', 'Myhorses']
+  ]) {
+    await store.action('save-profile', { name: 'Keeper', avatarSeed: 11, about });
+    assert.equal(store.state.keeper.about, expected);
+  }
 });
