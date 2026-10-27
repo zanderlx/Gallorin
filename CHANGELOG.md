@@ -6,6 +6,32 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.2.4] - Unreleased
+
+### Added
+
+- **Desktop & Saves**
+  - Open Local Save in Save Management opens the active development or installed app's data folder.
+  - Check For Updates in the Escape menu.
+
+- **Interface**
+  - Added secret setting.
+
+### Updated
+
+- **Navigation & Profile**
+  - Save Management moved from Developer Settings to User Interface.
+  - Removed My Profile from the sidebar and Reset Profile from the profile page.
+  - Removed the desktop menu bar. Ctrl+R refresh remains available in development builds.
+
+- **Compendium**
+  - Renamed the Other palette category to Developer, including existing saved palettes.
+
+### Fixed
+
+- **Wilds**
+  - Search The Wilds no longer briefly flashes a blocked cursor while processing a search. Configured cooldowns still disable the button.
+
 ## [1.2.3] - 2026-10-26
 
 More control over sound events and Cosmic eye colors, with consistent button feedback.
