@@ -662,3 +662,28 @@ test('search cooldown persists and blocks zone bypasses while capture/sale repla
     /cooldown/
   );
 });
+
+test('developer settings detect the secret within About Me, persist, and preserve profile text when disabled', async t => {
+  const { directory, store } = await fixture(t);
+  const profile = { name: 'Keeper', about: '', avatarSeed: 11 };
+  assert.notEqual(store.state.settings.developerSettingsVisible, true);
+  for (const about of ['I<3horses', 'I love horses', 'i<3horse']) {
+    await store.action('save-profile', { ...profile, about });
+    assert.notEqual(store.state.settings.developerSettingsVisible, true);
+  }
+  const about = 'My favorite horses live here. i<3horses More about me.';
+  await store.action('save-profile', { ...profile, about });
+  assert.equal(store.state.settings.developerSettingsVisible, true);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.equal(reopened.state.settings.developerSettingsVisible, true);
+  await reopened.action('disable-developer-settings');
+  assert.equal(reopened.state.settings.developerSettingsVisible, false);
+  assert.equal(reopened.state.settings.developerEditMode, false);
+  assert.equal(reopened.state.keeper.about, about);
+  await reopened.action('save-profile', { ...profile, about });
+  assert.equal(reopened.state.settings.developerSettingsVisible, false);
+  await reopened.action('save-profile', profile);
+  assert.equal(reopened.state.settings.developerSettingsVisible, false);
+  await reopened.action('save-profile', { ...profile, about: 'i<3horses' });
+  assert.equal(reopened.state.settings.developerSettingsVisible, true);
+});

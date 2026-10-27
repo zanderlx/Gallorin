@@ -338,6 +338,10 @@ async function navigate({ initializeNavigation = false } = {}) {
     route = movedRoutes[route];
     history.replaceState(null, '', '#' + route);
   }
+  if (navigationSection(route).title === 'Developer Settings' && state.settings.developerSettingsVisible !== true) {
+    route = 'dev/profile';
+    history.replaceState(null, '', '#' + route);
+  }
   if (initializeNavigation) {
     openGroups.clear();
     openGroups.add(navigationSection(route).title);
@@ -1070,7 +1074,20 @@ document.addEventListener('input', event => {
   if (event.target.id === 'palette-search') updatePaletteGrid(main, catalog);
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);
 });
-document.addEventListener('change', event => {
+document.addEventListener('change', async event => {
+  if (event.target.matches('[data-disable-developer-settings]') && event.target.checked) {
+    event.target.disabled = true;
+    try {
+      await action('disable-developer-settings');
+      openGroups.delete('Developer Settings');
+      render();
+    } catch (error) {
+      event.target.checked = false;
+      event.target.disabled = false;
+      notify(error.message, true);
+    }
+    return;
+  }
   if (event.target.id === 'palette-sort')
     main.querySelector('[data-action="palette-sort-direction"]').dataset.direction = 'asc';
   if (['palette-group', 'palette-sort', 'palette-scope'].includes(event.target.id)) updatePaletteGrid(main, catalog);

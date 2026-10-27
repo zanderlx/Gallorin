@@ -164,6 +164,7 @@ export function navigationSection(route) {
 export function sidebar(route, state, openGroups, catalog, appVersion = '') {
   const locations = catalog ? locationsFor(catalog, state) : [{ id: 'hallowhoof', event: true }];
   const navigation = groups
+    .filter(group => group.title !== 'Developer Settings' || state.settings?.developerSettingsVisible === true)
     .map(group =>
       group.title === 'Wilds' && catalog
         ? { ...group, items: locations.filter(l => l.enabled).map(l => [`wilds/${l.id}`, l.name]) }
