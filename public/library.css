@@ -33,8 +33,21 @@
 }
 .species-identity-fields {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(160px, 1fr);
+  grid-template-columns: minmax(0, 280px) minmax(0, 160px);
   gap: 16px;
+  margin: 12px 0;
+}
+.species-identity-fields > .zone-field {
+  margin: 0;
+  gap: 6px;
+}
+.species-manager #definition-form > .zone-field {
+  margin: 12px 0;
+  gap: 6px;
+}
+.species-manager-guidance {
+  margin-top: 6px;
+  font-size: 13px;
 }
 .species-manager .library-list-panel > .button {
   margin-bottom: 16px;

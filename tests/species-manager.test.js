@@ -30,6 +30,21 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.match(overview, /data-tab="zones"[^>]*>Zones</);
   assert.ok(overview.indexOf('>Add species</button>') < overview.indexOf('Find a species'));
   assert.match(overview, /species-identity-fields[\s\S]*name="name"[\s\S]*name="rarityTier"[\s\S]*<\/div>/);
+  const rarity = overview.match(/<select name="rarityTier">([\s\S]*?)<\/select>/)[1];
+  assert.deepEqual(
+    [...rarity.matchAll(/<option value="(\d)"[^>]*>([^<]+)<\/option>/g)].map(([, value, label]) => [
+      Number(value),
+      label
+    ]),
+    [
+      [3, 'Uncommon'],
+      [4, 'Common'],
+      [2, 'Rare'],
+      [1, 'Ultra Rare'],
+      [0, 'Cosmic']
+    ]
+  );
+  assert.doesNotMatch(overview, />Rarity Tier</);
   const traits = speciesManagerPage(catalog, {}, species, 'traits');
   assert.match(traits, /id="traits-form"/);
   assert.match(traits, /Braided/);
