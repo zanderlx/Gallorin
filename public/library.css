@@ -2342,6 +2342,7 @@ select:not([multiple]) {
 }
 .mutation-collapse-card .mutation-card-meta {
   margin-top: 12px;
+  padding-inline: calc(var(--mutation-emoji-width) + var(--mutation-name-gap));
 }
 .eye-grid-controls > [data-action='toggle-all-mutations'] {
   height: 48px;
