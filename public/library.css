@@ -110,6 +110,12 @@
   min-height: 32px;
   padding: 4px 8px;
 }
+.species-manager #definition-form {
+  padding-bottom: 12px;
+}
+.species-manager #definition-form .form-actions {
+  margin-top: 8px;
+}
 @media (max-width: 600px) {
   .species-identity-fields {
     grid-template-columns: minmax(0, 1fr);
