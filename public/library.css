@@ -45,10 +45,6 @@
   margin: 12px 0;
   gap: 6px;
 }
-.species-manager-guidance {
-  margin-top: 6px;
-  font-size: 13px;
-}
 .species-manager .library-list-panel > .button {
   margin-bottom: 16px;
 }
@@ -174,7 +170,7 @@
 }
 .trait-category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 20px;
   align-items: start;
 }

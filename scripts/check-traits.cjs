@@ -58,9 +58,14 @@ const deadline = setTimeout(() => {
   await wait(() => !!document.querySelector('#traits-form'));
   await run(() => {
     const search = document.querySelector('#trait-search');
-    search.value = 'elven';
+    const card = document.querySelector('.trait-category-card');
+    const originalWidth = card.getBoundingClientRect().width;
+    search.value = 'cosmetic';
     search.dispatchEvent(new Event('input', { bubbles: true }));
     if (!document.querySelector('.trait-category-card[hidden]')) throw new Error('Search did not filter');
+    if (Math.abs(card.getBoundingClientRect().width - originalWidth) > 1)
+      throw new Error('Filtering stretched a trait card');
+    if (search.getBoundingClientRect().width > 241) throw new Error('Trait search exceeds shared manager search width');
     search.value = '';
     search.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('[data-action="add-trait-category"]').click();

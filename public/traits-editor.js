@@ -14,7 +14,7 @@ export function traitRow(category = '', values = []) {
   return String(html`<details class="trait-editor-row trait-category-card" open>
     <summary><strong data-category-title>${category || 'New category'}</strong> <span data-trait-count>${values.length} traits</span><span class="icon-button personality-toggle trait-category-toggle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
     ${category ? html`<input type="hidden" data-trait-category value="${category}">` : html`<label class="zone-field">Category name<input data-trait-category maxlength="60" required></label>`}
-    <label class="zone-field">Trait names · one per line<textarea data-trait-values rows="8" placeholder="Add a line to create a trait; edit to rename; remove a line to delete.">${values.join('\n')}</textarea></label>
+    <label class="zone-field"><textarea data-trait-values aria-label="${category || 'New category'} traits" rows="8" placeholder="Add a line to create a trait; edit to rename; remove a line to delete.">${values.join('\n')}</textarea></label>
   </details>`);
 }
 
@@ -33,10 +33,9 @@ export function traitsEditorPage(catalog, selectedId, embedded = false) {
     <div class="trait-toolbar"><label class="zone-field">Species<select id="traits-species">${[...catalog.species].sort((a, b) => a.name.localeCompare(b.name)).map(s => html`<option value="${s.id}" ${s.id === species.id ? html`selected` : ''}>${s.name}</option>`)}</select></label>
     </div>`
   }
-    <label class="zone-field">Find a category or trait<input id="trait-search" type="search" placeholder="Search this species…"></label>
+    <div class="eye-grid-controls trait-grid-controls"><label class="zone-field"><input id="trait-search" type="search" placeholder="Search..." aria-label="Search categories and traits"></label><button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button></div>
     <form id="traits-form" class="panel" data-id="${species.id}"><div class="panel-heading trait-section-heading"><div><h2>${species.name} Traits</h2>
-    <p><span data-traits-total>${count}</span> traits</p></div>
-    <button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button></div>
+    <p><span data-traits-total>${count}</span> traits</p></div></div>
     <div id="trait-rows" class="trait-category-grid">${Object.entries(traits).map(([key, values]) => raw(traitRow(key, values)))}</div>
     <p id="trait-no-results" hidden>No matching categories or traits. Try another search.</p>
     <div class="form-actions"><button class="button primary" type="submit">Save Traits</button><button class="button secondary" type="reset">Cancel Changes</button></div></form>`);
