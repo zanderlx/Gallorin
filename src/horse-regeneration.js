@@ -1,5 +1,6 @@
 // @ts-check
 import { createHash } from 'node:crypto';
+import { removeUnusedTraits } from '../public/unused-traits.js';
 import { pickUniform, pickWeighted, randomFloat, rollSize, meetsThresholds } from './spawning.js';
 import { cosmicPalette } from './cosmic-palettes.js';
 import { varyPalette } from '../public/palette-variation.js';
@@ -54,6 +55,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   validateHorseRules(rules);
   const horse = structuredClone(original),
     warnings = [];
+  removeUnusedTraits(horse);
   const active = key => rules[key] && rules[key].mode !== 'keep';
   const rule = key => rules[key] || { mode: 'keep' };
   const find = (values, id, label) => {

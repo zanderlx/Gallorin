@@ -6,8 +6,7 @@ export const horseTraitLimits = {
   Cosmetic: 4,
   Keratin: 1,
   Ears: 1,
-  Whiskers: 1,
-  Wings: 1
+  Whiskers: 1
 };
 export const horseColorRegions = [
   'Coat Top',

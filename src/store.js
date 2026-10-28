@@ -9,6 +9,7 @@ import { readHorseSkills, awardHorseSkillXP } from '../public/skill-progress.js'
 import { synchronizeCosmicPalettes } from './cosmic-palettes.js';
 import { paletteAdditionsVersion, missingBundledPalettes } from './palette-additions.js';
 import { traitDefaultsVersion, withTraitDefaults } from './trait-defaults.js';
+import { removeUnusedTraits } from '../public/unused-traits.js';
 import { validateRaritySettings } from '../public/rarity-settings.js';
 import { horseSalePrice, saleModifiers, validateSaleModifiers } from '../public/sale-pricing.js';
 import {
@@ -39,6 +40,7 @@ const upgradeBackupPrefixes = [
   'pre-spawning-',
   'pre-palette-additions-',
   'pre-trait-defaults-',
+  'pre-unused-traits-',
   'pre-cosmic-zone-cleanup-',
   'pre-horse-version-',
   'pre-horse-skills-',
@@ -49,6 +51,7 @@ const upgradeBackupPrefixes = [
 
 /** Applies save-format upgrades to one horse in place and reports which kinds changed. */
 function upgradeHorse(horse) {
+  const unusedTraits = removeUnusedTraits(horse);
   const version = migrateHorseVersion(horse);
   let details = false;
   if (horse.species === 'Friesan') {
@@ -60,7 +63,7 @@ function upgradeHorse(horse) {
     horse.skills = skills;
     details = true;
   }
-  return { version, details };
+  return { version, details, unusedTraits };
 }
 
 export class GameStore {
@@ -129,11 +132,34 @@ export class GameStore {
     }
     await this.addBundledPalettes();
     await this.addDefaultTraits();
+    await this.removeUnusedSpeciesTraits();
     await this.upgradeHorses();
     await this.readConfiguration();
     await this.pruneOldBackups();
     return this;
   }
+  // Retired categories are removed without changing other traits or spawn assignments.
+  async removeUnusedSpeciesTraits() {
+    const species = await this.files.json('species.json');
+    if (!species.map(removeUnusedTraits).some(Boolean)) return;
+    const configuration = await this.files.read(catalogFor(this.catalog, this.state));
+    const next = this.snapshot();
+    for (const entry of next.library?.species || []) removeUnusedTraits(entry);
+    for (const traits of Object.values(next.library?.traits || {})) removeUnusedTraits({ traits });
+    const backup = `pre-unused-traits-${Date.now()}-${randomUUID()}`;
+    await copyFile(this.file, join(this.directory, 'backups', `${backup}.json`));
+    await copyFile(this.files.path('species.json'), join(this.directory, 'backups', `${backup}-species.json`));
+    await this.files.commit(
+      configuration,
+      async revision => {
+        next.configurationRevision = revision;
+        await this.persist(next);
+      },
+      { 'species.json': species }
+    );
+    this.state = next;
+  }
+
   // One-time additive upgrade; later trait edits and removals remain intentional.
   async addDefaultTraits() {
     if ((this.state.traitDefaultsVersion || 0) >= traitDefaultsVersion) return;
@@ -246,6 +272,7 @@ export class GameStore {
     const results = horseRecords(next).map(upgradeHorse);
     const prefixes = [
       results.some(result => result.version) && 'pre-horse-version-',
+      results.some(result => result.unusedTraits) && 'pre-unused-traits-',
       results.some(result => result.details) && 'pre-horse-skills-'
     ].filter(Boolean);
     if (!prefixes.length) return;

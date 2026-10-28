@@ -10,15 +10,16 @@ const row = (category, values) => ({
 });
 const form = rows => ({ dataset: { id: 'horse' }, querySelectorAll: () => rows });
 
-test('supplied reference preserves every CSV row and canonicalizes runtime categories', async () => {
+test('supplied reference preserves used CSV traits and omits the unused Wings category', async () => {
   const csv = await readFile(new URL('../docs/references/species-traits.csv', import.meta.url), 'utf8');
   const aliases = { Cosmetics: 'Cosmetic', Manes: 'Mane', Paints: 'Paint', Patterns: 'Pattern', Tails: 'Tail' };
   const rows = csv
     .trim()
     .split(/\r?\n/)
     .slice(1)
-    .map(line => line.split(','));
-  assert.equal(rows.length, 3402);
+    .map(line => line.split(','))
+    .filter(([, , category]) => category !== 'Wings');
+  assert.equal(rows.length, 3356);
   for (const [species, name, category] of rows)
     assert.ok(speciesTraitData[species][aliases[category] || category].includes(name));
   assert.equal(Object.values(speciesTraitData).flatMap(Object.values).flat().length, rows.length);

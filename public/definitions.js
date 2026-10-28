@@ -1,8 +1,9 @@
 import { rarityTier, systemID, validateThresholds, defaultSpeciesTiers } from './spawn-config.js';
 import { withCosmicEyes, cosmicEyeColors } from './cosmic-types.js';
 import { mutatedPalettes } from './mutated-palettes.js';
+import { isUnusedTraitCategory } from './unused-traits.js';
 export const regions = ['Coat Top', 'Coat Bottom', 'Hair', 'Hoof', 'Nose', 'Sock', 'Keratin', 'Paint', 'Pattern'];
-export const traitCategories = ['Mane', 'Tail', 'Pattern', 'Paint', 'Cosmetic', 'Keratin', 'Ears', 'Whiskers', 'Wings'];
+export const traitCategories = ['Mane', 'Tail', 'Pattern', 'Paint', 'Cosmetic', 'Keratin', 'Ears', 'Whiskers'];
 export const themeTokens = [
   'bg',
   'panel',
@@ -404,7 +405,7 @@ export function validateDefinition(kind, input) {
     });
     if (new Set(entries.map(([key]) => key.toLowerCase())).size !== entries.length)
       throw new Error('Each trait category needs a different name.');
-    result.traits = Object.fromEntries(entries);
+    result.traits = Object.fromEntries(entries.filter(([category]) => !isUnusedTraitCategory(category)));
     result.traitsComplete = !!(result.traits.Mane?.length && result.traits.Tail?.length);
     result.event = text('event') || null;
     result.restriction = text('restriction') || null;

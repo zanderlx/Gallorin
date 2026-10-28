@@ -1,4 +1,4 @@
-// Supplied species trait reference. Category names match Gallorin's runtime keys.
+// Supplied species trait reference; unused Wings category omitted.
 export const speciesTraitData = {
   'Akhal Teke': {
     Cosmetic: [
@@ -96,8 +96,7 @@ export const speciesTraitData = {
       'Standard Tail',
       'Upturned Tail',
       'Winter Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Alces: {
     Cosmetic: [
@@ -196,8 +195,7 @@ export const speciesTraitData = {
       'Moose Tail',
       'Poofy Tail',
       'Snowflake Armor Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Anticorn: {
     Cosmetic: [
@@ -282,8 +280,7 @@ export const speciesTraitData = {
       'Malevolent Tail',
       'Raptured Tail',
       'Wild Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Bisorse: {
     Cosmetic: [
@@ -342,8 +339,7 @@ export const speciesTraitData = {
       'Tapered Thigh',
       'Wild Beast Stripes Pattern'
     ],
-    Tail: ['Bison Tail', 'Dense Tail', 'Shaggy Tail', 'Sleek Cut Tail', 'Sparse Tail', 'Whispy Tail', 'Yak Tail'],
-    Wings: ['Feathered Head Wings']
+    Tail: ['Bison Tail', 'Dense Tail', 'Shaggy Tail', 'Sleek Cut Tail', 'Sparse Tail', 'Whispy Tail', 'Yak Tail']
   },
   Cactaline: {
     Cosmetic: [
@@ -427,8 +423,7 @@ export const speciesTraitData = {
       'Spikey Tail',
       'Tangled Cactus Tail',
       'Thornlash Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Calaverita: {
     Cosmetic: [
@@ -475,8 +470,7 @@ export const speciesTraitData = {
       'Neck Flowers',
       'Simple Sparks'
     ],
-    Tail: ['Bright Bloom Tail', 'Festive Flower Tail', 'Flower Tied Skelly Tail', 'Skelly Tail'],
-    Wings: ['Feathered Head Wings']
+    Tail: ['Bright Bloom Tail', 'Festive Flower Tail', 'Flower Tied Skelly Tail', 'Skelly Tail']
   },
   Caniquine: {
     Cosmetic: [
@@ -523,8 +517,7 @@ export const speciesTraitData = {
       'Three Tails',
       'Two Toned Tail',
       'Wild Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Caprine: {
     Cosmetic: [
@@ -598,8 +591,7 @@ export const speciesTraitData = {
       'Tufted Tail',
       'Upturn Tuft Tail',
       'Upturned Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Carousel: {
     Cosmetic: [
@@ -683,8 +675,7 @@ export const speciesTraitData = {
       'Subtle Pearl Tail',
       'Vintage Tail',
       'Winding Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Celestial: {
     Cosmetic: [
@@ -756,8 +747,7 @@ export const speciesTraitData = {
       'Starry Skeleton Tail',
       'Starry Tail',
       'Windswept Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Clydesdale: {
     Cosmetic: [
@@ -822,8 +812,7 @@ export const speciesTraitData = {
       'Short Multicolored Tail',
       'Standard Tail',
       'Thick Multi Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Crystallion: {
     Cosmetic: [
@@ -897,8 +886,7 @@ export const speciesTraitData = {
       'Regal Tail',
       'Sharp Crystal Tail',
       'Short Crystal Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Cybred: {
     Cosmetic: [
@@ -983,8 +971,7 @@ export const speciesTraitData = {
       'Scorpio Tail',
       'Synthetic Tail',
       'Thick Plated Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Donkey: {
     Cosmetic: [
@@ -1020,8 +1007,7 @@ export const speciesTraitData = {
       'Nose Marking',
       'Spotted Socks'
     ],
-    Tail: ['Clean Mule Tail', 'Hinny Tail', 'Jumentus Tail', 'Medium Two Tone Tail', 'Tufted Tail', 'Wild Tail'],
-    Wings: ['Feathered Head Wings']
+    Tail: ['Clean Mule Tail', 'Hinny Tail', 'Jumentus Tail', 'Medium Two Tone Tail', 'Tufted Tail', 'Wild Tail']
   },
   Equenari: {
     Cosmetic: [
@@ -1130,8 +1116,7 @@ export const speciesTraitData = {
       'Royal Tail',
       'Serrated Tail',
       'Squid Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Equus: {
     Cosmetic: [
@@ -1215,8 +1200,7 @@ export const speciesTraitData = {
       'Short Tail Fur',
       'Standard Tail',
       'Zebra Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Fae: {
     Cosmetic: [
@@ -1305,8 +1289,7 @@ export const speciesTraitData = {
       'Verdalith Tail',
       'Wavy Leaf Tail',
       'Willow Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Felorse: {
     Cosmetic: [
@@ -1426,8 +1409,7 @@ export const speciesTraitData = {
       'Short Whiskers',
       'Starry Whiskers',
       'Twisted Whiskers'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Fjord: {
     Cosmetic: [
@@ -1464,8 +1446,7 @@ export const speciesTraitData = {
       'Standard Tail',
       'Tipped Tail',
       'Whispy Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Flora: {
     Cosmetic: [
@@ -1541,8 +1522,7 @@ export const speciesTraitData = {
       'Thick Vine Tail',
       'Thorned Rose Tail',
       'Wildflower Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Friesian: {
     Cosmetic: [
@@ -1608,8 +1588,7 @@ export const speciesTraitData = {
       'Leafed Tail',
       'Wavy Tail',
       'Wild Flower Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Gargoyle: {
     Cosmetic: [
@@ -1695,8 +1674,7 @@ export const speciesTraitData = {
       'Scene Spiked Tail',
       'Scuted Tail',
       'Sleek Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Ghoulsteed: {
     Cosmetic: [
@@ -1804,8 +1782,7 @@ export const speciesTraitData = {
       'Tattered Tail',
       'Weeping Tail',
       'Zombie Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Giraffetti: {
     Cosmetic: [
@@ -1879,8 +1856,7 @@ export const speciesTraitData = {
       'Wind Swept Tail',
       'Zebra Tail'
     ],
-    Whiskers: ['Bubbles', 'Butterflies', 'Colorful Flames', 'Confetti', 'Petals', 'Shimmer', 'Sparklers'],
-    Wings: ['Feathered Head Wings']
+    Whiskers: ['Bubbles', 'Butterflies', 'Colorful Flames', 'Confetti', 'Petals', 'Shimmer', 'Sparklers']
   },
   Griff: {
     Cosmetic: [
@@ -1946,8 +1922,7 @@ export const speciesTraitData = {
       'Nightjar Tail',
       'Soaring Tail',
       'Water Fowl Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Hauntmare: {
     Cosmetic: [
@@ -2063,8 +2038,7 @@ export const speciesTraitData = {
       'Macetail',
       'Phoenix Tail'
     ],
-    Whiskers: ['Draconic Head Aura', 'Equine Head Aura', 'Ghostly Head Aura', 'Maw Aura'],
-    Wings: ['Feathered Head Wings']
+    Whiskers: ['Draconic Head Aura', 'Equine Head Aura', 'Ghostly Head Aura', 'Maw Aura']
   },
   Heartbane: {
     Cosmetic: [
@@ -2150,8 +2124,7 @@ export const speciesTraitData = {
       'Weeping Tail',
       'Wild Tail',
       'Willow Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Hippocampus: {
     Cosmetic: [
@@ -2225,8 +2198,7 @@ export const speciesTraitData = {
       'Orca Tail',
       'Seahorse Tail',
       'Tiger Shark Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Hollyhoof: {
     Cosmetic: [
@@ -2318,8 +2290,7 @@ export const speciesTraitData = {
       'Snowfall Tail',
       'Snowing Tail',
       'Toy Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Honeytrot: {
     Cosmetic: [
@@ -2391,8 +2362,7 @@ export const speciesTraitData = {
       'Scuted Stinger Tail',
       'Sleek Tail',
       'Spring Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Horse: {
     Cosmetic: [
@@ -2496,8 +2466,7 @@ export const speciesTraitData = {
       'Sleek Straight Tail',
       'Wavy Long Tail',
       'Wavy Short Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Kelpie: {
     Cosmetic: [
@@ -2587,8 +2556,7 @@ export const speciesTraitData = {
       'Sleek Tail',
       'Thin Tail',
       'Trickster Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Kirin: {
     Cosmetic: [
@@ -2670,8 +2638,7 @@ export const speciesTraitData = {
       'Thick Furry Whiskers',
       'Thin Whiskers',
       'Windcharm Whiskers'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   'LEGO® Horse': {
     Cosmetic: ['None'],
@@ -2866,8 +2833,7 @@ export const speciesTraitData = {
       'Two Toned Tail',
       'Wispy Tail',
       'Wrapped Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Marwari: {
     Cosmetic: [
@@ -2913,8 +2879,7 @@ export const speciesTraitData = {
       'Top Cover Pattern',
       'Under Dapple Pattern'
     ],
-    Tail: ['Basic Tail', 'Chopped Tail', 'Lifted Tail', 'Shiny Tail', 'Sleek Tail'],
-    Wings: ['Feathered Head Wings']
+    Tail: ['Basic Tail', 'Chopped Tail', 'Lifted Tail', 'Shiny Tail', 'Sleek Tail']
   },
   Nephyrian: {
     Cosmetic: [
@@ -2975,8 +2940,7 @@ export const speciesTraitData = {
       'Whirlpool Tail',
       'Whispytail',
       'Zephyr Mako Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Pastrequine: {
     Cosmetic: [
@@ -3084,8 +3048,7 @@ export const speciesTraitData = {
       'Taiyaki Tail',
       'Wedding Cake Tail',
       'Wild Cherry Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Peryton: {
     Cosmetic: [
@@ -3165,8 +3128,7 @@ export const speciesTraitData = {
       'Mystic Cloud Tail',
       'Road Runner Tail',
       'Secretary Bird Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Plush: {
     Cosmetic: [
@@ -3282,8 +3244,7 @@ export const speciesTraitData = {
       'Y2 K Decorated Tail',
       'Yarn Tail',
       'Zebra Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Pony: {
     Cosmetic: [
@@ -3361,8 +3322,7 @@ export const speciesTraitData = {
       'Tufty Tail',
       'Two Toned Curl Tail',
       'Voluminous Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Saurequine: {
     Cosmetic: [
@@ -3427,8 +3387,7 @@ export const speciesTraitData = {
       'Splotched Tail',
       'Stego Tail',
       'Utah Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Seraph: {
     Cosmetic: [
@@ -3535,8 +3494,7 @@ export const speciesTraitData = {
       'Short Winged Tail',
       'Watchful Tail'
     ],
-    Whiskers: ['Divine Body Halo', 'Neck Rings', 'Piercing Eye Halo', 'Radiant Halo Head', 'Radiant Neck Ring'],
-    Wings: ['Feathered Head Wings']
+    Whiskers: ['Divine Body Halo', 'Neck Rings', 'Piercing Eye Halo', 'Radiant Halo Head', 'Radiant Neck Ring']
   },
   Serpentine: {
     Cosmetic: [
@@ -3575,8 +3533,7 @@ export const speciesTraitData = {
       'Striped',
       'Top Streak'
     ],
-    Tail: ['Crocodilian Tail', 'King Serpent Tail', 'Ridged Tail', 'Sand Serpent Tail'],
-    Wings: ['Feathered Head Wings']
+    Tail: ['Crocodilian Tail', 'King Serpent Tail', 'Ridged Tail', 'Sand Serpent Tail']
   },
   Sovremeign: {
     Cosmetic: [
@@ -3658,8 +3615,7 @@ export const speciesTraitData = {
       'Jeweled Tail',
       'Regal Lion Tail',
       'Royal Beast Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Unicorn: {
     Cosmetic: [
@@ -3764,8 +3720,7 @@ export const speciesTraitData = {
       'Sparse Tail',
       'Whispy Tail',
       'Wind Swept Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   },
   Wolper: {
     Cosmetic: [
@@ -3844,7 +3799,6 @@ export const speciesTraitData = {
       'Squirrel Tail',
       'Thistletuft Tail',
       'Wild Lettuce Tail'
-    ],
-    Wings: ['Feathered Head Wings']
+    ]
   }
 };
