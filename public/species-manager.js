@@ -1,4 +1,4 @@
-import { html, raw } from './ui.js';
+import { html, raw, icon } from './ui.js';
 import { draftDefinition } from './definitions.js';
 import { traitsEditorPage } from './traits-editor.js';
 import { locationsFor } from './zones.js';
@@ -64,8 +64,8 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview') {
   const species =
     draft || [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0] || draftDefinition('species');
   if (!species.id || !['overview', 'traits', 'zones'].includes(tab)) tab = 'overview';
-  return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><div><h1 class="manager-heading">Species Manager</h1></div></div>
-    <div class="species-workbench"><section class="panel library-list-panel"><button class="button primary" data-action="new-definition" data-kind="species">Add species</button><label class="zone-field">Find a species<input id="definition-search" type="search" placeholder="Search species…"></label>
+  return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
+    <div class="species-workbench"><section class="panel library-list-panel"><label class="zone-field">Find a species<input id="definition-search" type="search" placeholder="Search species…"></label>
     <div class="definition-list">${[...catalog.species].sort((a, b) => a.name.localeCompare(b.name)).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-search="${s.name.toLowerCase()}"><strong>${s.name}</strong><small>${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section>
     <section class="species-detail"><h2>${species.name || 'New species'}</h2><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
@@ -85,6 +85,8 @@ export function syncSpeciesControls(root) {
   const dirty = [...manager.querySelectorAll('form')].some(
     form => formBaseline(form) !== undefined && formSignature(form) !== formBaseline(form)
   );
-  for (const button of manager.querySelectorAll('.library-list-panel button, [data-action="species-tab"]'))
+  for (const button of manager.querySelectorAll(
+    '.library-list-panel button, [data-action="species-tab"], [data-action="new-definition"]'
+  ))
     button.disabled = dirty || (!manager.dataset.speciesId && button.dataset.tab && button.dataset.tab !== 'overview');
 }

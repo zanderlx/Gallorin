@@ -28,7 +28,7 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.doesNotMatch(overview, /name="speciesZones"|id="traits-species"/);
   assert.match(overview, /data-tab="traits"/);
   assert.match(overview, /data-tab="zones"[^>]*>Zones</);
-  assert.ok(overview.indexOf('>Add species</button>') < overview.indexOf('Find a species'));
+  assert.ok(overview.indexOf('Create Species</button>') < overview.indexOf('Find a species'));
   assert.match(overview, /species-identity-fields[\s\S]*name="name"[\s\S]*name="rarityTier"[\s\S]*<\/div>/);
   const rarity = overview.match(/<select name="rarityTier">([\s\S]*?)<\/select>/)[1];
   assert.deepEqual(

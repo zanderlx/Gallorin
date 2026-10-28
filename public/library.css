@@ -45,9 +45,6 @@
   margin: 12px 0;
   gap: 6px;
 }
-.species-manager .library-list-panel > .button {
-  margin-bottom: 16px;
-}
 @media (max-width: 600px) {
   .species-identity-fields {
     grid-template-columns: minmax(0, 1fr);
@@ -71,7 +68,8 @@
   color: var(--gold);
 }
 .species-tabs button:disabled,
-.species-manager .library-list-panel button:disabled {
+.species-manager .library-list-panel button:disabled,
+.species-manager [data-action='new-definition']:disabled {
   opacity: 0.55;
   cursor: default;
 }
