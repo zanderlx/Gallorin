@@ -66,6 +66,25 @@ const deadline = setTimeout(() => {
     app.exit(0);
   };
   await wait(() => !!document.querySelector('.species-manager'));
+  if (process.argv.includes('--nav-scrollbar-only')) {
+    await run(() => {
+      const root = document.documentElement;
+      const original = root.style.getPropertyValue('--gold-soft');
+      const nav = document.querySelector('#sidebar nav');
+      try {
+        root.style.setProperty('--gold-soft', '#12AB34');
+        const first = getComputedStyle(nav).scrollbarColor;
+        root.style.setProperty('--gold-soft', '#BA43CD');
+        const second = getComputedStyle(nav).scrollbarColor;
+        if (!first || first === second) throw new Error('Navigation scrollbar does not follow theme colors');
+      } finally {
+        if (original) root.style.setProperty('--gold-soft', original);
+        else root.style.removeProperty('--gold-soft');
+      }
+    });
+    await finish('Navigation scrollbar theme check');
+    return;
+  }
   if (process.argv.includes('--layout-only')) {
     await run(() => {
       const search = document.querySelector('#definition-search').getBoundingClientRect();
