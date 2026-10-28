@@ -442,3 +442,66 @@ main {
     gap: 8px;
   }
 }
+
+.zones-manager .zone-card {
+  position: relative;
+  isolation: isolate;
+  box-shadow: 0 4px 12px #0003;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+.zones-manager .zone-card:hover,
+.zones-manager .zone-card:focus-within {
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 28px #0007,
+    0 5px 10px #0004;
+  border-color: var(--gold);
+}
+.zone-card-open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.zone-card-open:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -4px;
+}
+.zones-manager .zone-card > .zone-delete {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  margin: 0;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #ffffff40;
+  border-radius: 6px;
+  color: #fff1d5;
+  background: #17140fbd;
+}
+.zones-manager .zone-card > .zone-delete:hover {
+  background: var(--burgundy);
+  border-color: var(--gold);
+}
+.zones-manager .zone-card .hero-content h2 {
+  padding-right: 42px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zones-manager .zone-card {
+    transition: none;
+  }
+  .zones-manager .zone-card:hover,
+  .zones-manager .zone-card:focus-within {
+    transform: none;
+  }
+}
