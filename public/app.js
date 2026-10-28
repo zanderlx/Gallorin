@@ -28,7 +28,7 @@ import {
   toggleMutations
 } from './mutations-manager.js';
 import { readTraitsForm, traitRow, filterTraitRows } from './traits-editor.js';
-import { speciesManagerPage, syncSpeciesControls } from './species-manager.js';
+import { speciesManagerPage, syncSpeciesControls, updateSpeciesSort } from './species-manager.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
@@ -69,7 +69,8 @@ let state,
   busy = false;
 let stableGridColumns = 5;
 let selectedSpeciesId,
-  speciesTab = 'overview';
+  speciesTab = 'overview',
+  speciesSort = 'name';
 let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;
@@ -287,7 +288,8 @@ function pageContent(pageRoute, pageState = state) {
       catalog,
       state,
       catalog.species.find(s => s.id === selectedSpeciesId),
-      speciesTab
+      speciesTab,
+      speciesSort
     );
   else if (section === 'dev' && Object.hasOwn(editorRoutes, page))
     return libraryEditorPage(editorRoutes[page], catalog, state);
@@ -458,7 +460,7 @@ function showDefinition(kind, draft) {
 function showSpecies(draft, tab = speciesTab) {
   selectedSpeciesId = draft?.id;
   speciesTab = tab;
-  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab)));
+  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, speciesSort)));
   copyEditor.attach(main);
   trackForms(main);
   if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
@@ -1112,6 +1114,12 @@ document.addEventListener('input', event => {
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);
 });
 document.addEventListener('change', async event => {
+  if (event.target.id === 'species-sort') {
+    speciesSort = event.target.value;
+    selectedSpeciesId = main.querySelector('.species-manager').dataset.speciesId || undefined;
+    updateSpeciesSort(main);
+    return;
+  }
   if (event.target.matches('[data-disable-developer-settings]') && event.target.checked) {
     event.target.disabled = true;
     try {

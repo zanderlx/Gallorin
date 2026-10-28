@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { speciesManagerPage, speciesSpawnRows } from '../public/species-manager.js';
+import {
+  speciesManagerPage,
+  speciesSpawnRows,
+  sortSpeciesEntries,
+  updateSpeciesSort
+} from '../public/species-manager.js';
 import { draftDefinition } from '../public/definitions.js';
 
 const species = { ...draftDefinition('species'), id: 'horse', name: 'Horse', traits: { Mane: ['Braided'] } };
@@ -87,4 +92,42 @@ test('new species must be saved before managing traits and all species text is e
   assert.doesNotMatch(page, /<script>|id="traits-form"/);
   assert.match(page, /Save this species/);
   assert.match(page, /data-tab="traits" disabled/);
+});
+
+test('species list shows rarity with trait counts and sorts by rarity then name without changing the source', () => {
+  const entries = [
+    { ...species, id: 'cosmic', name: 'Cosmic horse', rarityTier: 0 },
+    { ...species, id: 'common', name: 'Common horse', rarityTier: 4 },
+    { ...species, id: 'rare', name: 'Rare horse', rarityTier: 2 },
+    { ...species, id: 'ultra', name: 'Ultra horse', rarityTier: 1 },
+    { ...species, id: 'zebra', name: 'Zebra', rarityTier: 3 },
+    { ...species, id: 'akhal', name: 'Akhal', rarityTier: 3 }
+  ];
+  const before = structuredClone(entries);
+  assert.deepEqual(
+    sortSpeciesEntries(entries, 'rarity').map(s => s.id),
+    ['akhal', 'zebra', 'common', 'rare', 'ultra', 'cosmic']
+  );
+  assert.deepEqual(
+    sortSpeciesEntries(entries).map(s => s.id),
+    ['akhal', 'common', 'cosmic', 'rare', 'ultra', 'zebra']
+  );
+  assert.deepEqual(entries, before);
+  const page = speciesManagerPage({ ...catalog, species: entries }, {}, entries[0], 'overview', 'rarity');
+  assert.match(page, /<small>Cosmic · 1 traits<\/small>/);
+  assert.match(page, /value="rarity" selected/);
+  assert.ok(page.indexOf('data-id="akhal"') < page.indexOf('data-id="cosmic"'));
+});
+
+test('sorting reorders existing rows while preserving filtered rows and selection', () => {
+  const rows = [
+    { dataset: { name: 'Zulu', rarityTier: '0' }, hidden: true },
+    { dataset: { name: 'Alpha', rarityTier: '3' }, selected: true }
+  ];
+  const appended = [];
+  const list = { children: rows, append: element => appended.push(element) };
+  updateSpeciesSort({ querySelector: key => (key === '#species-sort' ? { value: 'rarity' } : list) });
+  assert.deepEqual(appended, [rows[1], rows[0]]);
+  assert.equal(appended[0].selected, true);
+  assert.equal(appended[1].hidden, true);
 });

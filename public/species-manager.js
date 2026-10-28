@@ -2,8 +2,34 @@ import { html, raw, icon } from './ui.js';
 import { draftDefinition } from './definitions.js';
 import { traitsEditorPage } from './traits-editor.js';
 import { locationsFor } from './zones.js';
-import { zoneCreatures, defaultSpawnSettings } from './spawn-config.js';
+import { zoneCreatures, defaultSpawnSettings, rarityTier } from './spawn-config.js';
 import { formBaseline, formSignature } from './form-state.js';
+
+const speciesRarities = [
+  [3, 'Uncommon'],
+  [4, 'Common'],
+  [2, 'Rare'],
+  [1, 'Ultra Rare'],
+  [0, 'Cosmic']
+];
+const rarityName = species => speciesRarities.find(([tier]) => tier === rarityTier(species))?.[1] || 'Common';
+
+export function sortSpeciesEntries(entries, sort = 'name') {
+  const rank = species => speciesRarities.findIndex(([tier]) => tier === rarityTier(species));
+  return [...entries].sort((a, b) => (sort === 'rarity' ? rank(a) - rank(b) : 0) || a.name.localeCompare(b.name));
+}
+
+export function updateSpeciesSort(root) {
+  const list = root.querySelector('.species-manager .definition-list');
+  const sort = root.querySelector('#species-sort')?.value || 'name';
+  if (!list) return;
+  const entries = [...list.children].map(element => ({
+    element,
+    name: element.dataset.name,
+    rarityTier: Number(element.dataset.rarityTier)
+  }));
+  for (const entry of sortSpeciesEntries(entries, sort)) list.append(entry.element);
+}
 
 export function speciesSpawnRows(species, catalog, state) {
   return locationsFor(catalog, state).flatMap(zone => {
@@ -36,13 +62,7 @@ function overviewForm(species) {
     <div class="panel-heading"><div><h2>${current ? 'Species details' : 'Create a species'}</h2><p>Changes apply to future encounters. Saved horses retain their details and traits.</p></div></div>
     <div class="species-identity-fields">
     <label class="zone-field">Name<input name="name" value="${species.name}" maxlength="80" required></label>
-    <label class="zone-field">Rarity<select name="rarityTier">${[
-      [3, 'Uncommon'],
-      [4, 'Common'],
-      [2, 'Rare'],
-      [1, 'Ultra Rare'],
-      [0, 'Cosmic']
-    ].map(
+    <label class="zone-field">Rarity<select name="rarityTier">${speciesRarities.map(
       ([tier, label]) =>
         html`<option value="${tier}" ${Number(species.rarityTier ?? 4) === tier ? html`selected` : ''}>${label}</option>`
     )}</select></label>
@@ -60,13 +80,14 @@ function overviewForm(species) {
   </form>`;
 }
 
-export function speciesManagerPage(catalog, state, draft, tab = 'overview') {
+export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort = 'name') {
   const species =
     draft || [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0] || draftDefinition('species');
   if (!species.id || !['overview', 'traits', 'zones'].includes(tab)) tab = 'overview';
   return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
     <div class="species-workbench"><section class="panel library-list-panel"><label class="zone-field">Find a species<input id="definition-search" type="search" placeholder="Search species…"></label>
-    <div class="definition-list">${[...catalog.species].sort((a, b) => a.name.localeCompare(b.name)).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-search="${s.name.toLowerCase()}"><strong>${s.name}</strong><small>${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section>
+    <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label>
+    <div class="definition-list">${sortSpeciesEntries(catalog.species, sort).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${s.name}</strong><small>${rarityName(s)} · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section>
     <section class="species-detail"><h2>${species.name || 'New species'}</h2><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
       ['traits', 'Traits'],

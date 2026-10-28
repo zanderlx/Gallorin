@@ -31,6 +31,10 @@
 .species-detail {
   min-width: 0;
 }
+.species-sort-field {
+  width: 160px;
+  max-width: 100%;
+}
 .species-identity-fields {
   display: grid;
   grid-template-columns: minmax(0, 280px) minmax(0, 160px);

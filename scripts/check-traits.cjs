@@ -53,6 +53,19 @@ const deadline = setTimeout(() => {
     if (location.hash !== '#dev/species') throw new Error('Legacy traits route did not redirect');
     if (document.querySelector('#sidebar a[href="#dev/traits"]'))
       throw new Error('Standalone traits navigation remains');
+    const sort = document.querySelector('#species-sort');
+    const selected = document.querySelector('.species-manager').dataset.speciesId;
+    sort.value = 'rarity';
+    sort.dispatchEvent(new Event('change', { bubbles: true }));
+    const rank = [3, 4, 2, 1, 0];
+    const ranks = [...document.querySelectorAll('.species-manager .definition-list-item')].map(row =>
+      rank.indexOf(Number(row.dataset.rarityTier))
+    );
+    if (ranks.some((value, i) => i > 0 && value < ranks[i - 1])) throw new Error('Species rarity sorting failed');
+    if (document.querySelector('.species-manager').dataset.speciesId !== selected)
+      throw new Error('Sorting changed the selected species');
+    sort.value = 'name';
+    sort.dispatchEvent(new Event('change', { bubbles: true }));
     document.querySelector('[data-action="species-tab"][data-tab="traits"]').click();
   });
   await wait(() => !!document.querySelector('#traits-form'));
