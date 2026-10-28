@@ -28,7 +28,12 @@ import {
   toggleMutations
 } from './mutations-manager.js';
 import { readTraitsForm, traitRow, syncTraitRows } from './traits-editor.js';
-import { speciesManagerPage, syncSpeciesControls, updateSpeciesSort } from './species-manager.js';
+import {
+  speciesManagerPage,
+  syncSpeciesControls,
+  updateSpeciesSort,
+  speciesDeleteConfirmation
+} from './species-manager.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
@@ -522,8 +527,13 @@ function askToDelete(type, payload, name, detail, verb = type === 'delete-profil
   pendingDeletion = { type, payload };
   confirmation.classList.toggle(
     'eye-delete-confirm',
-    type === 'delete-definition' && ['eyes', 'mutations', 'palettes'].includes(payload.kind)
+    type === 'delete-definition' && ['eyes', 'mutations', 'palettes', 'species'].includes(payload.kind)
   );
+  if (type === 'delete-definition' && payload.kind === 'species') {
+    setHTML(confirmation, speciesDeleteConfirmation());
+    confirmation.showModal();
+    return;
+  }
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   confirmation.innerHTML = `<div class="dialog-top"><h2 id="confirm-title">${verb} ${e(name)}?</h2></div><p class="delete-warning">${e(detail)} This is saved immediately. The previous save is kept in your backup folder.</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>${verb === 'Release' ? 'No' : 'Keep It'}</button><button class="button primary" data-action="confirm-delete">${verb === 'Release' ? 'Yes' : `Confirm ${verb}`}</button></div>`;
   confirmation.showModal();

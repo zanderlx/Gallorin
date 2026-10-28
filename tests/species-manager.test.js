@@ -4,12 +4,21 @@ import {
   speciesManagerPage,
   speciesSpawnRows,
   sortSpeciesEntries,
-  updateSpeciesSort
+  updateSpeciesSort,
+  speciesDeleteConfirmation
 } from '../public/species-manager.js';
 import { draftDefinition } from '../public/definitions.js';
 import { defaultRaritySettings } from '../public/rarity-settings.js';
 
 const species = { ...draftDefinition('species'), id: 'horse', name: 'Horse', traits: { Mane: ['Braided'] } };
+test('species delete confirmation uses the concise prompt and shared aligned dialog structure', () => {
+  const confirmation = String(speciesDeleteConfirmation());
+  assert.match(confirmation, /<div class="dialog-top"><h2 id="confirm-title">Delete Species<\/h2><\/div>/);
+  assert.match(confirmation, /<p class="delete-warning">Are you sure you want to delete this species\?<\/p>/);
+  assert.doesNotMatch(confirmation, /saved immediately|backup folder/);
+  assert.match(confirmation, /data-action="cancel-delete"/);
+  assert.match(confirmation, /data-action="confirm-delete"/);
+});
 const catalog = {
   species: [species, { ...species, id: 'pony', name: 'Pony' }],
   locations: [
