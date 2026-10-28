@@ -187,12 +187,24 @@
   background: var(--panel-deep);
 }
 .trait-category-card summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
   cursor: pointer;
   overflow-wrap: anywhere;
 }
-.trait-category-card summary span {
+.trait-category-card summary::-webkit-details-marker {
+  display: none;
+}
+.trait-category-card summary [data-trait-count] {
   color: var(--muted);
-  margin-left: 8px;
+}
+.trait-category-toggle {
+  margin-left: auto;
+}
+.trait-category-card[open] .trait-category-toggle svg {
+  transform: rotate(180deg);
 }
 .trait-category-card textarea {
   min-height: 180px;

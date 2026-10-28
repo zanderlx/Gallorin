@@ -50,6 +50,10 @@ test('manager handles empty catalogs, escapes content and has no manual default 
   assert.match(traitsEditorPage(local), /My custom mane/);
   assert.doesNotMatch(traitsEditorPage(local, 'horse', true), /load-supplied-traits|Load supplied list/);
   assert.deepEqual(species.traits, { Mane: ['My custom mane'] });
+  const saved = traitRow('Mane', ['Braided']);
+  assert.match(saved, /type="hidden" data-trait-category value="Mane"/);
+  assert.doesNotMatch(saved, />Category(?: name)?</);
+  assert.match(traitRow(), />Category name<input data-trait-category/);
 });
 
 test('search filters by category or trait, updates counts and restores all categories when cleared', () => {
