@@ -80,6 +80,10 @@ body.has-music-player {
   width: 34px;
   height: 34px;
   font-size: 19px;
+  line-height: 1;
+}
+.music-player .music-play[aria-label='Play music'] {
+  text-indent: 2px;
 }
 .music-timeline {
   display: flex;
