@@ -7,6 +7,7 @@ import {
   updateSpeciesSort
 } from '../public/species-manager.js';
 import { draftDefinition } from '../public/definitions.js';
+import { defaultRaritySettings } from '../public/rarity-settings.js';
 
 const species = { ...draftDefinition('species'), id: 'horse', name: 'Horse', traits: { Mane: ['Braided'] } };
 const catalog = {
@@ -33,7 +34,7 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.doesNotMatch(overview, /name="speciesZones"|id="traits-species"/);
   assert.match(overview, /data-tab="traits"/);
   assert.match(overview, /data-tab="zones"[^>]*>Zones</);
-  assert.ok(overview.indexOf('Create Species</button>') < overview.indexOf('Find a species'));
+  assert.ok(overview.indexOf('Create Species</button>') < overview.indexOf('Find a Species'));
   assert.match(overview, /species-identity-fields[\s\S]*name="name"[\s\S]*name="rarityTier"[\s\S]*<\/div>/);
   const rarity = overview.match(/<select name="rarityTier">([\s\S]*?)<\/select>/)[1];
   assert.deepEqual(
@@ -114,9 +115,22 @@ test('species list shows rarity with trait counts and sorts by rarity then name 
   );
   assert.deepEqual(entries, before);
   const page = speciesManagerPage({ ...catalog, species: entries }, {}, entries[0], 'overview', 'rarity');
-  assert.match(page, /<small>Cosmic · 1 traits<\/small>/);
+  assert.match(page, /<span class="species-rarity"[^>]*>Cosmic<\/span> · 1 traits<\/small>/);
   assert.match(page, /value="rarity" selected/);
   assert.ok(page.indexOf('data-id="akhal"') < page.indexOf('data-id="cosmic"'));
+});
+
+test('species rarity labels follow configured colors and list controls sit outside the panel', () => {
+  const page = speciesManagerPage(
+    {
+      ...catalog,
+      rarities: { ...defaultRaritySettings, colors: { ...defaultRaritySettings.colors, common: '#123456' } }
+    },
+    {}
+  );
+  assert.match(page, /style="color:#123456">Common<\/span>/);
+  assert.ok(page.indexOf('id="definition-search"') < page.indexOf('<section class="panel library-list-panel">'));
+  assert.ok(page.indexOf('id="species-sort"') < page.indexOf('<section class="panel library-list-panel">'));
 });
 
 test('sorting reorders existing rows while preserving filtered rows and selection', () => {

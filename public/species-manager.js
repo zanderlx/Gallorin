@@ -4,6 +4,7 @@ import { traitsEditorPage } from './traits-editor.js';
 import { locationsFor } from './zones.js';
 import { zoneCreatures, defaultSpawnSettings, rarityTier } from './spawn-config.js';
 import { formBaseline, formSignature } from './form-state.js';
+import { raritySettings } from './rarity-settings.js';
 
 const speciesRarities = [
   [3, 'Uncommon'],
@@ -81,13 +82,15 @@ function overviewForm(species) {
 }
 
 export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort = 'name') {
+  const appearance = raritySettings(catalog);
+  const rarityColor = entry => appearance.colors[rarityName(entry).toLowerCase().replaceAll(' ', '-')] || 'var(--text)';
   const species =
     draft || [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0] || draftDefinition('species');
   if (!species.id || !['overview', 'traits', 'zones'].includes(tab)) tab = 'overview';
   return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
-    <div class="species-workbench"><section class="panel library-list-panel"><label class="zone-field">Find a species<input id="definition-search" type="search" placeholder="Search species…"></label>
-    <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label>
-    <div class="definition-list">${sortSpeciesEntries(catalog.species, sort).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${s.name}</strong><small>${rarityName(s)} · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section>
+    <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field">Find a Species<input id="definition-search" type="search" placeholder="Search species…"></label>
+    <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label></div>
+    <section class="panel library-list-panel"><div class="definition-list">${sortSpeciesEntries(catalog.species, sort).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${s.name}</strong><small><span class="species-rarity" style="color:${rarityColor(s)}">${rarityName(s)}</span> · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section></div>
     <section class="species-detail"><h2>${species.name || 'New species'}</h2><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
       ['traits', 'Traits'],
