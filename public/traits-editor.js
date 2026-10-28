@@ -10,6 +10,17 @@ export const traitNames = value => [
   )
 ];
 
+export function keepTraitArrowOnLine(event) {
+  const field = event.target;
+  if (
+    event.key === 'ArrowRight' &&
+    field.matches('[data-trait-values]') &&
+    field.selectionStart === field.selectionEnd &&
+    field.value[field.selectionEnd] === '\n'
+  )
+    event.preventDefault();
+}
+
 export function traitRow(category = '', values = []) {
   return String(html`<details class="trait-editor-row trait-category-card" open>
     <summary><strong data-category-title>${category || 'New category'}</strong> <span data-trait-count>${values.length} traits</span><span class="icon-button personality-toggle trait-category-toggle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>

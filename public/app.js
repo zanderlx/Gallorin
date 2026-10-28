@@ -27,7 +27,7 @@ import {
   updateMutationGrid,
   toggleMutations
 } from './mutations-manager.js';
-import { readTraitsForm, traitRow, syncTraitRows } from './traits-editor.js';
+import { readTraitsForm, traitRow, syncTraitRows, keepTraitArrowOnLine } from './traits-editor.js';
 import {
   speciesManagerPage,
   syncSpeciesControls,
@@ -1201,6 +1201,7 @@ document.addEventListener('reset', event => {
 });
 $('.scrim').addEventListener('click', closeMenu);
 document.addEventListener('keydown', event => {
+  keepTraitArrowOnLine(event);
   if (
     event.target.matches('[data-action="species-tab"]') &&
     ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)

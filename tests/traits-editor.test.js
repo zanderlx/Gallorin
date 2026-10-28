@@ -2,7 +2,34 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { speciesTraitData } from '../public/species-trait-data.js';
-import { traitsEditorPage, readTraitsForm, traitNames, traitRow, syncTraitRows } from '../public/traits-editor.js';
+import {
+  traitsEditorPage,
+  readTraitsForm,
+  traitNames,
+  traitRow,
+  syncTraitRows,
+  keepTraitArrowOnLine
+} from '../public/traits-editor.js';
+
+test('Right Arrow stops at a trait line ending while normal navigation and selections remain available', () => {
+  const check = (key, start, end = start, matches = true) => {
+    let prevented = false;
+    keepTraitArrowOnLine({
+      key,
+      target: { matches: () => matches, value: 'Long\nShort', selectionStart: start, selectionEnd: end },
+      preventDefault: () => {
+        prevented = true;
+      }
+    });
+    return prevented;
+  };
+  assert.equal(check('ArrowRight', 4), true);
+  assert.equal(check('ArrowRight', 3), false);
+  assert.equal(check('ArrowDown', 4), false);
+  assert.equal(check('ArrowLeft', 4), false);
+  assert.equal(check('ArrowRight', 0, 4), false);
+  assert.equal(check('ArrowRight', 4, 4, false), false);
+});
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const row = (category, values) => ({
