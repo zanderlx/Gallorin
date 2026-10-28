@@ -1,5 +1,6 @@
 // Run with: node_modules/.bin/electron scripts/check-traits.cjs
 // For a scroll-only regression check, append --scroll-only (no CRUD, zones, or screenshots).
+// For control alignment only, append --layout-only.
 // All saves and Chromium storage live in a fresh temporary directory.
 const { app, BrowserWindow } = require('electron');
 const { mkdtemp, mkdir, writeFile } = require('node:fs/promises');
@@ -65,6 +66,21 @@ const deadline = setTimeout(() => {
     app.exit(0);
   };
   await wait(() => !!document.querySelector('.species-manager'));
+  if (process.argv.includes('--layout-only')) {
+    await run(() => {
+      const search = document.querySelector('#definition-search').getBoundingClientRect();
+      const sort = document.querySelector('#species-sort').getBoundingClientRect();
+      const tab = document.querySelector('#species-tab-overview').getBoundingClientRect();
+      const list = document.querySelector('.species-manager .library-list-panel').getBoundingClientRect();
+      const details = document.querySelector('.species-manager #species-tab-panel').getBoundingClientRect();
+      if (sort.left < search.right) throw new Error('Sort By is not right of Find A Species');
+      if (Math.abs(search.top - sort.top) > 1 || Math.abs(sort.top - tab.top) > 1)
+        throw new Error('Search, sort and species tabs are not aligned');
+      if (Math.abs(list.top - details.top) > 1) throw new Error('Species list and details panels are not aligned');
+    });
+    await finish('Species control layout check');
+    return;
+  }
   if (scrollOnly) {
     await run(() => {
       const list = document.querySelector('.species-manager .definition-list');

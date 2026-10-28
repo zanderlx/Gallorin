@@ -88,8 +88,8 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
     draft || [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0] || draftDefinition('species');
   if (!species.id || !['overview', 'traits', 'zones'].includes(tab)) tab = 'overview';
   return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
-    <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label>
-    <label class="zone-field">Find A Species<input id="definition-search" type="search" placeholder="Search species…"></label></div>
+    <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field">Find A Species<input id="definition-search" type="search" placeholder="Search species…"></label>
+    <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label></div>
     <section class="panel library-list-panel"><div class="definition-list">${sortSpeciesEntries(catalog.species, sort).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${s.name}</strong><small><span class="species-rarity" style="color:${rarityColor(s)}">${rarityName(s)}</span> · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section></div>
     <section class="species-detail"><h2>${species.name || 'New species'}</h2><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
@@ -99,8 +99,7 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
       ([key, label]) =>
         html`<button type="button" role="tab" id="species-tab-${key}" tabindex="${key === tab ? 0 : -1}" aria-selected="${key === tab}" aria-controls="species-tab-panel" data-action="species-tab" data-tab="${key}" ${!species.id && key !== 'overview' ? html`disabled` : ''}>${label}</button>`
     )}</div>
-    ${!species.id ? html`<p>Save this species to manage its traits and view spawning.</p>` : ''}
-    <div id="species-tab-panel" role="tabpanel" aria-labelledby="species-tab-${tab}">${tab === 'traits' ? raw(traitsEditorPage(catalog, species.id, true)) : tab === 'zones' ? spawningPanel(species, catalog, state) : overviewForm(species)}</div></section></div></div>`);
+    <div id="species-tab-panel" role="tabpanel" aria-labelledby="species-tab-${tab}">${!species.id ? html`<p>Save this species to manage its traits and view spawning.</p>` : ''}${tab === 'traits' ? raw(traitsEditorPage(catalog, species.id, true)) : tab === 'zones' ? spawningPanel(species, catalog, state) : overviewForm(species)}</div></section></div></div>`);
 }
 
 export function syncSpeciesControls(root) {

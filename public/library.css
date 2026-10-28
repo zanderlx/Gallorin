@@ -24,40 +24,62 @@
 }
 .species-workbench {
   display: grid;
-  grid-template-columns: minmax(200px, 0.65fr) minmax(0, 2fr);
-  gap: 24px;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 2fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 16px 24px;
   align-items: start;
 }
 .species-detail {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / span 3;
+  grid-column: 2;
+  min-width: 0;
+}
+.species-detail > h2 {
+  grid-row: 1;
+}
+.species-detail > #species-tab-panel {
+  grid-row: 3;
   min-width: 0;
 }
 .species-list-column {
-  position: sticky;
-  top: 95px;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / span 3;
+  grid-column: 1;
   min-width: 0;
 }
 .species-list-column .library-list-panel {
-  position: static;
+  grid-row: 3;
+  position: sticky;
+  top: 95px;
+  align-self: start;
 }
 .species-list-column .definition-list {
   margin-top: 0;
 }
 .species-list-controls {
+  grid-row: 2;
   display: flex;
-  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 16px;
-  margin-bottom: 20px;
 }
 .species-list-controls .zone-field {
   margin: 0;
   min-width: 0;
 }
 .species-list-controls > .zone-field:has(input[type='search']) {
-  flex: 1 1 180px;
+  flex: 1 1 0;
 }
 .species-sort-field {
-  width: 160px;
+  flex: 0 0 110px;
+  width: 110px;
   max-width: 100%;
+}
+.species-list-controls :is(input, select) {
+  height: 48px;
+  min-height: 48px;
 }
 .species-identity-fields {
   display: grid;
@@ -79,12 +101,15 @@
   }
 }
 .species-tabs {
+  grid-row: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 16px 0;
+  align-items: flex-end;
+  margin: 0;
 }
 .species-tabs button {
+  height: 48px;
   padding: 12px 18px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -117,12 +142,24 @@
 @media (max-width: 1100px) {
   .species-workbench {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 24px;
   }
   .species-workbench .library-list-panel {
     position: static;
   }
   .species-workbench .species-list-column {
     position: static;
+  }
+  .species-workbench :is(.species-list-column, .species-detail) {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-rows: none;
+    gap: 16px;
+  }
+  .species-workbench
+    :is(.species-list-controls, .library-list-panel, .species-detail > h2, .species-tabs, #species-tab-panel) {
+    grid-row: auto;
   }
   .species-workbench .definition-list {
     max-height: 220px;

@@ -131,7 +131,7 @@ test('species rarity labels follow configured colors and list controls sit outsi
   assert.match(page, /style="color:#123456">Common<\/span>/);
   assert.ok(page.indexOf('id="definition-search"') < page.indexOf('<section class="panel library-list-panel">'));
   assert.ok(page.indexOf('id="species-sort"') < page.indexOf('<section class="panel library-list-panel">'));
-  assert.ok(page.indexOf('id="species-sort"') < page.indexOf('id="definition-search"'));
+  assert.ok(page.indexOf('id="definition-search"') < page.indexOf('id="species-sort"'));
 });
 
 test('sorting reorders existing rows while preserving filtered rows and selection', () => {
