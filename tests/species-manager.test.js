@@ -67,7 +67,8 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.match(traits, /Braided/);
   assert.doesNotMatch(traits, /id="definition-form"|id="traits-species"/);
   const spawning = speciesManagerPage(catalog, {}, species, 'zones');
-  assert.match(spawning, /25% of regular tickets/);
+  assert.match(spawning, /Weight: -10 · 25%/);
+  assert.doesNotMatch(spawning, /of regular tickets/);
   assert.doesNotMatch(
     spawning,
     /This overview reads|special spawn rules|Event zone|Active|Zone closed|Disabled \(zero weight\)|Manage Zones/
