@@ -454,7 +454,7 @@ test('Horse Definitions dashboard exposes five managers and the spawning configu
   assert.match(species, /name="rarityTier"/);
   assert.match(species, />Ultra Rare<\/option>/);
   assert.match(species, /<option value="0"[^>]*>Cosmic<\/option>/);
-  assert.match(species, /Description \(optional\)/);
+  assert.match(species, />Description<textarea/);
   assert.doesNotMatch(species, /Base Attributes|>System ID|Description & notes|1: Ultra Rare/);
   assert.doesNotMatch(species, /name="speciesZones"/);
   assert.match(species, /data-action="species-tab"/);

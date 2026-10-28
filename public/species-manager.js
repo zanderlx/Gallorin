@@ -85,7 +85,7 @@ function overviewForm(species, catalog) {
     )}</select></label>
     <label class="zone-field">Group<select name="event"><option value="" ${!species.event ? html`selected` : ''}>None</option>${groups.map(group => html`<option value="${group}" ${species.event === group ? html`selected` : ''}>${group}</option>`)}</select></label>
     </div>
-    <label class="zone-field">Description (optional)<textarea name="description" maxlength="4000" rows="4">${species.description || ''}</textarea></label>
+    <label class="zone-field">Description<textarea name="description" maxlength="4000" rows="4">${species.description || ''}</textarea></label>
     <input type="hidden" name="systemId" value="${species.systemId || ''}">
     <input type="hidden" name="traits" value="${JSON.stringify(species.traits || {})}">
     <input type="hidden" name="attributes" value="${JSON.stringify(species.attributes || {})}">
