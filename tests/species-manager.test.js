@@ -100,6 +100,8 @@ test('spawn overview follows overrides and deleted zones without storing another
   assert.deepEqual({ catalog, state }, before);
   const empty = speciesManagerPage({ ...catalog, locations: [] }, {}, species, 'zones');
   assert.match(empty, /not assigned to any zone/);
+  assert.match(empty, /class="species-zones-empty"/);
+  assert.match(empty, /href="#dev\/locations">Manage Zones<\/a>/);
 });
 
 test('new species must be saved before managing traits and all species text is escaped', () => {

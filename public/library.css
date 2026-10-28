@@ -156,6 +156,12 @@
   padding: 16px 0;
   border-bottom: 1px solid var(--border);
 }
+.species-zones-empty {
+  margin-top: 24px;
+}
+.species-zones-empty .button {
+  margin-top: 16px;
+}
 .species-spawn-row h4,
 .species-spawn-row p {
   margin: 4px 0;
