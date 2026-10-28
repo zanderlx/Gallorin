@@ -71,17 +71,37 @@ const deadline = setTimeout(() => {
       const search = document.querySelector('#definition-search').getBoundingClientRect();
       const sort = document.querySelector('#species-sort').getBoundingClientRect();
       const tab = document.querySelector('#species-tab-overview').getBoundingClientRect();
-      const name = document.querySelector('.species-detail-heading h2').getBoundingClientRect();
       const list = document.querySelector('.species-manager .library-list-panel').getBoundingClientRect();
       const details = document.querySelector('.species-manager #species-tab-panel').getBoundingClientRect();
       if (sort.left < search.right) throw new Error('Sort By is not right of Find A Species');
       if (Math.abs(search.top - sort.top) > 1 || Math.abs(sort.top - tab.top) > 1)
         throw new Error('Search, sort and species tabs are not aligned');
       if (Math.abs(list.top - details.top) > 1) throw new Error('Species list and details panels are not aligned');
-      if (name.right > tab.left || Math.abs(name.top + name.height / 2 - (tab.top + tab.height / 2)) > 1)
-        throw new Error('Species name is not left of the tabs on the same row');
+      if (Math.abs(tab.left - details.left) > 1)
+        throw new Error('Species tabs are not at the left edge of the details');
     });
     await finish('Species control layout check');
+    return;
+  }
+  if (process.argv.includes('--trait-controls-only')) {
+    await run(() => {
+      if (document.querySelector('.species-detail-heading h2')) throw new Error('Redundant species heading remains');
+      document.querySelector('[data-action="species-tab"][data-tab="traits"]').click();
+      if (document.querySelector('#trait-search')) throw new Error('Trait search remains');
+      const add = document.querySelector('[data-action="add-trait-category"]');
+      if (add.closest('form')?.id !== 'traits-form') throw new Error('Add category is outside the Traits card');
+      add.click();
+      const category = document.querySelector('#trait-rows').lastElementChild.querySelector('[data-trait-category]');
+      category.value = 'Control test';
+      category.dispatchEvent(new Event('input', { bubbles: true }));
+      document.querySelector('#traits-form button[type="reset"]').click();
+      if (
+        document.querySelector('#trait-rows').lastElementChild.querySelector('[data-trait-category]').value ===
+        'Control test'
+      )
+        throw new Error('Cancel retained the test category');
+    });
+    await finish('Traits controls check');
     return;
   }
   if (scrollOnly) {
@@ -137,17 +157,6 @@ const deadline = setTimeout(() => {
   });
   await wait(() => !!document.querySelector('#traits-form'));
   await run(() => {
-    const search = document.querySelector('#trait-search');
-    const card = document.querySelector('.trait-category-card');
-    const originalWidth = card.getBoundingClientRect().width;
-    search.value = 'cosmetic';
-    search.dispatchEvent(new Event('input', { bubbles: true }));
-    if (!document.querySelector('.trait-category-card[hidden]')) throw new Error('Search did not filter');
-    if (Math.abs(card.getBoundingClientRect().width - originalWidth) > 1)
-      throw new Error('Filtering stretched a trait card');
-    if (search.getBoundingClientRect().width > 241) throw new Error('Trait search exceeds shared manager search width');
-    search.value = '';
-    search.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('[data-action="add-trait-category"]').click();
     const row = document.querySelector('#trait-rows').lastElementChild;
     row.querySelector('input').value = 'Smoke category';

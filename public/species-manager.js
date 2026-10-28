@@ -60,7 +60,7 @@ function spawningPanel(species, catalog, state) {
 function overviewForm(species) {
   const current = !!species.id;
   return html`<form id="definition-form" class="panel" data-kind="species" data-id="${species.id || ''}">
-    <div class="panel-heading"><div><h2>${current ? 'Species details' : 'Create a species'}</h2><p>Changes apply to future encounters. Saved horses retain their details and traits.</p></div></div>
+    <div class="panel-heading"><h2>${current ? 'Species details' : 'Create a species'}</h2></div>
     <div class="species-identity-fields">
     <label class="zone-field">Name<input name="name" value="${species.name}" maxlength="80" required></label>
     <label class="zone-field">Rarity<select name="rarityTier">${speciesRarities.map(
@@ -91,7 +91,7 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
     <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field">Find A Species<input id="definition-search" type="search" placeholder="Search species…"></label>
     <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label></div>
     <section class="panel library-list-panel"><div class="definition-list">${sortSpeciesEntries(catalog.species, sort).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${s.name}</strong><small><span class="species-rarity" style="color:${rarityColor(s)}">${rarityName(s)}</span> · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section></div>
-    <section class="species-detail"><div class="species-detail-heading"><h2>${species.name || 'New species'}</h2><div class="species-tabs" role="tablist" aria-label="Species details">${[
+    <section class="species-detail"><div class="species-detail-heading"><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
       ['traits', 'Traits'],
       ['zones', 'Zones']

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { speciesTraitData } from '../public/species-trait-data.js';
-import { traitsEditorPage, readTraitsForm, traitNames, traitRow, filterTraitRows } from '../public/traits-editor.js';
+import { traitsEditorPage, readTraitsForm, traitNames, traitRow, syncTraitRows } from '../public/traits-editor.js';
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const row = (category, values) => ({
@@ -56,11 +56,13 @@ test('manager handles empty catalogs, escapes content and has no manual default 
   assert.match(traitsEditorPage(local), /<p><span data-traits-total>1<\/span> traits<\/p>/);
   assert.doesNotMatch(saved, />Category(?: name)?</);
   assert.match(traitRow(), />Category name<input data-trait-category/);
+  const page = traitsEditorPage(local);
+  assert.doesNotMatch(page, /id="trait-search"/);
+  assert.ok(page.indexOf('id="traits-form"') < page.indexOf('data-action="add-trait-category"'));
 });
 
-test('search filters by category or trait, updates counts and restores all categories when cleared', () => {
-  const search = { value: 'braid' },
-    empty = {};
+test('editing traits updates category names and total counts', () => {
+  const total = {};
   const cards = [
     ['Mane', 'Braided\nLong'],
     ['Paint', 'Spots']
@@ -75,16 +77,12 @@ test('search filters by category or trait, updates counts and restores all categ
   });
   const root = {
     querySelectorAll: () => cards,
-    querySelector: key => ({ '#trait-search': search, '#trait-no-results': empty })[key]
+    querySelector: key => ({ '[data-traits-total]': total })[key]
   };
-  filterTraitRows(root);
-  assert.equal(cards[0].hidden, false);
-  assert.equal(cards[1].hidden, true);
+  syncTraitRows(root);
   assert.equal(cards[0].querySelector('[data-trait-count]').textContent, '2 traits');
-  search.value = 'missing';
-  filterTraitRows(root);
-  assert.equal(empty.hidden, false);
-  search.value = '';
-  filterTraitRows(root);
-  assert.ok(cards.every(c => !c.hidden));
+  assert.equal(total.textContent, '3');
+  cards[0].querySelector('[data-trait-values]').value = 'Braided';
+  syncTraitRows(root);
+  assert.equal(total.textContent, '2');
 });

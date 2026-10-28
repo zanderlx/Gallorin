@@ -45,10 +45,6 @@
   gap: 16px 24px;
   min-width: 0;
 }
-.species-detail-heading h2 {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
 .species-detail > #species-tab-panel {
   grid-row: 2;
   min-width: 0;

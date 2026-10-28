@@ -27,7 +27,7 @@ import {
   updateMutationGrid,
   toggleMutations
 } from './mutations-manager.js';
-import { readTraitsForm, traitRow, filterTraitRows } from './traits-editor.js';
+import { readTraitsForm, traitRow, syncTraitRows } from './traits-editor.js';
 import { speciesManagerPage, syncSpeciesControls, updateSpeciesSort } from './species-manager.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
@@ -747,9 +747,8 @@ document.addEventListener('click', async event => {
     return showDefinition(kind, copy);
   }
   if (intent === 'add-trait-category') {
-    $('#trait-search').value = '';
     appendHTML($('#trait-rows'), raw(traitRow()));
-    filterTraitRows(main);
+    syncTraitRows(main);
     $('#trait-rows').lastElementChild.querySelector('input').focus();
     updateFormState($('#traits-form') || $('#definition-form'));
     syncSpeciesControls(main);
@@ -1077,7 +1076,7 @@ document.addEventListener('submit', async event => {
   }
 });
 document.addEventListener('input', event => {
-  if (event.target.id === 'trait-search' || event.target.closest('#trait-rows')) filterTraitRows(main);
+  if (event.target.closest('#trait-rows')) syncTraitRows(main);
   if (event.target.id === 'horse-grid-size') {
     const count = Number(event.target.value);
     if ([3, 4, 5, 6].includes(count)) {
