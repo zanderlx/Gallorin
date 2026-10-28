@@ -34,7 +34,7 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.doesNotMatch(overview, /name="speciesZones"|id="traits-species"/);
   assert.match(overview, /data-tab="traits"/);
   assert.match(overview, /data-tab="zones"[^>]*>Zones</);
-  assert.ok(overview.indexOf('Create Species</button>') < overview.indexOf('Find a Species'));
+  assert.ok(overview.indexOf('Create Species</button>') < overview.indexOf('Find A Species'));
   assert.match(overview, /species-identity-fields[\s\S]*name="name"[\s\S]*name="rarityTier"[\s\S]*<\/div>/);
   const rarity = overview.match(/<select name="rarityTier">([\s\S]*?)<\/select>/)[1];
   assert.deepEqual(
@@ -131,6 +131,7 @@ test('species rarity labels follow configured colors and list controls sit outsi
   assert.match(page, /style="color:#123456">Common<\/span>/);
   assert.ok(page.indexOf('id="definition-search"') < page.indexOf('<section class="panel library-list-panel">'));
   assert.ok(page.indexOf('id="species-sort"') < page.indexOf('<section class="panel library-list-panel">'));
+  assert.ok(page.indexOf('id="species-sort"') < page.indexOf('id="definition-search"'));
 });
 
 test('sorting reorders existing rows while preserving filtered rows and selection', () => {

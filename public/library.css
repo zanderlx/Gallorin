@@ -52,7 +52,7 @@
   margin: 0;
   min-width: 0;
 }
-.species-list-controls > .zone-field:first-child {
+.species-list-controls > .zone-field:has(input[type='search']) {
   flex: 1 1 180px;
 }
 .species-sort-field {
