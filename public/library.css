@@ -22,6 +22,61 @@
   gap: 24px;
   align-items: start;
 }
+.species-workbench {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.65fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+.species-detail {
+  min-width: 0;
+}
+.species-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.species-tabs button {
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+}
+.species-tabs button[aria-selected='true'] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.species-tabs button:disabled,
+.species-manager .library-list-panel button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.species-spawn-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.species-spawn-row h4,
+.species-spawn-row p {
+  margin: 4px 0;
+}
+@media (max-width: 1100px) {
+  .species-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .species-workbench .library-list-panel {
+    position: static;
+  }
+  .species-workbench .definition-list {
+    max-height: 220px;
+  }
+}
 .library-list-panel {
   position: sticky;
   top: 95px;

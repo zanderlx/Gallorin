@@ -27,7 +27,8 @@ import {
   updateMutationGrid,
   toggleMutations
 } from './mutations-manager.js';
-import { traitsEditorPage, readTraitsForm, traitRow, filterTraitRows } from './traits-editor.js';
+import { readTraitsForm, traitRow, filterTraitRows } from './traits-editor.js';
+import { speciesManagerPage, syncSpeciesControls } from './species-manager.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
@@ -67,6 +68,8 @@ let state,
   appVersion,
   busy = false;
 let stableGridColumns = 5;
+let selectedSpeciesId,
+  speciesTab = 'overview';
 let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;
@@ -279,7 +282,13 @@ function pageContent(pageRoute, pageState = state) {
   else if (section === 'dev' && page === 'eyes') return eyesManagerPage(catalog);
   else if (section === 'dev' && page === 'colors') return palettesManagerPage(catalog);
   else if (section === 'dev' && page === 'mutations') return mutationsManagerPage(catalog);
-  else if (section === 'dev' && page === 'traits') return traitsEditorPage(catalog);
+  else if (section === 'dev' && page === 'species')
+    return speciesManagerPage(
+      catalog,
+      state,
+      catalog.species.find(s => s.id === selectedSpeciesId),
+      speciesTab
+    );
   else if (section === 'dev' && Object.hasOwn(editorRoutes, page))
     return libraryEditorPage(editorRoutes[page], catalog, state);
   else return plannedPage(route, state);
@@ -324,6 +333,7 @@ async function navigate({ initializeNavigation = false } = {}) {
     history.replaceState(null, '', `#${route}`);
   }
   const movedRoutes = {
+    'dev/traits': 'dev/species',
     'dev/editor': 'dev/roadmap',
     'dev/generator': 'dev/roadmap',
     'dev/spawn': 'dev/roadmap',
@@ -405,6 +415,10 @@ function showZoneDraft(draft) {
   $('#zone-form').scrollIntoView({ block: 'start' });
 }
 function showDefinition(kind, draft) {
+  if (kind === 'species') {
+    showSpecies(draft, draft.id ? speciesTab : 'overview');
+    return;
+  }
   if (kind === 'palettes') {
     paletteEditor.open(draft);
     trackForms(paletteEditor.dialog);
@@ -440,6 +454,15 @@ function showDefinition(kind, draft) {
   trackForms(main);
   if (!draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-duplicate-draft');
   $('#definition-form input[name="name"]')?.focus({ preventScroll: true });
+}
+function showSpecies(draft, tab = speciesTab, supplied = false) {
+  selectedSpeciesId = draft?.id;
+  speciesTab = tab;
+  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, supplied)));
+  copyEditor.attach(main);
+  trackForms(main);
+  if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
+  syncSpeciesControls(main);
 }
 function inspect(id) {
   const horse = findHorse(id);
@@ -522,6 +545,18 @@ document.addEventListener('click', async event => {
   const button = event.target.closest('[data-action]');
   if (!button || busy) return;
   const { action: intent, id } = button.dataset;
+  if (intent === 'species-tab') {
+    const species = catalog.species.find(s => s.id === main.querySelector('.species-manager').dataset.speciesId);
+    showSpecies(species, button.dataset.tab);
+    main.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
+    return;
+  }
+  if (intent === 'species-open-zone') {
+    history.pushState(null, '', '#dev/locations');
+    await navigate();
+    showZoneDraft(locationsFor(catalog, state).find(z => z.id === id));
+    return;
+  }
   if (['toggle-mutation', 'toggle-all-mutations', 'toggle-mutation-section'].includes(intent))
     return toggleMutations(main, button);
   if (['toggle-personality', 'toggle-all-personalities'].includes(intent)) return togglePersonalities(main, button);
@@ -713,21 +748,27 @@ document.addEventListener('click', async event => {
     filterTraitRows(main);
     $('#trait-rows').lastElementChild.querySelector('input').focus();
     updateFormState($('#traits-form') || $('#definition-form'));
+    syncSpeciesControls(main);
     return;
   }
   if (intent === 'remove-trait-category') {
     button.closest('.trait-editor-row').remove();
     filterTraitRows(main);
     updateFormState($('#traits-form') || $('#definition-form'));
+    syncSpeciesControls(main);
     return;
   }
   if (intent === 'load-supplied-traits') {
     const form = $('#traits-form');
     const baseline = formBaseline(form);
-    setHTML(main, raw(traitsEditorPage(catalog, form.dataset.id, true)));
-    trackForms(main);
+    showSpecies(
+      catalog.species.find(s => s.id === form.dataset.id),
+      'traits',
+      true
+    );
     restoreBaseline($('#traits-form'), baseline);
     filterTraitRows(main);
+    syncSpeciesControls(main);
     return;
   }
   if (intent === 'add-eye-color') {
@@ -944,9 +985,10 @@ document.addEventListener('submit', async event => {
     } else if (form.id === 'traits-form') {
       const payload = readTraitsForm(form);
       await action('save-traits', payload);
-      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-      main.innerHTML = traitsEditorPage(catalog, payload.id);
-      trackForms(main);
+      showSpecies(
+        catalog.species.find(s => s.id === payload.id),
+        'traits'
+      );
       notify('Traits saved.');
     } else if (form.id === 'spawn-settings-form') {
       await action('spawn-settings', { ALLOW_DUPLICATE_MUTATIONS: form.elements.ALLOW_DUPLICATE_MUTATIONS.checked });
@@ -980,8 +1022,10 @@ document.addEventListener('submit', async event => {
       notify('Current gold balance saved.');
     } else if (form.id === 'definition-form') {
       const payload = readDefinitionForm(form);
-      if (payload.kind === 'species')
-        payload.values.traits = catalog.species.find(s => s.id === payload.id)?.traits || {};
+      if (payload.kind === 'species') {
+        payload.values.traits ??= catalog.species.find(s => s.id === payload.id)?.traits || {};
+        payload.values.attributes ??= catalog.species.find(s => s.id === payload.id)?.attributes || {};
+      }
       validateDefinition(payload.kind, payload.values);
       await action('save-definition', payload);
       renderChrome();
@@ -1069,6 +1113,7 @@ document.addEventListener('input', event => {
   }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
   updateFormState(event.target.form);
+  syncSpeciesControls(main);
   if (event.target.id === 'eye-search') updateEyeGrid(main, catalog);
   if (event.target.id === 'definition-search') {
     const query = event.target.value.trim().toLowerCase();
@@ -1111,23 +1156,19 @@ document.addEventListener('change', async event => {
   if (event.target.id === 'eye-sort')
     main.querySelector('[data-action="eye-sort-direction"]').dataset.direction = 'asc';
   if (['eye-rarity', 'eye-sort', 'eye-percent'].includes(event.target.id)) updateEyeGrid(main, catalog);
-  if (event.target.id === 'traits-species') {
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    main.innerHTML = traitsEditorPage(catalog, event.target.value);
-    trackForms(main);
-    return;
-  }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
   updateFormState(event.target.form);
+  syncSpeciesControls(main);
   if (event.target.id === 'horse-sort')
     updateStableSort(['recent', 'rarity', 'favorites'].includes(event.target.value) ? 'desc' : 'asc');
 });
 document.addEventListener('reset', event => {
   if (event.target.id === 'traits-form') {
     event.preventDefault();
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    main.innerHTML = traitsEditorPage(catalog, event.target.dataset.id);
-    trackForms(main);
+    showSpecies(
+      catalog.species.find(s => s.id === event.target.dataset.id),
+      'traits'
+    );
     return;
   }
   if (['horse-description-form', 'horse-notes-form'].includes(event.target.id)) {
@@ -1153,6 +1194,22 @@ document.addEventListener('reset', event => {
 });
 $('.scrim').addEventListener('click', closeMenu);
 document.addEventListener('keydown', event => {
+  if (
+    event.target.matches('[data-action="species-tab"]') &&
+    ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+  ) {
+    const tabs = [...main.querySelectorAll('[data-action="species-tab"]:not(:disabled)')];
+    const index = tabs.indexOf(event.target);
+    const next =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? tabs.length - 1
+          : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+    event.preventDefault();
+    tabs[next]?.click();
+    return;
+  }
   if (event.key === 'Tab' && document.body.classList.contains('nav-open') && matchMedia('(max-width: 900px)').matches) {
     const focusable = [...$('#sidebar').querySelectorAll('a, summary')].filter(el => el.getClientRects().length);
     const first = focusable[0],

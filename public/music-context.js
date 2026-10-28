@@ -49,7 +49,6 @@ const sectionDefinitions = [
     'compendium',
     [
       ['dev/species', 'Species'],
-      ['dev/traits', 'Traits'],
       ['dev/colors', 'Palettes'],
       ['dev/eyes', 'Eye Colors'],
       ['dev/personalities', 'Personalities'],

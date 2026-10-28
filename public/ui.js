@@ -115,7 +115,6 @@ export const groups = [
     items: [
       ['dev/settings', 'Game Settings'],
       ['dev/species', 'Species'],
-      ['dev/traits', 'Traits'],
       ['dev/colors', 'Colors & Palettes'],
       ['dev/mutations', 'Mutations'],
       ['dev/items', 'Inventory & Items'],
@@ -136,7 +135,6 @@ groups.push(
     icon: 'book',
     items: [
       ['dev/species', 'Species'],
-      ['dev/traits', 'Traits'],
       ['dev/colors', 'Palettes'],
       ['dev/eyes', 'Eye Colors'],
       ['dev/personalities', 'Personalities'],

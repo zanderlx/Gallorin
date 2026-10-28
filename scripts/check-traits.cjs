@@ -7,6 +7,7 @@ const { join, resolve } = require('node:path');
 const { pathToFileURL } = require('node:url');
 
 app.disableHardwareAcceleration();
+app.on('window-all-closed', () => {});
 const deadline = setTimeout(() => {
   console.error('Traits smoke timed out');
   app.exit(1);
@@ -47,6 +48,13 @@ const deadline = setTimeout(() => {
     }
     throw new Error('Timed out: ' + fn.toString());
   };
+  await wait(() => !!document.querySelector('.species-manager'));
+  await run(() => {
+    if (location.hash !== '#dev/species') throw new Error('Legacy traits route did not redirect');
+    if (document.querySelector('#sidebar a[href="#dev/traits"]'))
+      throw new Error('Standalone traits navigation remains');
+    document.querySelector('[data-action="species-tab"][data-tab="traits"]').click();
+  });
   await wait(() => !!document.querySelector('#traits-form'));
   await run(() => {
     const search = document.querySelector('#trait-search');
@@ -61,10 +69,15 @@ const deadline = setTimeout(() => {
     const values = row.querySelector('textarea');
     values.value = 'Smoke trait\nSecond trait';
     values.dispatchEvent(new Event('input', { bubbles: true }));
-    if (!document.querySelector('#traits-species').disabled) throw new Error('Species switch could lose edits');
+    if (!document.querySelector('.species-tabs [data-tab=overview]').disabled)
+      throw new Error('Species switch could lose edits');
     document.querySelector('#traits-form').requestSubmit();
   });
-  await wait(() => !!document.querySelector('#traits-species') && !document.querySelector('#traits-species').disabled);
+  await wait(
+    () =>
+      !!document.querySelector('.species-tabs [data-tab=overview]') &&
+      !document.querySelector('.species-tabs [data-tab=overview]').disabled
+  );
   await run(async () => {
     const data = await (await fetch('/api/state')).json();
     const species = data.catalog.species.find(s => s.id === document.querySelector('#traits-form').dataset.id);
@@ -77,7 +90,7 @@ const deadline = setTimeout(() => {
     values.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('#traits-form').requestSubmit();
   });
-  await wait(() => !document.querySelector('#traits-species').disabled);
+  await wait(() => !document.querySelector('.species-tabs [data-tab=overview]').disabled);
   await run(() => {
     const row = [...document.querySelectorAll('.trait-category-card')].find(
       r => r.querySelector('input').value === 'Smoke category'
@@ -86,26 +99,80 @@ const deadline = setTimeout(() => {
     row.querySelector('button').click();
     document.querySelector('#traits-form').requestSubmit();
   });
-  await wait(() => !document.querySelector('#traits-species').disabled);
+  await wait(() => !document.querySelector('.species-tabs [data-tab=overview]').disabled);
   await run(() => {
     document.querySelector('[data-action="load-supplied-traits"]').click();
     document.querySelector('[data-action="add-trait-category"]').click();
     document.querySelector('#traits-form button[type="reset"]').click();
-    if (document.querySelector('#traits-species').disabled) throw new Error('Cancel did not restore species switching');
+    if (document.querySelector('.species-tabs [data-tab=overview]').disabled)
+      throw new Error('Cancel did not restore species switching');
     if ([...document.querySelectorAll('.trait-category-card')].some(r => !r.querySelector('input').value))
       throw new Error('Cancel kept draft category');
   });
   const output = resolve(__dirname, '../test-results');
   await mkdir(output, { recursive: true });
+  const capture = async name => {
+    await run(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await writeFile(join(output, name), (await window.webContents.capturePage()).toPNG());
+  };
   await run(() => {
     document.activeElement.blur();
     scrollTo(0, 0);
   });
-  await writeFile(join(output, 'traits-desktop.png'), (await window.webContents.capturePage()).toPNG());
+  await capture('traits-desktop.png');
+  await run(() => document.querySelector('[data-action="species-tab"][data-tab="spawning"]').click());
+  await capture('species-spawning.png');
+  await run(() => {
+    const edit = document.querySelector('[data-action="species-open-zone"]');
+    if (!edit) throw new Error('Species spawning overview is empty');
+    globalThis.expectedZone = edit.dataset.id;
+    edit.click();
+  });
+  await wait(() => !!document.querySelector('#zone-form'));
+  await run(() => {
+    if (document.querySelector('#zone-form').dataset.id !== globalThis.expectedZone)
+      throw new Error('Opened wrong zone');
+    location.hash = 'dev/species';
+  });
+  await wait(() => !!document.querySelector('.species-manager'));
+  await run(() => document.querySelector('[data-action="species-tab"][data-tab="overview"]').click());
+  await run(async () => {
+    const data = await (await fetch('/api/state')).json();
+    globalThis.zoneSnapshot = zones =>
+      JSON.stringify(
+        zones
+          .map(zone => ({
+            id: zone.id,
+            enabled: zone.enabled,
+            speciesPool: [...zone.speciesPool].sort(),
+            creatures: [...(zone.creatures || [])].sort((a, b) => a.speciesId.localeCompare(b.speciesId))
+          }))
+          .sort((a, b) => a.id.localeCompare(b.id))
+      );
+    globalThis.zonesBefore = globalThis.zoneSnapshot(data.catalog.locations);
+    const description = document.querySelector('.species-manager [name="description"]');
+    description.value = 'Overview smoke edit';
+    description.dispatchEvent(new Event('input', { bubbles: true }));
+    if (!document.querySelector('[data-tab="traits"]').disabled)
+      throw new Error('Tab switch could lose overview edits');
+    document.querySelector('#definition-form').requestSubmit();
+  });
+  await wait(
+    () => !!document.querySelector('[data-tab="traits"]') && !document.querySelector('[data-tab="traits"]').disabled
+  );
+  await run(async () => {
+    const data = await (await fetch('/api/state')).json();
+    if (globalThis.zoneSnapshot(data.catalog.locations) !== globalThis.zonesBefore)
+      throw new Error('Overview save changed zone assignments');
+    if (document.querySelector('.species-manager [name="description"]').value !== 'Overview smoke edit')
+      throw new Error('Overview save failed');
+    document.querySelector('[data-action="species-tab"][data-tab="traits"]').click();
+    scrollTo(0, 0);
+  });
   window.setSize(700, 1000);
   await wait(() => document.querySelector('#sidebar').getBoundingClientRect().right <= 1);
   if (await run(() => document.documentElement.scrollWidth > innerWidth)) throw new Error('Narrow viewport overflows');
-  await writeFile(join(output, 'traits-narrow.png'), (await window.webContents.capturePage()).toPNG());
+  await capture('traits-narrow.png');
   if (errors.length) throw new Error(errors.join('\n'));
   window.destroy();
   await backend.closeGameServer();

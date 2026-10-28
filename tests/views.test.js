@@ -456,7 +456,8 @@ test('Horse Definitions dashboard exposes five managers and the spawning configu
   assert.match(species, /<option value="0"[^>]*>Cosmic<\/option>/);
   assert.match(species, /Description \(optional\)/);
   assert.doesNotMatch(species, /Base Attributes|>System ID|Description & notes|1: Ultra Rare/);
-  assert.match(species, /name="speciesZones"/);
+  assert.doesNotMatch(species, /name="speciesZones"/);
+  assert.match(species, /data-action="species-tab"/);
   const palettes = libraryEditorPage('palettes', catalog, state);
   assert.match(palettes, /name="assetSkins"/);
   assert.match(palettes, /name="speciesIds"/);
@@ -497,12 +498,15 @@ test('Eye Color Manager lists cards with colors and modal edit actions', () => {
   assert.doesNotMatch(html, /library-workbench/);
 });
 
-test('Traits has a separate species-linked editor outside Species settings', () => {
+test('Traits editor embeds within the Species manager', () => {
   const html = traitsEditorPage(catalog);
   assert.match(html, /<h1>Traits<\/h1>/);
   assert.match(html, /id="traits-species"/);
   assert.match(html, /id="traits-form"/);
-  assert.doesNotMatch(libraryEditorPage('species', catalog, state), /id="trait-rows"/);
+  const manager = libraryEditorPage('species', catalog, state);
+  assert.match(manager, /data-tab="traits"/);
+  assert.match(manager, /data-tab="spawning"/);
+  assert.doesNotMatch(sidebar('dev/species', state, new Set(), catalog), /href="#dev\/traits"/);
 });
 
 test('Eye card search combines name hex and rarity with alphabetical sorting', () => {

@@ -21,17 +21,22 @@ export function traitRow(category = '', values = []) {
   </details>`);
 }
 
-export function traitsEditorPage(catalog, selectedId, supplied = false) {
+export function traitsEditorPage(catalog, selectedId, supplied = false, embedded = false) {
   const species =
     catalog.species.find(s => s.id === selectedId) ||
     [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0];
   if (!species) return String(html`<h1>Traits</h1><p>Add a species before creating traits.</p>`);
   const traits = (supplied ? speciesTraitData[species.name] : species.traits) || {};
   const count = Object.values(traits).reduce((sum, values) => sum + values.length, 0);
-  return String(html`<h1>Traits</h1>
+  return String(html`${
+    embedded
+      ? ''
+      : html`<h1>Traits</h1>
     <p>Manage each species' appearance library. Saved horses keep their traits; new horses use your saved lists.</p>
     <div class="trait-toolbar"><label class="zone-field">Species<select id="traits-species">${[...catalog.species].sort((a, b) => a.name.localeCompare(b.name)).map(s => html`<option value="${s.id}" ${s.id === species.id ? html`selected` : ''}>${s.name}</option>`)}</select></label>
-    <label class="zone-field">Find a category or trait<input id="trait-search" type="search" placeholder="Search this species…"></label></div>
+    </div>`
+  }
+    <label class="zone-field">Find a category or trait<input id="trait-search" type="search" placeholder="Search this species…"></label>
     <form id="traits-form" class="panel" data-id="${species.id}"><h2>${species.name} Traits</h2>
     <p><span data-traits-total>${count}</span> traits · <span data-categories-total>${Object.keys(traits).length}</span> categories. Each entry belongs only to ${species.name}.</p>
     <p>Add, rename, or delete traits by editing the lines in a category. Save or cancel before switching species. Up to 100 traits per category.</p>
