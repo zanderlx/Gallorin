@@ -66,6 +66,19 @@ const deadline = setTimeout(() => {
       throw new Error('Sorting changed the selected species');
     sort.value = 'name';
     sort.dispatchEvent(new Event('change', { bubbles: true }));
+    const list = document.querySelector('.species-manager .definition-list');
+    list.scrollTop = 360;
+    const scroll = list.scrollTop;
+    if (scroll <= 0) throw new Error('Species list did not scroll');
+    list.children[6].click();
+    if (Math.abs(document.querySelector('.species-manager .definition-list').scrollTop - scroll) > 1)
+      throw new Error('Species selection reset list scrolling');
+    [...document.querySelectorAll('.species-manager .definition-list-item')]
+      .find(row => row.dataset.id === selected)
+      .click();
+    if (Math.abs(document.querySelector('.species-manager .definition-list').scrollTop - scroll) > 1)
+      throw new Error('Repeated species selection reset list scrolling');
+    document.querySelector('.species-manager .definition-list').scrollTop = 0;
     document.querySelector('[data-action="species-tab"][data-tab="traits"]').click();
   });
   await wait(() => !!document.querySelector('#traits-form'));

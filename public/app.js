@@ -458,6 +458,7 @@ function showDefinition(kind, draft) {
   $('#definition-form input[name="name"]')?.focus({ preventScroll: true });
 }
 function showSpecies(draft, tab = speciesTab) {
+  const listScroll = main.querySelector('.species-manager .definition-list')?.scrollTop ?? 0;
   selectedSpeciesId = draft?.id;
   speciesTab = tab;
   setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, speciesSort)));
@@ -465,6 +466,7 @@ function showSpecies(draft, tab = speciesTab) {
   trackForms(main);
   if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
   syncSpeciesControls(main);
+  main.querySelector('.species-manager .definition-list').scrollTop = listScroll;
 }
 function inspect(id) {
   const horse = findHorse(id);
