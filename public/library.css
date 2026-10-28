@@ -270,18 +270,22 @@
 .trait-toolbar .zone-field {
   flex: 1 1 240px;
 }
+#traits-form {
+  container-type: inline-size;
+  container-name: traits;
+}
 .trait-category-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
   align-items: start;
 }
-@media (max-width: 760px) {
+@container traits (max-width: 760px) {
   .trait-category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 520px) {
+@container traits (max-width: 520px) {
   .trait-category-grid {
     grid-template-columns: minmax(0, 1fr);
   }
