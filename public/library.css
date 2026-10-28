@@ -61,9 +61,13 @@
   position: sticky;
   top: 95px;
   align-self: start;
+  padding-right: 0;
 }
 .species-list-column .definition-list {
   margin-top: 0;
+  padding-right: 12px;
+  scrollbar-width: auto;
+  scrollbar-color: auto;
 }
 .species-list-controls {
   grid-row: 1;
