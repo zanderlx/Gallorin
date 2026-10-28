@@ -13,8 +13,8 @@ export const traitNames = value => [
 export function traitRow(category = '', values = []) {
   return String(html`<details class="trait-editor-row trait-category-card" open>
     <summary><strong data-category-title>${category || 'New category'}</strong> <span data-trait-count>${values.length} traits</span><span class="icon-button personality-toggle trait-category-toggle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span></summary>
-    ${category ? html`<input type="hidden" data-trait-category value="${category}">` : html`<label class="zone-field">Category name<input data-trait-category maxlength="60" required></label>`}
-    <label class="zone-field"><textarea data-trait-values aria-label="${category || 'New category'} traits" rows="8" placeholder="Add a line to create a trait; edit to rename; remove a line to delete.">${values.join('\n')}</textarea></label>
+    ${category ? html`<input type="hidden" data-trait-category value="${category}">` : html`<label class="zone-field">Category name<input data-trait-category maxlength="60" spellcheck="false" required></label>`}
+    <label class="zone-field"><textarea data-trait-values spellcheck="false" aria-label="${category || 'New category'} traits" rows="8" placeholder="Add a line to create a trait; edit to rename; remove a line to delete.">${values.join('\n')}</textarea></label>
   </details>`);
 }
 
