@@ -11,7 +11,7 @@ body.has-music-player {
   z-index: 45;
   min-height: 100px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 1.2fr) minmax(180px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 1.2fr) minmax(0, 1fr);
   align-items: center;
   gap: 24px;
   padding: 12px 24px;
@@ -247,7 +247,7 @@ body.has-music-player {
 }
 @media (max-width: 850px) {
   .music-player {
-    grid-template-columns: minmax(0, 1fr) minmax(180px, 1.2fr) 180px;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 1.2fr) minmax(0, 1fr);
     gap: 12px;
     padding: 10px 16px;
   }
