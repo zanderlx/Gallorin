@@ -309,8 +309,11 @@
   transform: rotate(180deg);
 }
 .trait-category-card textarea {
+  height: 220px;
   min-height: 180px;
-  resize: vertical;
+  max-height: 220px;
+  resize: none;
+  overflow-y: auto;
 }
 .trait-category-card[hidden] {
   display: none;
