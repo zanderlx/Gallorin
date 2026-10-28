@@ -340,6 +340,7 @@
   min-height: 180px;
   max-height: 220px;
   resize: none;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .trait-category-card[hidden] {
