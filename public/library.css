@@ -276,7 +276,7 @@
 }
 .trait-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: 8px 12px;
 }
