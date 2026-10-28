@@ -75,7 +75,8 @@ let state,
 let stableGridColumns = 5;
 let selectedSpeciesId,
   speciesTab = 'overview',
-  speciesSort = 'rarity';
+  speciesSort = 'rarity',
+  speciesSortDirection = 'asc';
 let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;
@@ -294,7 +295,8 @@ function pageContent(pageRoute, pageState = state) {
       state,
       catalog.species.find(s => s.id === selectedSpeciesId),
       speciesTab,
-      speciesSort
+      speciesSort,
+      speciesSortDirection
     );
   else if (section === 'dev' && Object.hasOwn(editorRoutes, page))
     return libraryEditorPage(editorRoutes[page], catalog, state);
@@ -466,7 +468,7 @@ function showSpecies(draft, tab = speciesTab) {
   const listScroll = main.querySelector('.species-manager .definition-list')?.scrollTop ?? 0;
   selectedSpeciesId = draft?.id;
   speciesTab = tab;
-  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, speciesSort)));
+  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, speciesSort, speciesSortDirection)));
   copyEditor.attach(main);
   trackForms(main);
   if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
@@ -559,6 +561,12 @@ document.addEventListener('click', async event => {
   const button = event.target.closest('[data-action]');
   if (!button || busy) return;
   const { action: intent, id } = button.dataset;
+  if (intent === 'species-sort-direction') {
+    speciesSortDirection = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+    button.dataset.direction = speciesSortDirection;
+    updateSpeciesSort(main);
+    return;
+  }
   if (intent === 'species-tab') {
     const species = catalog.species.find(s => s.id === main.querySelector('.species-manager').dataset.speciesId);
     showSpecies(species, button.dataset.tab);

@@ -132,6 +132,14 @@ test('species list shows rarity with trait counts and sorts by rarity then name 
     ['akhal', 'common', 'cosmic', 'rare', 'ultra', 'zebra']
   );
   assert.deepEqual(entries, before);
+  assert.deepEqual(
+    sortSpeciesEntries(entries, 'rarity', 'desc').map(s => s.id),
+    ['cosmic', 'ultra', 'rare', 'zebra', 'akhal', 'common']
+  );
+  assert.deepEqual(
+    sortSpeciesEntries(entries, 'name', 'desc').map(s => s.id),
+    ['zebra', 'ultra', 'rare', 'cosmic', 'common', 'akhal']
+  );
   const page = speciesManagerPage({ ...catalog, species: entries }, {}, entries[0], 'overview', 'rarity');
   assert.match(page, /<span class="species-rarity"[^>]*>Cosmic<\/span> · 1 traits<\/small>/);
   assert.match(page, /value="rarity" selected/);
@@ -175,7 +183,10 @@ test('sorting reorders existing rows while preserving filtered rows and selectio
   ];
   const appended = [];
   const list = { children: rows, append: element => appended.push(element) };
-  updateSpeciesSort({ querySelector: key => (key === '#species-sort' ? { value: 'rarity' } : list) });
+  updateSpeciesSort({
+    querySelector: key =>
+      key === '#species-sort' ? { value: 'rarity' } : key.includes('species-sort-direction') ? null : list
+  });
   assert.deepEqual(appended, [rows[1], rows[0]]);
   assert.equal(appended[0].selected, true);
   assert.equal(appended[1].hidden, true);

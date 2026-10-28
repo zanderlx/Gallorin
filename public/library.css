@@ -73,7 +73,7 @@
   grid-row: 1;
   display: flex;
   align-items: flex-end;
-  gap: 16px;
+  gap: 10px;
 }
 .species-list-controls .zone-field {
   margin: 0;
@@ -86,6 +86,12 @@
   flex: 0 0 110px;
   width: 110px;
   max-width: 100%;
+}
+.species-sort-direction {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
 }
 .species-list-controls :is(input, select) {
   height: 48px;
