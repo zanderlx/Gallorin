@@ -283,3 +283,107 @@ main {
   width: 85px;
   display: block;
 }
+
+/* Zones follows the compendium managers, with a separate live preview. */
+.zone-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 20px;
+}
+.zone-card-summary {
+  padding: 24px 24px 0;
+}
+.zone-card-summary h2 {
+  font-size: 24px;
+  margin: 0 0 12px;
+}
+.zone-card-summary p {
+  margin: 12px 0 0;
+}
+.zones-manager .zone-card-actions,
+.zone-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.zones-manager .zone-card-actions {
+  padding: 20px 24px 24px;
+}
+.zone-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+.zone-workbench > * {
+  min-width: 0;
+}
+.zone-workbench > aside {
+  position: sticky;
+  top: 100px;
+}
+.zone-section-heading h2 {
+  margin: 0;
+}
+.zone-editor-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.zone-editor-section h3 {
+  margin: 0 0 16px;
+}
+.zone-editor-section .zone-field {
+  margin: 16px 0;
+}
+.zone-editor-section textarea,
+.zone-atmospheres textarea {
+  min-height: 72px;
+}
+.zone-spawn-list {
+  display: grid;
+  gap: 8px;
+  max-height: 480px;
+  overflow: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+}
+.zone-spawn-list .zone-creature-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px 72px;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.zone-spawn-list input[type='number'] {
+  width: 100%;
+}
+.zone-spawn-list output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+.zone-atmospheres {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.zone-atmospheres > .zone-section-heading {
+  margin-bottom: 20px;
+}
+@media (max-width: 1000px) {
+  .zone-workbench {
+    grid-template-columns: 1fr;
+  }
+  .zone-workbench > aside {
+    position: static;
+  }
+}
+@media (max-width: 480px) {
+  .zone-spawn-list .zone-creature-row {
+    grid-template-columns: minmax(0, 1fr) 80px 60px;
+    gap: 8px;
+  }
+}

@@ -141,7 +141,6 @@ groups.push(
       ['dev/mutations', 'Mutations'],
       ['dev/rarities', 'Rarities'],
       ['dev/locations', 'Zones'],
-      ['dev/atmospheres', 'Zone Atmospheres'],
       ['dev/items', 'Items & Potions'],
       ['dev/themes', 'Item Themes']
     ]

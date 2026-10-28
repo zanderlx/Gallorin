@@ -53,7 +53,7 @@ import { bindProfileTabs, selectProfileTab } from './profile-layout.js';
 import { bindHorseArtViewer } from './horse-art-viewer.js';
 import { displayBirthday, horseAcquisitionDate } from './dates.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from './zones.js';
-import { zoneEditorPage, zonePreview } from './zone-editor.js';
+import { zoneEditorPage, zoneAtmosphereManager, syncZoneEditor } from './zone-editor.js';
 import { draftDefinition, validateDefinition } from './definitions.js';
 import {
   editorRoutes,
@@ -284,7 +284,7 @@ function pageContent(pageRoute, pageState = state) {
   else if (route === 'dev/profile') return keeperPage(state);
   else if (route === 'dev/horse-updates') return horseUpdatesPage(state, catalog);
   else if (route === 'dev/edit-mode') return editModePage(state);
-  else if (route === 'dev/locations') return zoneEditorPage(catalog, state);
+  else if (route === 'dev/locations' || route === 'dev/atmospheres') return zoneEditorPage(catalog, state);
   else if (section === 'dev' && page === 'rarities') return raritiesManagerPage(catalog);
   else if (section === 'dev' && page === 'eyes') return eyesManagerPage(catalog);
   else if (section === 'dev' && page === 'colors') return palettesManagerPage(catalog);
@@ -409,7 +409,6 @@ function readZoneForm(form) {
       .map(tag => tag.trim())
       .filter(Boolean),
     enabled: form.elements.enabled.checked,
-    event: form.elements.event.checked,
     speciesPool: values.getAll('speciesPool'),
     palettePool: values.getAll('palettePool')
   };
@@ -424,6 +423,16 @@ function showZoneDraft(draft) {
   $('#zone-form').scrollIntoView({ block: 'start' });
 }
 function showDefinition(kind, draft) {
+  if (kind === 'atmospheres' && $('#zone-atmospheres')) {
+    setHTML($('#zone-atmospheres'), zoneAtmosphereManager(catalog, draft));
+    const select = $('#zone-form select[name="atmosphere"]');
+    const selected = select.value;
+    select.replaceChildren(...catalog.atmospheres.map(a => new Option(a.name, a.id, false, a.id === selected)));
+    syncZoneEditor($('#zone-form'), catalog, readZoneForm($('#zone-form')));
+    trackForms($('#zone-atmospheres'));
+    $('#definition-form input[name="name"]').focus({ preventScroll: true });
+    return;
+  }
   if (kind === 'species') {
     showSpecies(draft, draft.id ? speciesTab : 'overview');
     return;
@@ -1068,8 +1077,8 @@ document.addEventListener('submit', async event => {
       const saved = state.customLocations.find(l => l.id === draft.id || l.name === draft.name.trim());
       showZoneDraft(saved);
       $('#zone-status').textContent = saved.enabled
-        ? 'Saved! Your zone is now in the Wilds navigation and the atlas below.'
-        : 'Saved as a closed zone. Enable exploration whenever you are ready.';
+        ? 'Zone saved. Visible in Wilds navigation.'
+        : 'Zone saved. Hidden from Wilds navigation.';
     } else if (form.id === 'settings-form') {
       await action('settings', {
         searchCooldownEnabled: form.elements.searchCooldownEnabled.checked,
@@ -1125,9 +1134,7 @@ document.addEventListener('input', event => {
     }
     $('#definition-no-results').hidden = matches > 0;
   }
-  if (event.target.closest('#zone-form'))
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    $('#zone-preview').innerHTML = zonePreview(readZoneForm($('#zone-form')), catalog);
+  if (event.target.closest('#zone-form')) syncZoneEditor($('#zone-form'), catalog, readZoneForm($('#zone-form')));
   if (event.target.id === 'horse-search') updateStableSort();
   if (event.target.id === 'palette-search') updatePaletteGrid(main, catalog);
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);

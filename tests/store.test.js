@@ -443,7 +443,7 @@ test('invalid, empty, duplicate and unknown zone edits are rejected without savi
   for (const patch of [
     { name: '' },
     { name: 'x'.repeat(61) },
-    { description: '' },
+    { description: 'x'.repeat(601) },
     { atmosphere: 'unknown' },
     { speciesPool: [] },
     { speciesPool: ['Unknown horse'] },
@@ -706,4 +706,28 @@ test('profile unlock removes the secret without changing surrounding text or par
     await store.action('save-profile', { name: 'Keeper', avatarSeed: 11, about });
     assert.equal(store.state.keeper.about, expected);
   }
+});
+
+test('zone editor saves optional descriptions and weighted pools through restart and deletion', async t => {
+  const { directory, store } = await fixture(t);
+  const species = store.getCatalog().species.slice(0, 2);
+  const creatures = species.map((s, i) => ({ speciesId: s.id, weight: i ? 75 : 25 }));
+  await store.action('save-zone', {
+    ...newZoneDraft(),
+    name: 'Weighted zone',
+    description: '',
+    speciesPool: species.map(s => s.name),
+    creatures
+  });
+  const zone = store.state.customLocations[0];
+  assert.equal(zone.event, null);
+  assert.equal(zone.description, '');
+  assert.deepEqual(zone.creatures, creatures);
+  await store.action('save-zone', { ...zone, creatures: creatures.map(c => ({ ...c, weight: 0 })), enabled: false });
+  const restored = await new GameStore(directory, catalog, defaults).init();
+  const saved = locationsFor(restored.getCatalog(), restored.state).find(l => l.id === zone.id);
+  assert.equal(saved.enabled, false);
+  assert.ok(saved.creatures.every(c => c.weight === 0));
+  await restored.action('delete-zone', { id: zone.id });
+  assert.ok(!locationsFor(restored.getCatalog(), restored.state).some(l => l.id === zone.id));
 });

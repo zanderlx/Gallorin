@@ -57,7 +57,7 @@ export function validateZone(input, catalog) {
   };
   const name = text('name', 60),
     subtitle = input.subtitle === undefined ? '' : text('subtitle', 100, false),
-    description = text('description', 600);
+    description = text('description', 600, false);
   if (!availableAtmospheres(catalog).some(a => a.id === input.atmosphere))
     throw new Error('Choose an available atmosphere.');
   if (typeof input.enabled !== 'boolean') throw new Error('Choose whether the zone is enabled.');

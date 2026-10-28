@@ -94,7 +94,7 @@ test('zone tags render as safe text without icons and can be removed', () => {
   assert.match(editor, /name="tags"/);
   assert.doesNotMatch(editor, /ORIGINAL REALM|YOUR CREATION|YOUR NEXT ADVENTURE|Randomize fills in a draft/);
   assert.doesNotMatch(editor, /name="subtitle"|Short tagline|Open for exploration/);
-  assert.match(editor, /name="event"/);
+  assert.doesNotMatch(editor, /name="event"/);
   assert.match(editor, /<span>Show this zone in the Wilds navigation\.<\/span>/);
   assert.match(editor, /class="icon-button zone-delete" data-action="delete-zone"[^>]*aria-label="Delete /);
   assert.match(editor, />My Zones<\/h1>/);
