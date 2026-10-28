@@ -188,10 +188,6 @@ main {
   display: flex;
   align-items: center;
 }
-.zone-card-actions .zone-delete {
-  margin-left: auto;
-}
-
 .zone-preview {
   align-items: flex-start;
 }
@@ -475,26 +471,6 @@ main {
 .zone-card-open:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: -4px;
-}
-.zones-manager .zone-card > .zone-delete {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  margin: 0;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #ffffff40;
-  border-radius: 6px;
-  color: #fff1d5;
-  background: #17140fbd;
-}
-.zones-manager .zone-card > .zone-delete:hover {
-  background: var(--burgundy);
-  border-color: var(--gold);
-}
-.zones-manager .zone-card .hero-content h2 {
-  padding-right: 42px;
 }
 @media (prefers-reduced-motion: reduce) {
   .zones-manager .zone-card {
