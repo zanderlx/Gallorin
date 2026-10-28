@@ -71,12 +71,15 @@ const deadline = setTimeout(() => {
       const search = document.querySelector('#definition-search').getBoundingClientRect();
       const sort = document.querySelector('#species-sort').getBoundingClientRect();
       const tab = document.querySelector('#species-tab-overview').getBoundingClientRect();
+      const name = document.querySelector('.species-detail-heading h2').getBoundingClientRect();
       const list = document.querySelector('.species-manager .library-list-panel').getBoundingClientRect();
       const details = document.querySelector('.species-manager #species-tab-panel').getBoundingClientRect();
       if (sort.left < search.right) throw new Error('Sort By is not right of Find A Species');
       if (Math.abs(search.top - sort.top) > 1 || Math.abs(sort.top - tab.top) > 1)
         throw new Error('Search, sort and species tabs are not aligned');
       if (Math.abs(list.top - details.top) > 1) throw new Error('Species list and details panels are not aligned');
+      if (name.right > tab.left || Math.abs(name.top + name.height / 2 - (tab.top + tab.height / 2)) > 1)
+        throw new Error('Species name is not left of the tabs on the same row');
     });
     await finish('Species control layout check');
     return;
