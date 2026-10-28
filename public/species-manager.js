@@ -81,11 +81,10 @@ function overviewForm(species) {
   </form>`;
 }
 
-export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort = 'name') {
+export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort = 'rarity') {
   const appearance = raritySettings(catalog);
   const rarityColor = entry => appearance.colors[rarityName(entry).toLowerCase().replaceAll(' ', '-')] || 'var(--text)';
-  const species =
-    draft || [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0] || draftDefinition('species');
+  const species = draft || sortSpeciesEntries(catalog.species, sort)[0] || draftDefinition('species');
   if (!species.id || !['overview', 'traits', 'zones'].includes(tab)) tab = 'overview';
   return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
     <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field">Find A Species<input id="definition-search" type="search" placeholder="Search species…"></label>

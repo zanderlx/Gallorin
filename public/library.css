@@ -268,10 +268,21 @@
   background: var(--panel-deep);
 }
 .trait-section-heading {
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 20px;
+}
+.trait-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.trait-title-row p {
+  margin: 0;
+  white-space: nowrap;
 }
 .trait-category-card .zone-field {
   margin: 16px 0 0;

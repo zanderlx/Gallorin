@@ -70,7 +70,7 @@ let state,
 let stableGridColumns = 5;
 let selectedSpeciesId,
   speciesTab = 'overview',
-  speciesSort = 'name';
+  speciesSort = 'rarity';
 let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;

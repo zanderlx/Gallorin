@@ -54,6 +54,8 @@ test('manager handles empty catalogs, escapes content and has no manual default 
   assert.match(saved, /type="hidden" data-trait-category value="Mane"/);
   assert.doesNotMatch(saved, /remove-trait-category|Remove category and its traits/);
   assert.match(traitsEditorPage(local), /<p><span data-traits-total>1<\/span> traits<\/p>/);
+  assert.match(traitsEditorPage(local), /class="trait-title-row"><h2>Horse Traits<\/h2>/);
+  assert.match(traitsEditorPage(local), />Add Category<\/button>/);
   assert.doesNotMatch(saved, />Category(?: name)?</);
   assert.match(traitRow(), />Category name<input data-trait-category/);
   const page = traitsEditorPage(local);

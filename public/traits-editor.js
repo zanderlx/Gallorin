@@ -33,8 +33,8 @@ export function traitsEditorPage(catalog, selectedId, embedded = false) {
     <div class="trait-toolbar"><label class="zone-field">Species<select id="traits-species">${[...catalog.species].sort((a, b) => a.name.localeCompare(b.name)).map(s => html`<option value="${s.id}" ${s.id === species.id ? html`selected` : ''}>${s.name}</option>`)}</select></label>
     </div>`
   }
-    <form id="traits-form" class="panel" data-id="${species.id}"><div class="panel-heading trait-section-heading"><div><h2>${species.name} Traits</h2>
-    <p><span data-traits-total>${count}</span> traits</p></div><button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button></div>
+    <form id="traits-form" class="panel" data-id="${species.id}"><div class="panel-heading trait-section-heading"><div class="trait-title-row"><h2>${species.name} Traits</h2>
+    <p><span data-traits-total>${count}</span> traits</p></div><button class="button secondary" type="button" data-action="add-trait-category">Add Category</button></div>
     <div id="trait-rows" class="trait-category-grid">${Object.entries(traits).map(([key, values]) => raw(traitRow(key, values)))}</div>
     <div class="form-actions"><button class="button primary" type="submit">Save Traits</button><button class="button secondary" type="reset">Cancel Changes</button></div></form>`);
 }

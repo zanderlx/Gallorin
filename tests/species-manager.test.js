@@ -31,6 +31,7 @@ const catalog = {
 test('Species provides overview, traits and read-only spawning under one selected species', () => {
   const overview = speciesManagerPage(catalog, {});
   assert.match(overview, /id="definition-form"/);
+  assert.match(overview, /value="rarity" selected/);
   assert.doesNotMatch(overview, /name="speciesZones"|id="traits-species"/);
   assert.match(overview, /data-tab="traits"/);
   assert.match(overview, /data-tab="zones"[^>]*>Zones</);
