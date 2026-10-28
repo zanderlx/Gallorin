@@ -1,12 +1,16 @@
 // Run with: node_modules/.bin/electron scripts/check-traits.cjs
+// For a scroll-only regression check, append --scroll-only (no CRUD, zones, or screenshots).
 // All saves and Chromium storage live in a fresh temporary directory.
 const { app, BrowserWindow } = require('electron');
 const { mkdtemp, mkdir, writeFile } = require('node:fs/promises');
 const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const { pathToFileURL } = require('node:url');
+const scrollOnly = process.argv.includes('--scroll-only');
+const started = performance.now();
 
 app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('mute-audio');
 app.on('window-all-closed', () => {});
 const deadline = setTimeout(() => {
   console.error('Traits smoke timed out');
@@ -35,6 +39,8 @@ const deadline = setTimeout(() => {
     height: 1100,
     webPreferences: { contextIsolation: true, nodeIntegration: false, backgroundThrottling: false }
   });
+  window.webContents.setAudioMuted(true);
+  if (!window.webContents.isAudioMuted()) throw new Error('UI checks must remain muted');
   const errors = [];
   window.webContents.on('console-message', details => {
     if (details.level === 'error') errors.push(details.message);
@@ -48,7 +54,36 @@ const deadline = setTimeout(() => {
     }
     throw new Error('Timed out: ' + fn.toString());
   };
+  const finish = async label => {
+    if (errors.length) throw new Error(errors.join('\n'));
+    window.destroy();
+    await backend.closeGameServer();
+    clearTimeout(deadline);
+    console.log(
+      `${label} passed in ${((performance.now() - started) / 1000).toFixed(2)}s (muted). Isolated data: ${directory}`
+    );
+    app.exit(0);
+  };
   await wait(() => !!document.querySelector('.species-manager'));
+  if (scrollOnly) {
+    await run(() => {
+      const list = document.querySelector('.species-manager .definition-list');
+      const selected = document.querySelector('.species-manager').dataset.speciesId;
+      list.scrollTop = 360;
+      const scroll = list.scrollTop;
+      if (scroll <= 0) throw new Error('Species list did not scroll');
+      list.children[6].click();
+      if (Math.abs(document.querySelector('.species-manager .definition-list').scrollTop - scroll) > 1)
+        throw new Error('Species selection reset list scrolling');
+      [...document.querySelectorAll('.species-manager .definition-list-item')]
+        .find(row => row.dataset.id === selected)
+        .click();
+      if (Math.abs(document.querySelector('.species-manager .definition-list').scrollTop - scroll) > 1)
+        throw new Error('Repeated species selection reset list scrolling');
+    });
+    await finish('Species scroll check');
+    return;
+  }
   await run(() => {
     if (location.hash !== '#dev/species') throw new Error('Legacy traits route did not redirect');
     if (document.querySelector('#sidebar a[href="#dev/traits"]'))
@@ -209,12 +244,7 @@ const deadline = setTimeout(() => {
   await wait(() => document.querySelector('#sidebar').getBoundingClientRect().right <= 1);
   if (await run(() => document.documentElement.scrollWidth > innerWidth)) throw new Error('Narrow viewport overflows');
   await capture('traits-narrow.png');
-  if (errors.length) throw new Error(errors.join('\n'));
-  window.destroy();
-  await backend.closeGameServer();
-  clearTimeout(deadline);
-  console.log('Traits UI smoke passed. Isolated data: ' + directory);
-  app.exit(0);
+  await finish('Traits UI smoke');
 })().catch(error => {
   console.error(error);
   app.exit(1);
