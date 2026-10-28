@@ -19,7 +19,7 @@ export async function smokePlayerLayout(main, directory) {
     main.setSize(...size);
   }
 }
-async function verifyCompact(narrow) {
+async function verifyCompact() {
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const bar = document.querySelector('.music-player'),
     toggle = bar.querySelector('[data-player-collapse]');
@@ -29,16 +29,22 @@ async function verifyCompact(narrow) {
   }
   const expanded = bar.getBoundingClientRect().height,
     before = await window.gallorinMusic.state();
+  const now = bar.querySelector('.music-now').getBoundingClientRect(),
+    transport = bar.querySelector('.music-transport').getBoundingClientRect(),
+    volume = bar.querySelector('.music-volume').getBoundingClientRect();
+  if (now.right > transport.left || transport.right > volume.left || volume.right > innerWidth)
+    throw Error('Expanded player sections overlap or overflow');
+  if (volume.top >= transport.bottom || volume.bottom <= transport.top)
+    throw Error('Volume wrapped below playback controls');
   toggle.click();
   await wait(90);
   const intermediate = bar.getBoundingClientRect().height,
     reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!reduced && !(intermediate < expanded && intermediate > (narrow ? 88 : 56)))
-    throw Error('Player did not animate its height');
+  if (!reduced && !(intermediate < expanded && intermediate > 56)) throw Error('Player did not animate its height');
   await wait(340);
   const after = await window.gallorinMusic.state(),
     box = bar.getBoundingClientRect();
-  if (Math.abs(box.height - (narrow ? 88 : 56)) > 1) throw Error('Compact player height incorrect');
+  if (Math.abs(box.height - 56) > 1) throw Error('Compact player height incorrect');
   if (
     before.track?.id !== after.track?.id ||
     before.playing !== after.playing ||
