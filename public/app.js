@@ -27,11 +27,11 @@ import {
   updateMutationGrid,
   toggleMutations
 } from './mutations-manager.js';
-import { traitsEditorPage, readTraitsForm } from './traits-editor.js';
+import { traitsEditorPage, readTraitsForm, traitRow, filterTraitRows } from './traits-editor.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
-import { icon, sidebar, navigationSection, escapeHTML as e, number } from './ui.js';
+import { icon, sidebar, navigationSection, escapeHTML as e, number, setHTML, appendHTML, raw } from './ui.js';
 import {
   wildPage,
   stablePage,
@@ -53,7 +53,6 @@ import {
   editorRoutes,
   libraryEditorPage,
   readDefinitionForm,
-  traitRow,
   colorControl,
   applyWebsiteTheme
 } from './library-editor.js';
@@ -709,15 +708,26 @@ document.addEventListener('click', async event => {
     return showDefinition(kind, copy);
   }
   if (intent === 'add-trait-category') {
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    $('#trait-rows').insertAdjacentHTML('beforeend', traitRow());
+    $('#trait-search').value = '';
+    appendHTML($('#trait-rows'), raw(traitRow()));
+    filterTraitRows(main);
     $('#trait-rows').lastElementChild.querySelector('input').focus();
     updateFormState($('#traits-form') || $('#definition-form'));
     return;
   }
   if (intent === 'remove-trait-category') {
     button.closest('.trait-editor-row').remove();
+    filterTraitRows(main);
     updateFormState($('#traits-form') || $('#definition-form'));
+    return;
+  }
+  if (intent === 'load-supplied-traits') {
+    const form = $('#traits-form');
+    const baseline = formBaseline(form);
+    setHTML(main, raw(traitsEditorPage(catalog, form.dataset.id, true)));
+    trackForms(main);
+    restoreBaseline($('#traits-form'), baseline);
+    filterTraitRows(main);
     return;
   }
   if (intent === 'add-eye-color') {
@@ -1039,6 +1049,7 @@ document.addEventListener('submit', async event => {
   }
 });
 document.addEventListener('input', event => {
+  if (event.target.id === 'trait-search' || event.target.closest('#trait-rows')) filterTraitRows(main);
   if (event.target.id === 'horse-grid-size') {
     const count = Number(event.target.value);
     if ([3, 4, 5, 6].includes(count)) {

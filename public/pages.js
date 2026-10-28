@@ -65,10 +65,7 @@ export function collectionCards(
 export const settingsPage = gameSettingsPage;
 export function libraryPage(kind, catalog) {
   const options = {
-    species: [
-      'Species & traits',
-      '46 species are preserved from your source. Only Ghoulsteed has a supplied species-specific trait list.'
-    ],
+    species: ['Species & traits', 'Species-specific appearance lists are managed in the Traits section.'],
     colors: [
       'Colors & palettes',
       'Complete palettes are shown below. Incomplete palettes are preserved but excluded from preview encounters.'
@@ -94,7 +91,7 @@ export function libraryPage(kind, catalog) {
         s =>
           `<article class="panel definition-card"><div class="definition-icon">${icon('spark')}</div><h3>${e(s.name)}</h3><p>${e(s.event ? s.event + ' event' : s.restriction || 'Non-event species')}</p><span class="badge ${s.traitsComplete ? 'green' : ''}">${s.traitsComplete ? 'Trait list available' : 'Traits awaiting data'}</span>${
             s.traitsComplete
-              ? `<details><summary>View Ghoulsteed traits</summary>${Object.entries(catalog.traits.Ghoulsteed)
+              ? `<details><summary>View traits</summary>${Object.entries(s.traits || catalog.traits[s.name] || {})
                   .map(([type, traits]) => `<h4>${e(type)}</h4><p>${traits.map(e).join(' · ')}</p>`)
                   .join('')}</details>`
               : ''

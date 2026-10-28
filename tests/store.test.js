@@ -8,6 +8,7 @@ import { newZoneDraft } from '../public/zones.js';
 import { locationsFor } from '../public/zones.js';
 import { horseFieldOptions } from '../public/horse-fields.js';
 import { createHorseDocument, readHorseDocument } from '../public/horse-transfer.js';
+import { horseSalePrice } from '../public/sale-pricing.js';
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const defaults = JSON.parse(await readFile(new URL('../data/defaults/settings.json', import.meta.url), 'utf8'));
@@ -354,8 +355,11 @@ test('settings persist and affect new searches and sales, never existing horses'
   await store.action('search', { locationId: 'aetherion' });
   assert.equal(store.state.encounters.aetherion.length, 5);
   assert.deepEqual(store.state.horses[0], original);
+  const quote = horseSalePrice(original, store.state.settings);
+  assert.equal(quote.basePrice, 420);
+  const goldBefore = store.state.gold;
   await store.action('sell', { id: horse.id });
-  assert.equal(store.state.gold, 495);
+  assert.equal(store.state.gold, goldBefore + quote.total);
   const restarted = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
   assert.equal(restarted.state.settings.horsesPerSearch, 5);
 });

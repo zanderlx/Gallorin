@@ -21,6 +21,14 @@ class SafeHTML {
 }
 /** Marks trusted markup (icons, generated art, other renderers' output) so html`` keeps it as is. */
 export const raw = value => new SafeHTML(String(value ?? ''));
+export function setHTML(target, markup) {
+  if (!(markup instanceof SafeHTML)) throw new Error('Use html or raw for trusted markup.');
+  target.innerHTML = String(markup);
+}
+export function appendHTML(target, markup) {
+  if (!(markup instanceof SafeHTML)) throw new Error('Use html or raw for trusted markup.');
+  target.insertAdjacentHTML('beforeend', String(markup));
+}
 const htmlPart = value =>
   value instanceof SafeHTML ? value.value : Array.isArray(value) ? value.map(htmlPart).join('') : escapeHTML(value);
 /**

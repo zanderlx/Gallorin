@@ -1,33 +1,87 @@
-import { escapeHTML as e } from './ui.js';
-import { traitRow } from './library-editor.js';
+import { html, raw } from './ui.js';
+import { traitCategories } from './definitions.js';
+import { speciesTraitData } from './species-trait-data.js';
+import { formBaseline, formSignature } from './form-state.js';
 
-export function traitsEditorPage(catalog, selectedId) {
+export const traitNames = value => [
+  ...new Set(
+    value
+      .split(/\r?\n/)
+      .map(v => v.trim())
+      .filter(Boolean)
+  )
+];
+
+export function traitRow(category = '', values = []) {
+  return String(html`<details class="trait-editor-row trait-category-card" open>
+    <summary><strong data-category-title>${category || 'New category'}</strong> <span data-trait-count>${values.length} traits</span></summary>
+    <label class="zone-field">Category<input data-trait-category value="${category}" maxlength="60" required ${traitCategories.includes(category) ? html`readonly` : ''}></label>
+    <label class="zone-field">Trait names · one per line<textarea data-trait-values rows="8" placeholder="Add a line to create a trait; edit to rename; remove a line to delete.">${values.join('\n')}</textarea></label>
+    <button class="text-button" type="button" data-action="remove-trait-category">Remove category and its traits</button>
+  </details>`);
+}
+
+export function traitsEditorPage(catalog, selectedId, supplied = false) {
   const species =
     catalog.species.find(s => s.id === selectedId) ||
     [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0];
-  return `<h1>Traits</h1><label class="zone-field">Species<select id="traits-species">${[...catalog.species]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(s => `<option value="${e(s.id)}" ${s.id === species.id ? 'selected' : ''}>${e(s.name)}</option>`)
-    .join('')}</select></label>
-    <form id="traits-form" class="panel" data-id="${e(species.id)}"><h2>${e(species.name)} Traits</h2><div id="trait-rows">${Object.entries(
-      species.traits || {}
-    )
-      .map(([key, values]) => traitRow(key, values))
-      .join(
-        ''
-      )}</div><button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button><div class="form-actions"><button class="button primary" type="submit">Save Settings</button><button class="button secondary" type="reset">Cancel Changes</button></div></form>`;
+  if (!species) return String(html`<h1>Traits</h1><p>Add a species before creating traits.</p>`);
+  const traits = (supplied ? speciesTraitData[species.name] : species.traits) || {};
+  const count = Object.values(traits).reduce((sum, values) => sum + values.length, 0);
+  return String(html`<h1>Traits</h1>
+    <p>Manage each species' appearance library. Saved horses keep their traits; new horses use your saved lists.</p>
+    <div class="trait-toolbar"><label class="zone-field">Species<select id="traits-species">${[...catalog.species].sort((a, b) => a.name.localeCompare(b.name)).map(s => html`<option value="${s.id}" ${s.id === species.id ? html`selected` : ''}>${s.name}</option>`)}</select></label>
+    <label class="zone-field">Find a category or trait<input id="trait-search" type="search" placeholder="Search this species…"></label></div>
+    <form id="traits-form" class="panel" data-id="${species.id}"><h2>${species.name} Traits</h2>
+    <p><span data-traits-total>${count}</span> traits · <span data-categories-total>${Object.keys(traits).length}</span> categories. Each entry belongs only to ${species.name}.</p>
+    <p>Add, rename, or delete traits by editing the lines in a category. Save or cancel before switching species. Up to 100 traits per category.</p>
+    ${supplied ? html`<p role="status">Supplied list loaded for review. Save to apply it.</p>` : ''}
+    <div class="trait-toolbar"><button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button>
+    ${speciesTraitData[species.name] ? html`<button class="button secondary" type="button" data-action="load-supplied-traits">Load supplied list</button>` : ''}</div>
+    <p>Loading the supplied list replaces this species' draft. Nothing changes until you save.</p>
+    <div id="trait-rows" class="trait-category-grid">${Object.entries(traits).map(([key, values]) => raw(traitRow(key, values)))}</div>
+    <p id="trait-no-results" hidden>No matching categories or traits. Try another search.</p>
+    <div class="form-actions"><button class="button primary" type="submit">Save Traits</button><button class="button secondary" type="reset">Cancel Changes</button></div></form>`);
+}
+
+export function filterTraitRows(root) {
+  const query = root.querySelector('#trait-search')?.value.trim().toLowerCase() || '';
+  let visible = 0;
+  let total = 0;
+  let categories = 0;
+  for (const row of root.querySelectorAll('#trait-rows .trait-editor-row')) {
+    const category = row.querySelector('[data-trait-category]').value;
+    const values = traitNames(row.querySelector('[data-trait-values]').value);
+    total += values.length;
+    categories++;
+    row.querySelector('[data-category-title]').textContent = category || 'New category';
+    row.querySelector('[data-trait-count]').textContent = `${values.length} traits`;
+    row.hidden = !`${category}\n${values.join('\n')}`.toLowerCase().includes(query);
+    if (!row.hidden) visible++;
+    if (query && !row.hidden) row.open = true;
+  }
+  const empty = root.querySelector('#trait-no-results');
+  if (empty) empty.hidden = visible > 0;
+  const totalLabel = root.querySelector('[data-traits-total]');
+  const categoryLabel = root.querySelector('[data-categories-total]');
+  if (totalLabel) totalLabel.textContent = String(total);
+  if (categoryLabel) categoryLabel.textContent = String(categories);
+  const form = root.querySelector('#traits-form');
+  const species = root.querySelector('#traits-species');
+  if (form && species && formBaseline(form) !== undefined)
+    species.disabled = formSignature(form) !== formBaseline(form);
 }
 
 export function readTraitsForm(form) {
   const entries = [...form.querySelectorAll('.trait-editor-row')].map(row => [
     row.querySelector('[data-trait-category]').value.trim(),
-    row
-      .querySelector('[data-trait-values]')
-      .value.split(/\r?\n/)
-      .map(v => v.trim())
-      .filter(Boolean)
+    traitNames(row.querySelector('[data-trait-values]').value)
   ]);
-  if (new Set(entries.map(([key]) => key)).size !== entries.length)
+  if (new Set(entries.map(([key]) => key.toLowerCase())).size !== entries.length)
     throw new Error('Each trait category needs a different name.');
+  if (
+    entries.some(([key, values]) => !key || key.length > 60 || values.length > 100 || values.some(v => v.length > 100))
+  )
+    throw new Error('Use a category name and up to 100 trait names of 100 characters or fewer.');
   return { id: form.dataset.id, traits: Object.fromEntries(entries) };
 }

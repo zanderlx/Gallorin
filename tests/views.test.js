@@ -301,7 +301,7 @@ test('horse profile escapes names and preserves source traits and all nine color
   assert.match(html, /Mane/);
   assert.match(html, /Tail/);
   assert.match(html, /Eye Color/);
-  assert.match(html, /Awaiting species data/);
+  for (const values of Object.values(horse.traits)) for (const value of values) assert.ok(html.includes(value));
   for (const region of Object.keys(horse.palette.colors)) assert.ok(html.includes(region));
 });
 test('collection search, sorting and favorites work with complete saved records', () => {

@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { mutatedPalettes } from '../public/mutated-palettes.js';
+import { speciesTraitData } from '../public/species-trait-data.js';
 
 const root = new URL('../', import.meta.url);
 const read = name => readFile(new URL(`docs/references/${name}.md`, root), 'utf8');
@@ -16,7 +17,13 @@ const species = (await read('Species'))
     const name = line.slice(2).split(/ \[| \(/)[0];
     const event = line.match(/\[([^]+?) Event\]/)?.[1] ?? null;
     const restriction = line.match(/\(([^)]+)\)/)?.[1] ?? null;
-    return { id: slug(name), name, event, restriction, traitsComplete: name === 'Ghoulsteed' };
+    return {
+      id: slug(name),
+      name,
+      event,
+      restriction,
+      traitsComplete: !!(speciesTraitData[name]?.Mane?.length && speciesTraitData[name]?.Tail?.length)
+    };
   });
 const personalities = [...(await read('Personalities')).matchAll(/^## (.+)\r?\n([^]+?)(?=\r?\n## |$)/gm)].map(
   ([, name, description]) => ({ name, description: description.trim() })
@@ -78,7 +85,9 @@ const catalog = {
     ...mutatedPalettes
   ],
   eyes,
-  traits: { Ghoulsteed: traits },
+  traits: Object.fromEntries(
+    species.map(s => [s.name, speciesTraitData[s.name] || (s.name === 'Ghoulsteed' ? traits : {})])
+  ),
   mutations,
   themes: await list('Themes'),
   items: await list('Horse Items'),

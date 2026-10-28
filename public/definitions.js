@@ -2,7 +2,7 @@ import { rarityTier, systemID, validateThresholds, defaultSpeciesTiers } from '.
 import { withCosmicEyes, cosmicEyeColors } from './cosmic-types.js';
 import { mutatedPalettes } from './mutated-palettes.js';
 export const regions = ['Coat Top', 'Coat Bottom', 'Hair', 'Hoof', 'Nose', 'Sock', 'Keratin', 'Paint', 'Pattern'];
-export const traitCategories = ['Mane', 'Tail', 'Pattern', 'Paint', 'Cosmetic', 'Keratin', 'Ears', 'Whiskers'];
+export const traitCategories = ['Mane', 'Tail', 'Pattern', 'Paint', 'Cosmetic', 'Keratin', 'Ears', 'Whiskers', 'Wings'];
 export const themeTokens = [
   'bg',
   'panel',
@@ -402,6 +402,8 @@ export function validateDefinition(kind, input) {
         throw new Error('Trait categories need a name and up to 100 trait names of 100 characters or fewer.');
       return [key.trim(), [...new Set(values.map(v => v.trim()))]];
     });
+    if (new Set(entries.map(([key]) => key.toLowerCase())).size !== entries.length)
+      throw new Error('Each trait category needs a different name.');
     result.traits = Object.fromEntries(entries);
     result.traitsComplete = !!(result.traits.Mane?.length && result.traits.Tail?.length);
     result.event = text('event') || null;

@@ -82,6 +82,54 @@
 .trait-editor-row .zone-field input[readonly] {
   color: var(--muted);
 }
+.trait-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.trait-toolbar .zone-field {
+  flex: 1 1 240px;
+}
+.trait-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.trait-category-card {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-deep);
+}
+.trait-category-card summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.trait-category-card summary span {
+  color: var(--muted);
+  margin-left: 8px;
+}
+.trait-category-card textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+.trait-category-card[hidden] {
+  display: none;
+}
+#traits-form .form-actions {
+  position: sticky;
+  bottom: var(--music-player-height, 0px);
+  z-index: 2;
+  background: var(--panel);
+  padding: 12px 0;
+}
+#traits-form .form-actions:has(button[type='submit'][hidden]) {
+  display: none;
+}
 .color-editor-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

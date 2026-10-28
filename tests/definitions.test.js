@@ -131,6 +131,33 @@ async function add(store, kind, values) {
   await store.action('save-definition', { kind, values: { ...draftDefinition(kind), ...values } });
   return store.getCatalog()[kind].at(-1);
 }
+
+test('trait CRUD stays species-scoped, preserves horse snapshots and persists deletions', async t => {
+  const { directory, store } = await fixture(t);
+  const first = store.getCatalog().species[0];
+  const second = store.getCatalog().species[1];
+  const secondBefore = structuredClone(second.traits);
+  await store.action('visit', { locationId: 'aetherion' });
+  const horse = store.state.encounters.aetherion[0];
+  await store.action('catch', { id: horse.id });
+  const horsesBefore = structuredClone(store.state.horses);
+  await store.action('save-traits', { id: first.id, traits: { Mane: ['Braided'], Tail: ['Long'], Paint: ['Spots'] } });
+  await store.action('save-traits', { id: first.id, traits: { Mane: ['Short'], Tail: ['Long'], Paint: [] } });
+  assert.deepEqual(store.getCatalog().species.find(s => s.id === second.id).traits, secondBefore);
+  assert.deepEqual(store.state.horses, horsesBefore);
+  await assert.rejects(store.action('save-traits', { id: 'missing', traits: {} }), /Species not found/);
+  await assert.rejects(
+    store.action('save-traits', { id: first.id, traits: { Paint: [], 'paint ': [] } }),
+    /different name/
+  );
+  const loaded = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === first.id).traits, {
+    Mane: ['Short'],
+    Tail: ['Long'],
+    Paint: []
+  });
+  assert.deepEqual(loaded.state.horses, horsesBefore);
+});
 test('all five Mutated palettes preserve the supplied nine-region colors', () => {
   const expected = {
     Solar: ['#FFDF44', '#FECC32', '#B72908', '#FFFFFF', '#FEECA0', '#FFFAC5', '#FFFFFF', '#FF9E30', '#FF4800'],
