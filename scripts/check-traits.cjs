@@ -96,7 +96,8 @@ const deadline = setTimeout(() => {
       r => r.querySelector('input').value === 'Smoke category'
     );
     if (row.querySelector('textarea').value !== 'Renamed trait') throw new Error('Rename did not persist');
-    row.querySelector('button').click();
+    row.querySelector('textarea').value = '';
+    row.querySelector('textarea').dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('#traits-form').requestSubmit();
   });
   await wait(() => !document.querySelector('.species-tabs [data-tab=overview]').disabled);

@@ -751,13 +751,6 @@ document.addEventListener('click', async event => {
     syncSpeciesControls(main);
     return;
   }
-  if (intent === 'remove-trait-category') {
-    button.closest('.trait-editor-row').remove();
-    filterTraitRows(main);
-    updateFormState($('#traits-form') || $('#definition-form'));
-    syncSpeciesControls(main);
-    return;
-  }
   if (intent === 'add-eye-color') {
     const rows = [...$('#eye-color-rows').children];
     if (rows.length >= 6) return notify('You can combine up to six eye colors.', true);

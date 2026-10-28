@@ -52,6 +52,8 @@ test('manager handles empty catalogs, escapes content and has no manual default 
   assert.deepEqual(species.traits, { Mane: ['My custom mane'] });
   const saved = traitRow('Mane', ['Braided']);
   assert.match(saved, /type="hidden" data-trait-category value="Mane"/);
+  assert.doesNotMatch(saved, /remove-trait-category|Remove category and its traits/);
+  assert.match(traitsEditorPage(local), /<p><span data-traits-total>1<\/span> traits<\/p>/);
   assert.doesNotMatch(saved, />Category(?: name)?</);
   assert.match(traitRow(), />Category name<input data-trait-category/);
 });

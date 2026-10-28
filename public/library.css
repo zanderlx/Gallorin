@@ -175,7 +175,7 @@
 .trait-category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: 18px;
+  gap: 20px;
   align-items: start;
 }
 .trait-category-card {
@@ -185,6 +185,16 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel-deep);
+}
+.trait-section-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.trait-category-card .zone-field {
+  margin: 16px 0 0;
+  gap: 6px;
 }
 .trait-category-card summary {
   display: flex;
