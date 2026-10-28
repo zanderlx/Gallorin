@@ -36,6 +36,10 @@ export const atmosphereFor = (catalog, id) =>
   availableAtmospheres(catalog).find(a => a.id === id) || baseAtmospheres[0];
 export const atmosphereStyle = atmosphere =>
   /^#[\da-f]{6}$/i.test(atmosphere.tint) ? `--zone-tint:${atmosphere.tint}` : '';
+export const zoneAtmosphere = (zone, catalog) => ({
+  ...atmosphereFor(catalog, zone.atmosphere),
+  ...zone.appearance
+});
 export function zoneTags(zone, catalog) {
   return (
     zone.tags ?? [
@@ -69,6 +73,19 @@ export function validateZone(input, catalog) {
   )
     throw new Error('Choose whether the zone is an Event.');
   const event = input.event === true ? 'Event' : input.event || null;
+  let appearance;
+  if (input.appearance !== undefined) {
+    if (
+      !input.appearance ||
+      typeof input.appearance !== 'object' ||
+      !/^#[\da-f]{6}$/i.test(input.appearance.tint) ||
+      typeof input.appearance.encounterTitle !== 'string' ||
+      !input.appearance.encounterTitle.trim() ||
+      input.appearance.encounterTitle.trim().length > 100
+    )
+      throw new Error('Zone appearance needs a hex tint and an encounter heading of 1–100 characters.');
+    appearance = { tint: input.appearance.tint, encounterTitle: input.appearance.encounterTitle.trim() };
+  }
   const tags = input.tags === undefined ? zoneTags(input, catalog) : input.tags;
   if (
     !Array.isArray(tags) ||
@@ -92,6 +109,7 @@ export function validateZone(input, catalog) {
     description,
     tags: [...new Set(tags.map(tag => tag.trim()))],
     atmosphere: input.atmosphere,
+    ...(appearance ? { appearance } : {}),
     enabled: input.enabled,
     speciesPool: pool(
       'speciesPool',

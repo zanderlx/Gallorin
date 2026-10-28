@@ -634,7 +634,7 @@ export class GameStore {
             ALLOW_DUPLICATE_MUTATIONS: payload.ALLOW_DUPLICATE_MUTATIONS
           });
       } else if (type === 'save-zone') {
-        const zone = validateZone(payload, catalog);
+        const zone = { ...validateZone(payload, catalog), creatures: [] };
         const existing = payload.id ? locationsFor(catalog, next).find(l => l.id === payload.id) : null;
         if (payload.id && !existing) throw new Error('Zone not found.');
         if (

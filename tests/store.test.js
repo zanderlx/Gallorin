@@ -731,3 +731,28 @@ test('zone editor saves optional descriptions and weighted pools through restart
   await restored.action('delete-zone', { id: zone.id });
   assert.ok(!locationsFor(restored.getCatalog(), restored.state).some(l => l.id === zone.id));
 });
+
+test('zone atmosphere edits are local to the zone and survive configuration reload', async t => {
+  const { directory, store } = await fixture(t);
+  const original = locationsFor(store.getCatalog(), store.state)[0];
+  const preset = structuredClone(store.getCatalog().atmospheres.find(a => a.id === original.atmosphere));
+  const appearance = { tint: '#123456', encounterTitle: 'Among the quiet trees' };
+  await store.action('save-zone', { ...original, appearance });
+  const restored = await new GameStore(directory, catalog, defaults).init();
+  const saved = locationsFor(restored.getCatalog(), restored.state).find(l => l.id === original.id);
+  assert.deepEqual(saved.appearance, appearance);
+  assert.deepEqual(
+    restored.getCatalog().atmospheres.find(a => a.id === preset.id),
+    preset
+  );
+  for (const patch of [
+    { tint: 'url(bad)', encounterTitle: 'Heading' },
+    { tint: '#123456', encounterTitle: '' }
+  ]) {
+    await assert.rejects(restored.action('save-zone', { ...saved, appearance: patch }), /Zone appearance/);
+  }
+  assert.deepEqual(
+    locationsFor(restored.getCatalog(), restored.state).find(l => l.id === saved.id).appearance,
+    appearance
+  );
+});

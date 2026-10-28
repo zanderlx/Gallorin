@@ -22,7 +22,8 @@ import { palettesManagerPage } from '../public/palettes-manager.js';
 import { personalitiesManagerPage } from '../public/personalities-manager.js';
 import { raritiesManagerPage } from '../public/rarities-manager.js';
 import { traitsEditorPage } from '../public/traits-editor.js';
-import { zoneEditorPage } from '../public/zone-editor.js';
+import { zoneEditorPage, zoneEditorForm } from '../public/zone-editor.js';
+import { newZoneDraft } from '../public/zones.js';
 
 const payload = '"><img src=x onerror=alert(1)>';
 const leaked = /<img src=x onerror/;
@@ -94,7 +95,8 @@ const views = {
   'personalities manager': () => personalitiesManagerPage(hostileCatalog),
   'rarities manager': () => raritiesManagerPage(hostileCatalog),
   'traits editor': () => traitsEditorPage(hostileCatalog, hostileCatalog.species[0].id),
-  'zone editor': () => zoneEditorPage(hostileCatalog, state),
+  'zone landing page': () => zoneEditorPage(hostileCatalog, state),
+  'zone editor': () => zoneEditorForm(hostileCatalog, { ...newZoneDraft(), name: payload }),
   ...Object.fromEntries(
     Object.keys(definitionKinds).map(kind => [
       `library editor (${kind})`,

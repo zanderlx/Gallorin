@@ -56,7 +56,7 @@ import {
 import { profileContent } from '../public/profile.js';
 import { groups, sidebar, navigationSection } from '../public/ui.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from '../public/zones.js';
-import { zoneEditorPage } from '../public/zone-editor.js';
+import { zoneEditorPage, zoneEditorForm } from '../public/zone-editor.js';
 import { normalizeCatalog, definitionKinds } from '../public/definitions.js';
 import { libraryEditorPage, editorRoutes } from '../public/library-editor.js';
 import { keeperPage, avatarSVG } from '../public/keeper.js';
@@ -90,20 +90,22 @@ test('zone tags render as safe text without icons and can be removed', () => {
   assert.match(tags, /&lt;script&gt;Quiet&lt;\/script&gt;/);
   assert.doesNotMatch(tags, /<svg|<script/);
   assert.match(wildPage({ ...location, tags: [] }, state), /<div class="hero-bottom"><\/div>/);
-  const editor = zoneEditorPage(catalog, state);
+  const editor = String(zoneEditorForm(catalog, newZoneDraft()));
+  const landing = zoneEditorPage(catalog, state);
   assert.match(editor, /name="tags"/);
   assert.doesNotMatch(editor, /ORIGINAL REALM|YOUR CREATION|YOUR NEXT ADVENTURE|Randomize fills in a draft/);
   assert.doesNotMatch(editor, /name="subtitle"|Short tagline|Open for exploration/);
   assert.doesNotMatch(editor, /name="event"/);
   assert.match(editor, /<span>Show this zone in the Wilds navigation\.<\/span>/);
-  assert.match(editor, /class="icon-button zone-delete" data-action="delete-zone"[^>]*aria-label="Delete /);
-  assert.match(editor, />My Zones<\/h1>/);
-  assert.ok(editor.indexOf('zone-collection') < editor.indexOf('id="zone-form"'));
+  assert.match(landing, /class="icon-button zone-delete" data-action="delete-zone"[^>]*aria-label="Delete /);
+  assert.match(landing, />My Zones<\/h1>/);
+  assert.doesNotMatch(landing, /id="zone-form"|id="definition-form"|zone-atmospheres/);
+  assert.match(landing, /hero zone-preview/);
   assert.doesNotMatch(
     editor,
     /THE KEEPER’S WORLDBUILDER|Make room for a little wonder|Places to get a little lost|Let curiosity lead/
   );
-  assert.equal((editor.match(/class="panel zone-card"/g) || []).length, locationsFor(catalog, state).length);
+  assert.equal((landing.match(/class="panel zone-card"/g) || []).length, locationsFor(catalog, state).length);
   assert.match(editor, /The evergreen realm\nFree exploration/);
 });
 test('Wilds pages begin with the zone banner without duplicate zone tabs', () => {
@@ -423,7 +425,7 @@ test('custom zones appear in navigation and wild pages with safe text; disabled 
   assert.match(html, /hero moonlit/);
   assert.match(html, /&lt;script&gt;magic&lt;\/script&gt;/);
   assert.doesNotMatch(html, /#wilds\/zone-hidden/);
-  const editor = zoneEditorPage(catalog, populated, zone);
+  const editor = String(zoneEditorForm(catalog, zone));
   assert.match(editor, /Generate random zone/);
   assert.match(editor, /name="speciesPool"/);
   assert.doesNotMatch(editor, /<script>/);

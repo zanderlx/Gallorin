@@ -1,12 +1,12 @@
 import { gameSettingsPage } from './game-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';
-import { atmosphereFor, atmosphereStyle, zoneTags } from './zones.js';
+import { zoneAtmosphere, atmosphereStyle, zoneTags } from './zones.js';
 
 export function wildPage(location, state, locations = [location], catalog) {
   const horses = state.encounters[location.id] || [];
   const atmosphere = location.atmosphere || (location.id === 'hallowhoof' ? 'autumn' : 'forest');
-  const atmosphereDefinition = atmosphereFor(catalog, atmosphere);
+  const atmosphereDefinition = zoneAtmosphere({ ...location, atmosphere }, catalog);
   return `<section class="hero ${['forest', 'autumn', 'moonlit', 'frost'].includes(atmosphere) ? atmosphere : 'atmosphere-custom'}" style="${atmosphereStyle(atmosphereDefinition)}" aria-labelledby="location-title"><div class="hero-content">
   <h1 id="location-title" data-copy-key="hero.title">${e(location.name)}</h1><p data-copy-key="hero.description">${e(location.description)}</p>
   <div class="hero-bottom">${zoneTags(location, catalog)
@@ -14,6 +14,7 @@ export function wildPage(location, state, locations = [location], catalog) {
     .join('<span class="hero-divider" aria-hidden="true"></span>')}</div>
   </div><span class="hero-mark" aria-hidden="true">✧</span></section>
   <section class="encounters" aria-label="Wild horses">
+  ${location.appearance?.encounterTitle ? `<h2 class="zone-encounter-heading">${e(location.appearance.encounterTitle)}</h2>` : ''}
   <div class="horse-grid">${horses.map(h => card(h, state, 'wild', catalog)).join('')}</div>
   ${horses.length === 0 ? emptyState('No current horses in the area', '', null, null, 'leaf') : ''}
   <div class="wilds-search-row"><span class="wilds-search-ornament" aria-hidden="true">${icon('leaf')}<span>✧</span></span><button class="button primary search-button" data-action="search">${icon('refresh')} Search the Wilds</button><span class="wilds-search-ornament mirror" aria-hidden="true">${icon('leaf')}<span>✧</span></span></div>

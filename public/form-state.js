@@ -1,7 +1,7 @@
 export function formSignature(form) {
   return JSON.stringify(
     [...form.elements]
-      .filter(el => ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
+      .filter(el => ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) && (form.id !== 'zone-form' || el.name))
       .map(el => [
         el.name,
         el.type === 'checkbox' || el.type === 'radio'
