@@ -6,8 +6,8 @@ import { zoneCreatures, defaultSpawnSettings, rarityTier } from './spawn-config.
 import { formBaseline, formSignature } from './form-state.js';
 import { raritySettings } from './rarity-settings.js';
 
-export function speciesDeleteConfirmation() {
-  return html`<div class="dialog-top"><h2 id="confirm-title">Delete Species</h2></div><p class="delete-warning">Are you sure you want to delete this species?</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>Cancel</button><button class="button primary" data-action="confirm-delete">Delete Species</button></div>`;
+export function speciesDeleteConfirmation(name) {
+  return html`<div class="dialog-top"><h2 id="confirm-title">Delete ${name}</h2></div><p class="delete-warning">Are you sure you want to delete this species?</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>Cancel</button><button class="button primary" data-action="confirm-delete">Delete Species</button></div>`;
 }
 
 const speciesRarities = [

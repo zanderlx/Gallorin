@@ -530,7 +530,7 @@ function askToDelete(type, payload, name, detail, verb = type === 'delete-profil
     type === 'delete-definition' && ['eyes', 'mutations', 'palettes', 'species'].includes(payload.kind)
   );
   if (type === 'delete-definition' && payload.kind === 'species') {
-    setHTML(confirmation, speciesDeleteConfirmation());
+    setHTML(confirmation, speciesDeleteConfirmation(name));
     confirmation.showModal();
     return;
   }
