@@ -8,6 +8,7 @@ import { resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { defaultRaritySettings, validateRaritySettings } from '../public/rarity-settings.js';
 import { normalizeCatalog, validateDefinition } from '../public/definitions.js';
+import { withTraitDefaults } from './trait-defaults.js';
 import { locationsFor, validateZone } from '../public/zones.js';
 import {
   registryKinds,
@@ -65,6 +66,7 @@ export class ConfigurationFiles {
     const catalog = normalizeCatalog(base);
     catalog.palettes = catalog.palettes.filter(p => !(p.name === 'Template' && !p.complete));
     catalog.species = catalog.species.map(s => ({ ...s, rarityTier: rarityTier(s), attributes: s.attributes || {} }));
+    catalog.species = withTraitDefaults(base, catalog.species);
     for (const [name, weight] of Object.entries(standardTokens)) {
       const existing = catalog.mutations.find(m => m.name === name && m.type === 'Standard');
       if (existing)

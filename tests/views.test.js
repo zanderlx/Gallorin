@@ -505,7 +505,7 @@ test('Traits editor embeds within the Species manager', () => {
   assert.match(html, /id="traits-form"/);
   const manager = libraryEditorPage('species', catalog, state);
   assert.match(manager, /data-tab="traits"/);
-  assert.match(manager, /data-tab="spawning"/);
+  assert.match(manager, /data-tab="zones"/);
   assert.doesNotMatch(sidebar('dev/species', state, new Set(), catalog), /href="#dev\/traits"/);
 });
 

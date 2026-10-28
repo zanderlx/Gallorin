@@ -27,11 +27,14 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.match(overview, /id="definition-form"/);
   assert.doesNotMatch(overview, /name="speciesZones"|id="traits-species"/);
   assert.match(overview, /data-tab="traits"/);
+  assert.match(overview, /data-tab="zones"[^>]*>Zones</);
+  assert.ok(overview.indexOf('>Add species</button>') < overview.indexOf('Find a species'));
+  assert.match(overview, /species-identity-fields[\s\S]*name="name"[\s\S]*name="rarityTier"[\s\S]*<\/div>/);
   const traits = speciesManagerPage(catalog, {}, species, 'traits');
   assert.match(traits, /id="traits-form"/);
   assert.match(traits, /Braided/);
   assert.doesNotMatch(traits, /id="definition-form"|id="traits-species"/);
-  const spawning = speciesManagerPage(catalog, {}, species, 'spawning');
+  const spawning = speciesManagerPage(catalog, {}, species, 'zones');
   assert.match(spawning, /25% of regular tickets/);
   assert.match(spawning, /data-action="species-open-zone" data-id="valley"/);
   assert.doesNotMatch(spawning, /name="speciesZones"|name="weight:/);
@@ -59,7 +62,7 @@ test('spawn overview follows overrides and deleted zones without storing another
     ['disabled']
   );
   assert.deepEqual({ catalog, state }, before);
-  const empty = speciesManagerPage({ ...catalog, locations: [] }, {}, species, 'spawning');
+  const empty = speciesManagerPage({ ...catalog, locations: [] }, {}, species, 'zones');
   assert.match(empty, /not assigned to any zone/);
 });
 

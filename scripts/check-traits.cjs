@@ -101,7 +101,7 @@ const deadline = setTimeout(() => {
   });
   await wait(() => !document.querySelector('.species-tabs [data-tab=overview]').disabled);
   await run(() => {
-    document.querySelector('[data-action="load-supplied-traits"]').click();
+    if (document.querySelector('[data-action="load-supplied-traits"]')) throw new Error('Manual trait loading remains');
     document.querySelector('[data-action="add-trait-category"]').click();
     document.querySelector('#traits-form button[type="reset"]').click();
     if (document.querySelector('.species-tabs [data-tab=overview]').disabled)
@@ -120,7 +120,7 @@ const deadline = setTimeout(() => {
     scrollTo(0, 0);
   });
   await capture('traits-desktop.png');
-  await run(() => document.querySelector('[data-action="species-tab"][data-tab="spawning"]').click());
+  await run(() => document.querySelector('[data-action="species-tab"][data-tab="zones"]').click());
   await capture('species-spawning.png');
   await run(() => {
     const edit = document.querySelector('[data-action="species-open-zone"]');
@@ -166,6 +166,10 @@ const deadline = setTimeout(() => {
       throw new Error('Overview save changed zone assignments');
     if (document.querySelector('.species-manager [name="description"]').value !== 'Overview smoke edit')
       throw new Error('Overview save failed');
+    scrollTo(0, 0);
+  });
+  await capture('species-overview.png');
+  await run(() => {
     document.querySelector('[data-action="species-tab"][data-tab="traits"]').click();
     scrollTo(0, 0);
   });

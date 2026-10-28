@@ -455,10 +455,10 @@ function showDefinition(kind, draft) {
   if (!draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-duplicate-draft');
   $('#definition-form input[name="name"]')?.focus({ preventScroll: true });
 }
-function showSpecies(draft, tab = speciesTab, supplied = false) {
+function showSpecies(draft, tab = speciesTab) {
   selectedSpeciesId = draft?.id;
   speciesTab = tab;
-  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, supplied)));
+  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab)));
   copyEditor.attach(main);
   trackForms(main);
   if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
@@ -755,19 +755,6 @@ document.addEventListener('click', async event => {
     button.closest('.trait-editor-row').remove();
     filterTraitRows(main);
     updateFormState($('#traits-form') || $('#definition-form'));
-    syncSpeciesControls(main);
-    return;
-  }
-  if (intent === 'load-supplied-traits') {
-    const form = $('#traits-form');
-    const baseline = formBaseline(form);
-    showSpecies(
-      catalog.species.find(s => s.id === form.dataset.id),
-      'traits',
-      true
-    );
-    restoreBaseline($('#traits-form'), baseline);
-    filterTraitRows(main);
     syncSpeciesControls(main);
     return;
   }

@@ -1,6 +1,5 @@
 import { html, raw } from './ui.js';
 import { traitCategories } from './definitions.js';
-import { speciesTraitData } from './species-trait-data.js';
 import { formBaseline, formSignature } from './form-state.js';
 
 export const traitNames = value => [
@@ -21,12 +20,12 @@ export function traitRow(category = '', values = []) {
   </details>`);
 }
 
-export function traitsEditorPage(catalog, selectedId, supplied = false, embedded = false) {
+export function traitsEditorPage(catalog, selectedId, embedded = false) {
   const species =
     catalog.species.find(s => s.id === selectedId) ||
     [...catalog.species].sort((a, b) => a.name.localeCompare(b.name))[0];
   if (!species) return String(html`<h1>Traits</h1><p>Add a species before creating traits.</p>`);
-  const traits = (supplied ? speciesTraitData[species.name] : species.traits) || {};
+  const traits = species.traits || {};
   const count = Object.values(traits).reduce((sum, values) => sum + values.length, 0);
   return String(html`${
     embedded
@@ -40,10 +39,7 @@ export function traitsEditorPage(catalog, selectedId, supplied = false, embedded
     <form id="traits-form" class="panel" data-id="${species.id}"><h2>${species.name} Traits</h2>
     <p><span data-traits-total>${count}</span> traits · <span data-categories-total>${Object.keys(traits).length}</span> categories. Each entry belongs only to ${species.name}.</p>
     <p>Add, rename, or delete traits by editing the lines in a category. Save or cancel before switching species. Up to 100 traits per category.</p>
-    ${supplied ? html`<p role="status">Supplied list loaded for review. Save to apply it.</p>` : ''}
-    <div class="trait-toolbar"><button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button>
-    ${speciesTraitData[species.name] ? html`<button class="button secondary" type="button" data-action="load-supplied-traits">Load supplied list</button>` : ''}</div>
-    <p>Loading the supplied list replaces this species' draft. Nothing changes until you save.</p>
+    <div class="trait-toolbar"><button class="button secondary" type="button" data-action="add-trait-category">Add Trait Category</button></div>
     <div id="trait-rows" class="trait-category-grid">${Object.entries(traits).map(([key, values]) => raw(traitRow(key, values)))}</div>
     <p id="trait-no-results" hidden>No matching categories or traits. Try another search.</p>
     <div class="form-actions"><button class="button primary" type="submit">Save Traits</button><button class="button secondary" type="reset">Cancel Changes</button></div></form>`);

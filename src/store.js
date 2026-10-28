@@ -8,6 +8,7 @@ import { ConfigurationFiles } from './configuration.js';
 import { readHorseSkills, awardHorseSkillXP } from '../public/skill-progress.js';
 import { synchronizeCosmicPalettes } from './cosmic-palettes.js';
 import { paletteAdditionsVersion, missingBundledPalettes } from './palette-additions.js';
+import { traitDefaultsVersion, withTraitDefaults } from './trait-defaults.js';
 import { validateRaritySettings } from '../public/rarity-settings.js';
 import { horseSalePrice, saleModifiers, validateSaleModifiers } from '../public/sale-pricing.js';
 import {
@@ -37,6 +38,7 @@ const backupsPerKind = 20;
 const upgradeBackupPrefixes = [
   'pre-spawning-',
   'pre-palette-additions-',
+  'pre-trait-defaults-',
   'pre-cosmic-zone-cleanup-',
   'pre-horse-version-',
   'pre-horse-skills-',
@@ -120,16 +122,46 @@ export class GameStore {
         await this.files.read(seeded.catalog);
         next.configurationRevision = revision;
         next.paletteAdditionsVersion = paletteAdditionsVersion;
+        next.traitDefaultsVersion = traitDefaultsVersion;
         await this.persist(next);
       });
       this.state = next;
     }
     await this.addBundledPalettes();
+    await this.addDefaultTraits();
     await this.upgradeHorses();
     await this.readConfiguration();
     await this.pruneOldBackups();
     return this;
   }
+  // One-time additive upgrade; later trait edits and removals remain intentional.
+  async addDefaultTraits() {
+    if ((this.state.traitDefaultsVersion || 0) >= traitDefaultsVersion) return;
+    const configuration = await this.files.read(catalogFor(this.catalog, this.state));
+    const original = await this.files.json('species.json');
+    const species = withTraitDefaults(this.catalog, original);
+    const next = this.snapshot();
+    next.traitDefaultsVersion = traitDefaultsVersion;
+    if (JSON.stringify(species) === JSON.stringify(original)) {
+      await this.persist(next);
+      this.state = next;
+      return;
+    }
+    const backup = `pre-trait-defaults-${Date.now()}-${randomUUID()}`;
+    await copyFile(this.file, join(this.directory, 'backups', `${backup}.json`));
+    await copyFile(this.files.path('species.json'), join(this.directory, 'backups', `${backup}-species.json`));
+    await this.files.commit(
+      configuration,
+      async revision => {
+        await this.files.read(catalogFor(this.catalog, this.state));
+        next.configurationRevision = revision;
+        await this.persist(next);
+      },
+      { 'species.json': species }
+    );
+    this.state = next;
+  }
+
   // One-time additive upgrade: appends known bundled palettes to an existing registry without touching local entries.
   async addBundledPalettes() {
     if ((this.state.paletteAdditionsVersion || 0) >= paletteAdditionsVersion) return;

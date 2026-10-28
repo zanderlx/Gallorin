@@ -42,13 +42,13 @@ test('line editor creates, renames and removes entries without losing hidden cat
   assert.throws(() => readTraitsForm(form([row('Mane', 'x'.repeat(101))])), /100/);
 });
 
-test('manager handles empty catalogs, escapes content and stages supplied lists without changing originals', () => {
+test('manager handles empty catalogs, escapes content and has no manual default loading', () => {
   assert.match(traitsEditorPage({ species: [] }), /Add a species/);
   assert.doesNotMatch(traitRow('<script>', ['</textarea><script>']), /<script>/);
   const species = { id: 'horse', name: 'Horse', traits: { Mane: ['My custom mane'] } };
   const local = { species: [species] };
   assert.match(traitsEditorPage(local), /My custom mane/);
-  assert.doesNotMatch(traitsEditorPage(local, 'horse', true), /My custom mane/);
+  assert.doesNotMatch(traitsEditorPage(local, 'horse', true), /load-supplied-traits|Load supplied list/);
   assert.deepEqual(species.traits, { Mane: ['My custom mane'] });
 });
 

@@ -31,6 +31,19 @@
 .species-detail {
   min-width: 0;
 }
+.species-identity-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(160px, 1fr);
+  gap: 16px;
+}
+.species-manager .library-list-panel > .button {
+  margin-bottom: 16px;
+}
+@media (max-width: 600px) {
+  .species-identity-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .species-tabs {
   display: flex;
   flex-wrap: wrap;
