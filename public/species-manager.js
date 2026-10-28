@@ -7,8 +7,8 @@ import { formBaseline, formSignature } from './form-state.js';
 import { raritySettings } from './rarity-settings.js';
 
 const speciesRarities = [
-  [3, 'Uncommon'],
   [4, 'Common'],
+  [3, 'Uncommon'],
   [2, 'Rare'],
   [1, 'Ultra Rare'],
   [0, 'Cosmic']

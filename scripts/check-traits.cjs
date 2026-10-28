@@ -92,7 +92,7 @@ const deadline = setTimeout(() => {
     const selected = document.querySelector('.species-manager').dataset.speciesId;
     sort.value = 'rarity';
     sort.dispatchEvent(new Event('change', { bubbles: true }));
-    const rank = [3, 4, 2, 1, 0];
+    const rank = [4, 3, 2, 1, 0];
     const ranks = [...document.querySelectorAll('.species-manager .definition-list-item')].map(row =>
       rank.indexOf(Number(row.dataset.rarityTier))
     );

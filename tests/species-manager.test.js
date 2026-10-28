@@ -43,8 +43,8 @@ test('Species provides overview, traits and read-only spawning under one selecte
       label
     ]),
     [
-      [3, 'Uncommon'],
       [4, 'Common'],
+      [3, 'Uncommon'],
       [2, 'Rare'],
       [1, 'Ultra Rare'],
       [0, 'Cosmic']
@@ -107,7 +107,7 @@ test('species list shows rarity with trait counts and sorts by rarity then name 
   const before = structuredClone(entries);
   assert.deepEqual(
     sortSpeciesEntries(entries, 'rarity').map(s => s.id),
-    ['akhal', 'zebra', 'common', 'rare', 'ultra', 'cosmic']
+    ['common', 'akhal', 'zebra', 'rare', 'ultra', 'cosmic']
   );
   assert.deepEqual(
     sortSpeciesEntries(entries).map(s => s.id),
