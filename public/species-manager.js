@@ -56,9 +56,9 @@ export function speciesSpawnRows(species, catalog, state) {
 
 function spawningPanel(species, catalog, state) {
   const rows = speciesSpawnRows(species, catalog, state);
-  return html`<section class="panel"><h3>Where ${species.name} spawns</h3><p>Zone assignments and weights are managed in Zones. This overview reads those same records. Ticket shares apply to the regular species roll; special spawn rules may also apply.</p>
-    ${rows.length ? html`<div class="species-spawn-list">${rows.map(({ zone, weight, chance, status }) => html`<article class="species-spawn-row"><div><h4>${zone.name}</h4><p>${status}${zone.event ? ' · Event zone' : ''} · Weight ${weight} · ${Number(chance.toFixed(2))}% of regular tickets</p></div><button class="button secondary" data-action="species-open-zone" data-id="${zone.id}">Edit zone</button></article>`)}</div>` : html`<p>This species is not assigned to any zone.</p>`}
-    <a class="text-link" href="#dev/locations">Manage Zones</a></section>`;
+  return html`<section class="panel"><h3>Where ${species.name} spawns</h3><p>Zone assignments and weights are managed in Zones.</p>
+    ${rows.length ? html`<div class="species-spawn-list">${rows.map(({ zone, weight, chance }) => html`<article class="species-spawn-row"><div><h4>${zone.name}</h4><p>Weight ${weight} · ${Number(chance.toFixed(2))}% of regular tickets</p></div><button class="button secondary" data-action="species-open-zone" data-id="${zone.id}">Edit zone</button></article>`)}</div>` : html`<p>This species is not assigned to any zone.</p>`}
+    </section>`;
 }
 
 function overviewForm(species, catalog) {

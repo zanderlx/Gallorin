@@ -68,6 +68,10 @@ test('Species provides overview, traits and read-only spawning under one selecte
   assert.doesNotMatch(traits, /id="definition-form"|id="traits-species"/);
   const spawning = speciesManagerPage(catalog, {}, species, 'zones');
   assert.match(spawning, /25% of regular tickets/);
+  assert.doesNotMatch(
+    spawning,
+    /This overview reads|special spawn rules|Event zone|Active|Zone closed|Disabled \(zero weight\)|Manage Zones/
+  );
   assert.match(spawning, /data-action="species-open-zone" data-id="valley"/);
   assert.doesNotMatch(spawning, /name="speciesZones"|name="weight:/);
 });
