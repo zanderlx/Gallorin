@@ -79,6 +79,11 @@ const deadline = setTimeout(() => {
       if (Math.abs(list.top - details.top) > 1) throw new Error('Species list and details panels are not aligned');
       if (Math.abs(tab.left - details.left) > 1)
         throw new Error('Species tabs are not at the left edge of the details');
+      const fields = ['name', 'rarityTier', 'event'].map(name =>
+        document.querySelector(`.species-manager [name="${name}"]`).getBoundingClientRect()
+      );
+      if (fields.some(field => Math.abs(field.top - fields[0].top) > 1) || fields[2].left < fields[1].right)
+        throw new Error('Name, Rarity and Group fields are not aligned in order');
     });
     await finish('Species control layout check');
     return;

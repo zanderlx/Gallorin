@@ -57,8 +57,24 @@ function spawningPanel(species, catalog, state) {
     <a class="text-link" href="#dev/locations">Manage Zones</a></section>`;
 }
 
-function overviewForm(species) {
+function overviewForm(species, catalog) {
   const current = !!species.id;
+  const groups = [
+    ...new Set(
+      [
+        'Alien',
+        'Carnival',
+        'Christmas',
+        'Easter',
+        'Halloween',
+        'Medieval',
+        'Royal',
+        'Valentine',
+        ...catalog.species.map(s => s.event),
+        species.event
+      ].filter(Boolean)
+    )
+  ].sort((a, b) => a.localeCompare(b));
   return html`<form id="definition-form" class="panel" data-kind="species" data-id="${species.id || ''}">
     <div class="panel-heading"><h2>${current ? 'Species details' : 'Create a species'}</h2></div>
     <div class="species-identity-fields">
@@ -67,17 +83,16 @@ function overviewForm(species) {
       ([tier, label]) =>
         html`<option value="${tier}" ${Number(species.rarityTier ?? 4) === tier ? html`selected` : ''}>${label}</option>`
     )}</select></label>
+    <label class="zone-field">Group<select name="event"><option value="" ${!species.event ? html`selected` : ''}>None</option>${groups.map(group => html`<option value="${group}" ${species.event === group ? html`selected` : ''}>${group}</option>`)}</select></label>
     </div>
     <label class="zone-field">Description (optional)<textarea name="description" maxlength="4000" rows="4">${species.description || ''}</textarea></label>
     <input type="hidden" name="systemId" value="${species.systemId || ''}">
     <input type="hidden" name="traits" value="${JSON.stringify(species.traits || {})}">
     <input type="hidden" name="attributes" value="${JSON.stringify(species.attributes || {})}">
-    <label class="zone-field">Event or group (optional)<input name="event" value="${species.event || ''}" maxlength="100"></label>
-    <label class="zone-field">Acquisition or rarity notes (optional)<input name="restriction" value="${species.restriction || ''}" maxlength="100"></label>
-    <p>Manage appearance in Traits and view zone assignments in Zones. Rarity changes update the default ticket weight in assigned zones.</p>
+    <input type="hidden" name="restriction" value="${species.restriction || ''}">
     <p id="definition-status" class="form-status" role="status"></p>
     <div class="form-actions"><button class="button primary" type="submit">Save entry</button><button class="button secondary" type="reset">Cancel changes</button>
-    ${current ? html`<button class="text-button" type="button" data-action="delete-definition" data-kind="species" data-id="${species.id}">Delete Entry</button><button class="text-button" type="button" data-action="duplicate-definition" data-kind="species" data-id="${species.id}">Duplicate</button>` : ''}</div>
+    ${current ? html`<button class="text-button" type="button" data-action="delete-definition" data-kind="species" data-id="${species.id}">Delete Entry</button>` : ''}</div>
   </form>`;
 }
 
@@ -98,7 +113,7 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
       ([key, label]) =>
         html`<button type="button" role="tab" id="species-tab-${key}" tabindex="${key === tab ? 0 : -1}" aria-selected="${key === tab}" aria-controls="species-tab-panel" data-action="species-tab" data-tab="${key}" ${!species.id && key !== 'overview' ? html`disabled` : ''}>${label}</button>`
     )}</div></div>
-    <div id="species-tab-panel" role="tabpanel" aria-labelledby="species-tab-${tab}">${!species.id ? html`<p>Save this species to manage its traits and view spawning.</p>` : ''}${tab === 'traits' ? raw(traitsEditorPage(catalog, species.id, true)) : tab === 'zones' ? spawningPanel(species, catalog, state) : overviewForm(species)}</div></section></div></div>`);
+    <div id="species-tab-panel" role="tabpanel" aria-labelledby="species-tab-${tab}">${!species.id ? html`<p>Save this species to manage its traits and view spawning.</p>` : ''}${tab === 'traits' ? raw(traitsEditorPage(catalog, species.id, true)) : tab === 'zones' ? spawningPanel(species, catalog, state) : overviewForm(species, catalog)}</div></section></div></div>`);
 }
 
 export function syncSpeciesControls(root) {

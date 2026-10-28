@@ -135,6 +135,22 @@ test('species rarity labels follow configured colors and list controls sit outsi
   assert.ok(page.indexOf('id="definition-search"') < page.indexOf('id="species-sort"'));
 });
 
+test('Group follows Name and Rarity with all built-in groups and existing custom values', () => {
+  const draft = { ...species, event: 'Custom Group', restriction: 'Preserved metadata' };
+  const page = speciesManagerPage(catalog, {}, draft);
+  const groups = page.match(/<select name="event">([\s\S]*?)<\/select>/)[1];
+  for (const group of ['Alien', 'Carnival', 'Christmas', 'Easter', 'Halloween', 'Medieval', 'Royal', 'Valentine'])
+    assert.ok(groups.includes(`value="${group}"`));
+  assert.match(groups, /value="Custom Group" selected/);
+  assert.ok(page.indexOf('name="rarityTier"') < page.indexOf('name="event"'));
+  assert.ok(page.indexOf('name="event"') < page.indexOf('name="description"'));
+  assert.doesNotMatch(
+    page,
+    /Acquisition or rarity notes|Event or group \(optional\)|duplicate-definition|Manage appearance in Traits/
+  );
+  assert.match(page, /type="hidden" name="restriction" value="Preserved metadata"/);
+});
+
 test('sorting reorders existing rows while preserving filtered rows and selection', () => {
   const rows = [
     { dataset: { name: 'Zulu', rarityTier: '0' }, hidden: true },

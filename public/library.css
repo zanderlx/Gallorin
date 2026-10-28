@@ -93,7 +93,8 @@
 }
 .species-identity-fields {
   display: grid;
-  grid-template-columns: minmax(0, 280px) minmax(0, 160px);
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr) minmax(0, 1.125fr);
+  max-width: 652px;
   gap: 16px;
   margin: 12px 0;
 }
