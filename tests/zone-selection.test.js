@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { setZoneSelection, zoneSelectionButtons } from '../public/zone-selection.js';
+import {
+  setZoneSelection,
+  zoneSelectionButton,
+  zoneAllSelected,
+  syncZoneSelectionButtons
+} from '../public/zone-selection.js';
 import { formSignature } from '../public/form-state.js';
 
 test('bulk selection includes filtered options, preserves other pools and weights, and changes saved form state', () => {
@@ -36,10 +41,38 @@ test('bulk controls have distinct accessible labels and never submit the zone fo
     ['speciesPool', 'species'],
     ['palettePool', 'palettes']
   ]) {
-    const markup = String(zoneSelectionButtons(pool, label));
-    assert.match(markup, new RegExp(`aria-label="Select all ${label}"`));
-    assert.match(markup, new RegExp(`aria-label="Unselect all ${label}"`));
-    assert.equal((markup.match(/type="button"/g) || []).length, 2);
-    assert.equal((markup.match(new RegExp(`data-pool="${pool}"`, 'g')) || []).length, 2);
+    const markup = String(zoneSelectionButton(pool, label));
+    assert.match(markup, new RegExp(`aria-label="Select All ${label}"`));
+    assert.match(String(zoneSelectionButton(pool, label, true)), new RegExp(`aria-label="Unselect All ${label}"`));
+    assert.equal((markup.match(/type="button"/g) || []).length, 1);
+    assert.equal((markup.match(new RegExp(`data-pool="${pool}"`, 'g')) || []).length, 1);
   }
+});
+
+test('toggle follows all, partial, none and empty selections, including manual checkbox changes', () => {
+  const inputs = [{ checked: true }, { checked: false }];
+  const button = {
+    dataset: { pool: 'speciesPool', label: 'species' },
+    setAttribute(name, value) {
+      this[name] = value;
+    }
+  };
+  const form = { querySelectorAll: selector => (selector.includes('data-action') ? [button] : inputs) };
+  assert.equal(zoneAllSelected(form, 'speciesPool'), false);
+  syncZoneSelectionButtons(form);
+  assert.equal(button.textContent, 'Select All');
+  setZoneSelection(form, 'speciesPool', !zoneAllSelected(form, 'speciesPool'));
+  syncZoneSelectionButtons(form);
+  assert.equal(button.textContent, 'Unselect All');
+  assert.equal(button['aria-label'], 'Unselect All species');
+  inputs[0].checked = false;
+  syncZoneSelectionButtons(form);
+  assert.equal(button.textContent, 'Select All');
+  inputs[0].checked = true;
+  setZoneSelection(form, 'speciesPool', !zoneAllSelected(form, 'speciesPool'));
+  assert.ok(inputs.every(input => !input.checked));
+  inputs.length = 0;
+  syncZoneSelectionButtons(form);
+  assert.equal(button.textContent, 'Select All');
+  assert.equal(button.disabled, true);
 });

@@ -405,7 +405,7 @@ main {
 }
 .zone-species-controls {
   display: grid;
-  grid-template-columns: minmax(140px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
+  grid-template-columns: auto minmax(140px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
   gap: 12px;
   align-items: end;
   padding: 0 16px 0 4px;
@@ -578,7 +578,7 @@ main {
 
 .zone-palette-controls {
   display: grid;
-  grid-template-columns: minmax(160px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
+  grid-template-columns: auto minmax(160px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
   align-items: end;
   gap: 12px;
 }
@@ -666,9 +666,13 @@ main {
   .zone-palette-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .zone-palette-search {
-    grid-column: 1 / -1;
-  }
+}
+
+.zone-selection-toggle {
+  height: 48px;
+  min-width: 120px;
+  margin-bottom: 16px;
+  white-space: nowrap;
 }
 
 .zone-editor-dialog .color-control {

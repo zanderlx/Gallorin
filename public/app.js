@@ -12,7 +12,7 @@ import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
-import { setZoneSelection } from './zone-selection.js';
+import { setZoneSelection, zoneAllSelected } from './zone-selection.js';
 import { handleInvalidHex, validHex } from './hex-inputs.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
@@ -636,9 +636,9 @@ document.addEventListener('click', async event => {
     updatePaletteGrid(main, catalog);
     return;
   }
-  if (intent === 'zone-select-all' || intent === 'zone-unselect-all') {
+  if (intent === 'zone-toggle-all') {
     const form = button.closest('form');
-    setZoneSelection(form, button.dataset.pool, intent === 'zone-select-all');
+    setZoneSelection(form, button.dataset.pool, !zoneAllSelected(form, button.dataset.pool));
     syncZoneEditor(form, catalog, readZoneForm(form));
     updateFormState(form);
     return;
