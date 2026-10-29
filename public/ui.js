@@ -40,6 +40,8 @@ export const html = (strings, ...values) =>
   new SafeHTML(strings.reduce((out, text, i) => out + text + (i < values.length ? htmlPart(values[i]) : ''), ''));
 export const number = value => Number(value).toLocaleString();
 export const icons = {
+  palette:
+    '<path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.8h2A4 4 0 0 0 21 11a9 9 0 0 0-9-8Z"/><circle cx="7" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/><circle cx="17" cy="11" r="1"/>',
   more: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
   music: '<path d="M9 18V5l12-2v13M9 8l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   agility: '<path d="m13 2-9 12h7l-1 8 10-13h-8Z"/>',
