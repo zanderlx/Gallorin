@@ -1,4 +1,8 @@
 /* Stable profile Edit tab shares the Zones manager disclosures. */
+.horse-profile-book:has([data-profile-tab='overrides'][aria-selected='true']) .profile-actions {
+  display: none;
+}
+
 #profile .profile-overrides-panel {
   padding: 24px;
 }
