@@ -572,15 +572,15 @@ main {
 }
 .zone-palette-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 10px;
 }
 .zone-palette-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--panel-deep);
