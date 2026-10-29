@@ -112,8 +112,23 @@ app
       await wait(()=>form.dataset.resolvedSpeciesId===${JSON.stringify(target.id)}&&!row.closest('details').querySelector('[data-save-section]').disabled);
       const pattern=form.querySelector('[data-key="trait:Pattern"]');
       if(!pattern.dataset.speciesGenerated)throw Error('Traits did not update dynamically');
-      if(document.querySelector('[data-horse-notification]').hidden)throw Error('Species notice not visible in modal');
+      if(document.querySelector('[data-horse-notification]').textContent.includes('Traits regenerated'))throw Error('Large change message shown before Save');
       row.closest('details').querySelector('[data-save-section]').click();
+      await wait(()=>form.querySelector('.horse-species-confirm-dialog').open);
+      const confirm=form.querySelector('.horse-species-confirm-dialog');
+      if(!confirm.textContent.includes('Mane')||!confirm.textContent.includes('Replacement Mane'))throw Error('Dependent trait changes missing from confirmation');
+      confirm.querySelector('[data-cancel-species-save]').click();
+      await wait(()=>!row.closest('details').querySelector('[data-save-section]').disabled);
+      if(row.querySelector('[data-mode]').value!=='set')throw Error('Confirmation cancel lost species draft');
+    })()`);
+    const beforeConfirmation = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
+    if (beforeConfirmation.speciesId !== saved.speciesId) throw Error('Species was saved before confirmation');
+    await win.webContents.executeJavaScript(`(async()=>{
+      const wait=async(test)=>{for(let i=0;i<100;i++){if(test())return;await new Promise(resolve=>setTimeout(resolve,50))}throw Error('Species confirmation did not settle')};
+      const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=species]');
+      row.closest('details').querySelector('[data-save-section]').click();
+      await wait(()=>form.querySelector('.horse-species-confirm-dialog').open);
+      form.querySelector('[data-confirm-species-save]').click();
       await wait(()=>document.querySelector('[data-key=species] [data-mode]')?.value==='keep');
       const notice=document.querySelector('[data-horse-notification]');
       if(notice.hidden||!notice.textContent.includes('saved'))throw Error('Save notification missing inside modal');

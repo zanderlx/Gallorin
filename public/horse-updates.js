@@ -90,6 +90,7 @@ export function horseOverrideControls(horse, state, catalog) {
     ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section" data-override-section="${group}"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}<div class="form-actions horse-section-actions" hidden><button type="button" class="button primary" data-save-section disabled>Save</button><button type="button" class="button secondary" data-cancel-section disabled>Cancel</button></div><p class="horse-section-status" role="status"></p></div></details>`)}
     </div>
     <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
+    <dialog class="horse-edit-dialog horse-species-confirm-dialog" aria-labelledby="horse-species-confirm-title"><div data-species-confirm-content></div><div class="form-actions"><button type="button" class="button primary" data-confirm-species-save>Confirm Save</button><button type="button" class="button secondary" data-cancel-species-save>Cancel</button></div></dialog>
     </form>`);
 }
 function formatValue(value) {
@@ -101,6 +102,33 @@ function formatValue(value) {
   return Object.entries(value)
     .map(([key, v]) => key + ': ' + formatValue(v))
     .join('; ');
+}
+export function speciesConfirmationContent(preview) {
+  const labels = {
+    species: 'Species',
+    rarityTier: 'Rarity Tier',
+    speciesEvent: 'Species Event',
+    traitsComplete: 'Trait Definitions Complete',
+    sizePercent: 'Size (%)',
+    caughtAt: 'Acquisition Date'
+  };
+  const rows = [];
+  for (const change of preview.items.flatMap(item => item.changes)) {
+    if (change.field === 'traits') {
+      for (const category of new Set([...Object.keys(change.before || {}), ...Object.keys(change.after || {})])) {
+        const before = change.before?.[category] || [],
+          after = change.after?.[category] || [];
+        if (JSON.stringify(before) !== JSON.stringify(after)) rows.push({ label: category, before, after });
+      }
+    } else if (!/Id$|^eyeLayers$|^Override status$/.test(change.field)) {
+      rows.push({
+        label: labels[change.field] || change.field[0].toUpperCase() + change.field.slice(1),
+        before: change.before,
+        after: change.after
+      });
+    }
+  }
+  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p>Confirm Save applies the species and all resulting changes shown below.</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${formatValue(row.before)}</td><td>${formatValue(row.after)}</td></tr>`)}</tbody></table></div>${preview.items.flatMap(item => item.warnings || []).map(warning => html`<p class="horse-species-warning">${warning}</p>`)}`;
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied }) {
   let working = false,
@@ -200,7 +228,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       });
     row.append(editor);
     editor.hidden = true;
-    const dialog = form.querySelector('dialog');
+    const dialog = form.querySelector('.horse-override-dialog');
     dialog.close();
     form.append(dialog);
     editing = null;
@@ -332,12 +360,6 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       }
       rolledSections.set(key, { signature: JSON.stringify(rules), result });
       status.textContent = '';
-      const warnings = result.preview.items.flatMap(item => item.warnings || []);
-      if (speciesEdit)
-        showNotice(
-          'Traits regenerated for the selected species. Save Identity to apply the species and traits together.' +
-            (warnings.length ? ' ' + warnings.join(' ') : '')
-        );
     } catch (error) {
       const message = controller.signal.aborted ? 'Reroll timed out. Please try again.' : error.message;
       status.textContent = message;
@@ -348,6 +370,29 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       working = wasWorking;
       for (const node of root.querySelectorAll('[data-override-section]')) syncSection(node);
     }
+  }
+  function confirmSpecies(form, result) {
+    const dialog = form.querySelector('.horse-species-confirm-dialog');
+    setHTML(dialog.querySelector('[data-species-confirm-content]'), speciesConfirmationContent(result.preview));
+    dialog.returnValue = '';
+    return new Promise(resolve => {
+      const onParentClose = () => dialog.close('cancel');
+      root.addEventListener('close', onParentClose, { once: true });
+      dialog.addEventListener(
+        'close',
+        () => {
+          root.removeEventListener('close', onParentClose);
+          resolve(dialog.returnValue === 'confirm');
+        },
+        { once: true }
+      );
+      dialog.onclick = event => {
+        if (event.target.closest('[data-confirm-species-save]')) dialog.close('confirm');
+        else if (event.target.closest('[data-cancel-species-save]')) dialog.close('cancel');
+      };
+      dialog.showModal();
+      dialog.querySelector('[data-cancel-species-save]').focus();
+    });
   }
   async function saveSection(form, section) {
     if (working) return;
@@ -372,7 +417,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     const id = selectedHorse(form).id;
     working = true;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    let timeout = setTimeout(() => controller.abort(), 15000);
     let applying = false;
     for (const node of form.querySelectorAll('[data-override-section]')) syncSection(node);
     section.querySelector('[role=status]').textContent = 'Saving…';
@@ -392,6 +437,14 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
             );
       if (!root.contains(form)) return;
       const changed = result.preview.items.some(item => item.changes.length);
+      if (changed && rules.species) {
+        clearTimeout(timeout);
+        section.querySelector('[role=status]').textContent = '';
+        if (!(await confirmSpecies(form, result))) return;
+        if (!root.contains(form)) return;
+        timeout = setTimeout(() => controller.abort(), 15000);
+        section.querySelector('[role=status]').textContent = 'Saving…';
+      }
       if (changed) {
         applying = true;
         await apply({ token: result.preview.token }, controller.signal);
@@ -415,11 +468,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
         node => node.dataset.overrideSection === section.dataset.overrideSection
       );
       if (savedSection) savedSection.querySelector('[role=status]').textContent = changed ? 'Saved.' : 'No changes.';
-      const warnings = result.preview.items.flatMap(item => item.warnings || []);
-      showNotice(
-        (changed ? section.dataset.overrideSection + ' saved.' : 'No changes to save.') +
-          (warnings.length ? ' ' + warnings.join(' ') : '')
-      );
+      showNotice(changed ? section.dataset.overrideSection + ' saved.' : 'No changes to save.');
       const frame = root.querySelector('.profile-scroll-frame');
       if (frame) frame.scrollTop = scroll;
       for (const node of next.querySelectorAll('[data-override-section]'))
@@ -559,7 +608,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       if (!selectedHorse(form)) return;
       const row = edit.closest('[data-key]'),
         editor = row.querySelector('[data-editor]'),
-        dialog = form.querySelector('dialog');
+        dialog = form.querySelector('.horse-override-dialog');
       editing = { row, editor, before: snapshot(editor) };
       const mode = row.querySelector('[data-mode]');
       mode.value = 'set';
@@ -633,7 +682,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       )
         error = `Choose ${row.dataset.min}–${row.dataset.max} traits.`;
       if (error) {
-        form.querySelector('dialog [role=status]').textContent = error;
+        form.querySelector('.horse-override-dialog [role=status]').textContent = error;
         return;
       }
       invalidate();

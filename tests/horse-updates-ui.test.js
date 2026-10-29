@@ -4,7 +4,7 @@ import { horseOverrideBadge } from '../public/horse-override-markers.js';
 import { gameSettingsPage } from '../public/game-settings.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { horseOverrideControls, horseOverrideValue } from '../public/horse-updates.js';
+import { horseOverrideControls, horseOverrideValue, speciesConfirmationContent } from '../public/horse-updates.js';
 import { lockedCosmicLabel } from '../public/horse-update-labels.js';
 test('horse admin UI escapes horse names, exposes granular fields, and gates editing independently', () => {
   const state = {
@@ -109,4 +109,38 @@ test('override details read saved trait, color, mutation, skill and description 
   assert.deepEqual(horseOverrideValue(horse, 'skill:wing'), { level: 0, xp: 0 });
   assert.equal(horseOverrideValue(horse, 'description'), '');
   assert.equal(horseOverrideValue(horse, 'name'), 'Sable');
+});
+
+test('species confirmation lists nested trait changes, other changed values, and warnings safely', () => {
+  const markup = String(
+    speciesConfirmationContent({
+      items: [
+        {
+          changes: [
+            { field: 'species', before: 'Old Species', after: '<script>new</script>' },
+            { field: 'speciesId', before: 'old-id', after: 'new-id' },
+            {
+              field: 'traits',
+              before: { Mane: ['Old Mane'], Pattern: ['Old Pattern'] },
+              after: { Mane: ['New Mane'], Pattern: ['New Pattern'] }
+            },
+            { field: 'rarityTier', before: 4, after: 3 }
+          ],
+          warnings: ['Pattern count adjusted']
+        }
+      ]
+    })
+  );
+  for (const value of [
+    'Confirm Species Changes',
+    'Old Mane',
+    'New Mane',
+    'Old Pattern',
+    'New Pattern',
+    'Rarity Tier',
+    'Pattern count adjusted'
+  ])
+    assert.ok(markup.includes(value));
+  assert.ok(!markup.includes('<script>'));
+  assert.ok(!markup.includes('new-id'));
 });

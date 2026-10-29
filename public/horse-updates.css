@@ -247,3 +247,34 @@
 .horse-edit-notification[hidden] {
   display: none !important;
 }
+
+.horse-species-confirm-dialog {
+  width: min(800px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 24px;
+  overflow: auto;
+}
+.horse-species-change-table {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+.horse-species-change-table table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: fixed;
+}
+.horse-species-change-table th,
+.horse-species-change-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.horse-species-change-table thead {
+  color: var(--gold);
+}
+.horse-species-warning {
+  color: var(--gold);
+}
