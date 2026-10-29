@@ -66,6 +66,16 @@ const deadline = setTimeout(() => {
     app.exit(0);
   };
   await wait(() => !!document.querySelector('.species-manager'));
+  if (process.argv.includes('--species-list-case-only')) {
+    await run(() => {
+      const row = document.querySelector('.species-manager .definition-list-item');
+      if (getComputedStyle(row).textTransform !== 'none') throw new Error('Species list still forces uppercase');
+      if (!/[a-z]/.test(row.querySelector('strong').innerText)) throw new Error('Species name is not title case');
+      if (!row.querySelector('small').innerText.includes(' Traits')) throw new Error('Trait count is not title case');
+    });
+    await finish('Species list title case check');
+    return;
+  }
   if (process.argv.includes('--species-palettes-only')) {
     await run(() => document.querySelector('#species-tab-palettes').click());
     await wait(() => !!document.querySelector('#species-palettes-form'));

@@ -709,6 +709,9 @@ h4,
 .zone-choice {
   text-transform: uppercase;
 }
+.species-manager .definition-list-item {
+  text-transform: none;
+}
 .nav-items a {
   text-transform: capitalize;
 }
