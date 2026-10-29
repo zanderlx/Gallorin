@@ -11,6 +11,7 @@ import { fitMutationDescriptions, watchMutationCardWidths } from './mutation-car
 import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
+import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -1118,6 +1119,7 @@ document.addEventListener('input', event => {
     event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
   }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
+  if (event.target.matches('[data-zone-palette-choice]')) syncZonePaletteChoice(event.target.form, event.target);
   updateFormState(event.target.form);
   syncSpeciesControls(main);
   if (event.target.id === 'eye-search') updateEyeGrid(main, catalog);
@@ -1132,11 +1134,16 @@ document.addEventListener('input', event => {
   }
   if (event.target.closest('#zone-form')) syncZoneEditor($('#zone-form'), catalog, readZoneForm($('#zone-form')));
   if (event.target.id === 'zone-species-search') updateZoneSpecies($('#zone-form'), catalog);
+  if (event.target.id === 'zone-palette-search') updateZonePalettes($('#zone-form'), catalog);
   if (event.target.id === 'horse-search') updateStableSort();
   if (event.target.id === 'palette-search') updatePaletteGrid(main, catalog);
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);
 });
 document.addEventListener('change', async event => {
+  if (
+    ['zone-palette-type', 'zone-palette-scope', 'zone-palette-sort', 'zone-palette-direction'].includes(event.target.id)
+  )
+    updateZonePalettes($('#zone-form'), catalog);
   if (['zone-species-rarity', 'zone-species-sort', 'zone-species-direction'].includes(event.target.id))
     updateZoneSpecies($('#zone-form'), catalog);
   if (event.target.form?.id === 'zone-form' && event.target.name === 'atmosphere') {

@@ -538,3 +538,87 @@ main {
   overflow-x: auto;
   font-family: var(--sans);
 }
+
+.zone-palette-controls {
+  display: grid;
+  grid-template-columns: minmax(160px, 2fr) repeat(4, minmax(100px, 1fr));
+  align-items: end;
+  gap: 12px;
+}
+.zone-palette-controls .zone-field {
+  min-width: 0;
+}
+.zone-palette-controls :is(input, select) {
+  min-width: 0;
+}
+.zone-palette-results {
+  max-height: 460px;
+  overflow-y: auto;
+  padding: 8px 4px 16px;
+  scrollbar-width: thin;
+}
+.zone-palette-group + .zone-palette-group {
+  margin-top: 24px;
+}
+.zone-palette-group > h3 {
+  font: 22px var(--serif);
+  margin: 0 0 12px;
+}
+.zone-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+}
+.zone-palette-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-deep);
+  cursor: pointer;
+}
+.zone-palette-card:hover,
+.zone-palette-card:has(input:checked) {
+  border-color: var(--gold);
+  background: var(--panel);
+}
+.zone-palette-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 16px var(--serif);
+  overflow-wrap: anywhere;
+}
+.zone-palette-card-title input {
+  flex: 0 0 17px;
+  width: 17px;
+  min-height: 17px;
+  height: 17px;
+  margin: 0;
+}
+.zone-palette-card .palette-card-swatches {
+  height: 28px;
+}
+.zone-palette-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.zone-palette-empty {
+  color: var(--muted);
+  margin: 12px 0;
+}
+@media (max-width: 700px) {
+  .zone-palette-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .zone-palette-search {
+    grid-column: 1 / -1;
+  }
+}
