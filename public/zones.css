@@ -438,6 +438,9 @@ main {
   color: var(--muted);
   margin-top: 4px;
 }
+.zone-creature-row .zone-species-name small {
+  color: inherit;
+}
 .zone-spawn-list input[type='number'] {
   width: 100%;
 }
