@@ -757,6 +757,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const row = edit.closest('[data-key]'),
         editor = row.querySelector('[data-editor]'),
         dialog = form.querySelector('.horse-override-dialog');
+      dialog.classList.toggle('is-appearance', ['palette', 'eye'].includes(row.dataset.key));
       editing = { row, editor, before: snapshot(editor) };
       const mode = row.querySelector('[data-mode]');
       mode.value = 'set';
@@ -811,11 +812,21 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
         finishEdit(form, false);
       };
       dialog.showModal();
-      editor
-        .querySelector(
+      if (dialog.classList.contains('is-appearance')) dialog.scrollTop = 0;
+      const focus =
+        editor.querySelector('[data-appearance-choice]:checked') ||
+        editor.querySelector(
           '[data-appearance-choice]:not(:disabled),[data-trait-choice]:not(:disabled),[data-value]:not([hidden])'
-        )
-        ?.focus();
+        );
+      focus?.focus({ preventScroll: true });
+      const choices = editor.querySelector('[data-appearance-choices]');
+      if (choices && focus) {
+        const card = focus.closest('label');
+        choices.scrollTop +=
+          card.getBoundingClientRect().top -
+          choices.getBoundingClientRect().top -
+          (choices.clientHeight - card.clientHeight) / 2;
+      }
       return;
     }
     if (form && event.target.closest('[data-cancel-override]')) {

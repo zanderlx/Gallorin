@@ -358,7 +358,7 @@
   height: 1px;
   opacity: 0;
 }
-.horse-appearance-choice:focus-within {
+.horse-appearance-choice:has(input:focus-visible) {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
@@ -379,4 +379,43 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.horse-override-dialog.is-appearance[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  height: min(680px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+}
+.horse-override-dialog.is-appearance [data-dialog-editor] {
+  min-height: 0;
+  overflow: hidden;
+}
+.horse-override-dialog.is-appearance [data-editor] {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 16px 0;
+}
+.horse-override-dialog.is-appearance [data-value-container] {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.horse-override-dialog.is-appearance .horse-appearance-choices {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.horse-override-dialog.is-appearance > [role='status']:empty {
+  display: none;
+}
+.horse-override-dialog.is-appearance > .form-actions {
+  margin-bottom: 0;
 }

@@ -69,6 +69,42 @@ app
       throw Error('Missing ' + selector + ': ' + error);
     }
     await waitFor('#collection-grid .horse-card');
+    if (process.argv.includes('--appearance-only')) {
+      await win.webContents.executeJavaScript(`(async()=>{
+        document.querySelector('#collection-grid [data-action=inspect]').click();
+        document.querySelector('[data-profile-tab=overrides]').click();
+        const form=document.querySelector('#horse-update-form');
+        for(const key of ['eye','palette']) {
+          const row=form.querySelector('[data-key='+key+']');
+          if(row.querySelector('[data-edit-override]').disabled)throw Error('Expected an editable regular-horse '+key);
+          row.closest('details').open=true;
+          row.querySelector('[data-edit-override]').click();
+          const dialog=form.querySelector('.horse-override-dialog'), list=dialog.querySelector('[data-appearance-choices]');
+          if(getComputedStyle(dialog).overflowY!=='hidden')throw Error('Appearance dialog still scrolls');
+          const choices=[...list.querySelectorAll('[data-appearance-choice]')];
+          const selected=choices.find(choice=>!choice.checked)||choices[0];
+          selected.click();const accepted=selected.value;
+          form.querySelector('[data-save-override]').click();
+          row.querySelector('[data-edit-override]').click();
+          const checked=dialog.querySelector('[data-appearance-choice]:checked');
+          if(checked.value!==accepted||document.activeElement!==checked)throw Error('Reopening focuses a different choice');
+          const header=dialog.querySelector('.dialog-top').getBoundingClientRect().top;
+          const footer=dialog.querySelector('.form-actions').getBoundingClientRect().top;
+          const frame=document.querySelector('#profile .profile-scroll-frame'), background=frame.scrollTop;
+          dialog.querySelector('[data-appearance-choices]').scrollTop+=180;
+          await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+          if(Math.abs(dialog.querySelector('.dialog-top').getBoundingClientRect().top-header)>1||Math.abs(dialog.querySelector('.form-actions').getBoundingClientRect().top-footer)>1)throw Error('Swatch scrolling moved dialog controls');
+          if(dialog.scrollTop!==0||frame.scrollTop!==background)throw Error('Scrolling changed the dialog or background card');
+          form.querySelector('[data-cancel-override]').click();
+          row.closest('details').querySelector('[data-cancel-section]').click();
+        }
+      })()`);
+      console.log('Appearance popup scroll and selection checks passed: ' + directory);
+      win.destroy();
+      await backend.closeGameServer();
+      app.quit();
+      return;
+    }
     const rolled = await win.webContents.executeJavaScript(`(async()=>{
       const wait=async(test)=>{for(let i=0;i<100;i++){if(test())return;await new Promise(resolve=>setTimeout(resolve,50))}throw Error('Horse editor did not settle')};
       document.querySelector('#collection-grid [data-action=inspect]').click();
