@@ -14,7 +14,6 @@ export function wildPage(location, state, locations = [location], catalog) {
     .join('<span class="hero-divider" aria-hidden="true"></span>')}</div>
   </div><span class="hero-mark" aria-hidden="true">✧</span></section>
   <section class="encounters" aria-label="Wild horses">
-  ${location.appearance?.encounterTitle ? `<h2 class="zone-encounter-heading">${e(location.appearance.encounterTitle)}</h2>` : ''}
   <div class="horse-grid">${horses.map(h => card(h, state, 'wild', catalog)).join('')}</div>
   ${horses.length === 0 ? emptyState('No current horses in the area', '', null, null, 'leaf') : ''}
   <div class="wilds-search-row"><span class="wilds-search-ornament" aria-hidden="true">${icon('leaf')}<span>✧</span></span><button class="button primary search-button" data-action="search">${icon('refresh')} Search the Wilds</button><span class="wilds-search-ornament mirror" aria-hidden="true">${icon('leaf')}<span>✧</span></span></div>

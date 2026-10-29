@@ -736,8 +736,8 @@ test('zone atmosphere edits are local to the zone and survive configuration relo
   const { directory, store } = await fixture(t);
   const original = locationsFor(store.getCatalog(), store.state)[0];
   const preset = structuredClone(store.getCatalog().atmospheres.find(a => a.id === original.atmosphere));
-  const appearance = { tint: '#123456', encounterTitle: 'Among the quiet trees' };
-  await store.action('save-zone', { ...original, appearance });
+  const appearance = { tint: '#123456' };
+  await store.action('save-zone', { ...original, appearance: { ...appearance, encounterTitle: 'Legacy heading' } });
   const restored = await new GameStore(directory, catalog, defaults).init();
   const saved = locationsFor(restored.getCatalog(), restored.state).find(l => l.id === original.id);
   assert.deepEqual(saved.appearance, appearance);
@@ -745,10 +745,7 @@ test('zone atmosphere edits are local to the zone and survive configuration relo
     restored.getCatalog().atmospheres.find(a => a.id === preset.id),
     preset
   );
-  for (const patch of [
-    { tint: 'url(bad)', encounterTitle: 'Heading' },
-    { tint: '#123456', encounterTitle: '' }
-  ]) {
+  for (const patch of [{ tint: 'url(bad)', encounterTitle: 'Heading' }, { tint: '#12345' }]) {
     await assert.rejects(restored.action('save-zone', { ...saved, appearance: patch }), /Zone appearance/);
   }
   assert.deepEqual(

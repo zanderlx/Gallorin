@@ -85,7 +85,7 @@ test('landing page contains artwork cards while editing keeps atmosphere inside 
   const editor = String(zoneEditorForm(catalog, newZoneDraft()));
   assert.equal((editor.match(/<form/g) || []).length, 1);
   assert.match(editor, /name="color:zone-tint"/);
-  assert.match(editor, /name="encounterTitle"/);
+  assert.doesNotMatch(editor, /name="encounterTitle"/);
   assert.doesNotMatch(editor, /<details[^>]*\bopen\b/);
   assert.match(editor, /id="zone-species-rarity"/);
   assert.doesNotMatch(editor, /id="definition-form"|name="event"/);
@@ -95,19 +95,24 @@ test('zone appearance overrides are validated and affect previews without editin
   const draft = {
     ...newZoneDraft(),
     name: 'Custom zone',
-    appearance: { tint: '#123456', encounterTitle: 'A quiet clearing' }
+    appearance: { tint: '#123456' }
   };
   const before = structuredClone(catalog.atmospheres);
   const saved = validateZone(draft, catalog);
   assert.deepEqual(saved.appearance, draft.appearance);
+  assert.deepEqual(
+    validateZone({ ...draft, appearance: { ...draft.appearance, encounterTitle: 'Legacy heading' } }, catalog)
+      .appearance,
+    draft.appearance
+  );
   assert.equal(zoneAtmosphere(saved, catalog).tint, '#123456');
   assert.match(zonePreview(saved, catalog), /--zone-tint:#123456/);
   assert.deepEqual(catalog.atmospheres, before);
   for (const appearance of [
     null,
     { tint: 'red', encounterTitle: 'Heading' },
-    { tint: '#123456', encounterTitle: '' },
-    { tint: '#123456', encounterTitle: 'a'.repeat(101) }
+    { tint: '#12345' },
+    { tint: '#1234567' }
   ]) {
     assert.throws(() => validateZone({ ...draft, appearance }, catalog), /Zone appearance/);
   }

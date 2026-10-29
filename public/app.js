@@ -412,7 +412,7 @@ function readZoneForm(form) {
     subtitle: locationsFor(catalog, state).find(l => l.id === form.dataset.id)?.subtitle || '',
     description: values.get('description'),
     atmosphere: values.get('atmosphere'),
-    appearance: { tint: values.get('color:zone-tint'), encounterTitle: values.get('encounterTitle') },
+    appearance: { tint: values.get('color:zone-tint') },
     creatures: values.getAll('speciesPool').map(name => {
       const sp = catalog.species.find(s => s.name === name);
       return { speciesId: sp.id, weight: Number(values.get(`weight:${sp.id}`)) };
