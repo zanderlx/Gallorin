@@ -36,7 +36,7 @@ export function horseTraits(horse, editField = () => '') {
   ]
     .map(([key, label, max]) => {
       const values = valuesFor(traits, key);
-      return `<div class="horse-trait-group"><dt><span data-copy-key="trait.${copyKey(key)}">${e(label)}</span>${max ? `<small data-copy-skip>${values.length}/${max}</small>` : ''}</dt><dd>${valuesHTML(values)}</dd></div>`;
+      return `<div class="horse-trait-group" data-horse-trait-category="${e(key)}"><dt><span data-copy-key="trait.${copyKey(key)}">${e(label)}</span>${max ? `<small data-copy-skip>${values.length}/${max}</small>` : ''}</dt><dd>${valuesHTML(values)}</dd></div>`;
     })
     .join('')}</dl>`;
 }
