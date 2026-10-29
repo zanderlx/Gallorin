@@ -82,47 +82,45 @@ app
       const columns=[...gender.closest('details').querySelector('.horse-edit-columns').children];
       const cells=[gender.querySelector('strong'),gender.querySelector('[data-current-value]'),gender.querySelector('[data-override-value]'),gender.querySelector('.horse-override-actions')];
       cells.forEach((cell,index)=>{if(Math.abs(cell.getBoundingClientRect().x-columns[index].getBoundingClientRect().x)>1)throw Error('Column alignment mismatch')});
-      edit('notes','set').querySelector('[data-value]').value='Previewed in the real renderer';
+      gender.querySelector('[data-roll-override]').click();
+      edit('notes','set').querySelector('[data-value]').value='Saved in its own section';
       form.querySelector('[data-save-override]').click();
-      form.requestSubmit();
+      form.querySelector('[data-key=notes]').closest('details').querySelector('[data-save-section]').click();
     })()`);
-    await waitFor('[data-apply-horse-updates]');
-    const before = (await (await fetch(origin + '/api/state')).json()).state.horses[0];
-    if (before.notes === 'Previewed in the real renderer') throw Error('Preview mutated the horse');
-    await win.webContents.executeJavaScript("document.querySelector('[data-apply-horse-updates]').click()");
-    await waitFor('#horse-update-form:not(:has([data-apply-horse-updates]))');
-    const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8'));
-    if (
-      saved.horses[0].notes !== 'Previewed in the real renderer' ||
-      !saved.horses[0].overriddenFields.includes('notes')
-    )
-      throw Error('Override or marker did not persist');
-    await win.webContents.executeJavaScript(`new Promise(resolve => setTimeout(resolve, 150))`);
+    await waitFor('.horse-edit-section .horse-section-status');
+    for (let i = 0; i < 100; i++) {
+      const done = await win.webContents.executeJavaScript(
+        "document.querySelector('[data-key=notes] [data-override-value]')?.textContent==='Saved in its own section' && document.querySelector('[data-key=notes] [data-mode]')?.value==='keep'"
+      );
+      if (done) break;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
+    if (saved.notes !== 'Saved in its own section') throw Error('Section save did not persist');
     await win.webContents.executeJavaScript(`(()=>{
-      const profile=document.querySelector('#profile');
-      if(!profile.open)throw Error('Profile closed after apply');
-      profile.querySelector('[data-profile-tab=overrides]').click();
-      const sections=profile.querySelectorAll('.horse-edit-section');
-      sections[0].open=true;sections[1].open=true;
+      const form=document.querySelector('#horse-update-form');
+      const gender=form.querySelector('[data-key=gender]');
+      if(gender.querySelector('[data-mode]').value!=='reroll')throw Error('Saving Notes lost the Identity draft');
+      if(document.querySelector('[data-apply-horse-updates],#horse-update-preview,[data-reset-overrides]'))throw Error('Global review remains');
+      gender.closest('details').querySelector('[data-cancel-section]').click();
+      if(gender.querySelector('[data-mode]').value!=='keep')throw Error('Section cancel did not reset its draft');
+      const notes=form.querySelector('[data-key=notes]');
+      notes.querySelector('[data-remove-override]').click();
+      notes.closest('details').querySelector('[data-save-section]').click();
     })()`);
+    for (let i = 0; i < 100; i++) {
+      const done = await win.webContents.executeJavaScript(
+        "document.querySelector('[data-key=notes] [data-mode]')?.value==='keep' && document.querySelector('[data-key=notes] [data-override-value]')?.textContent==='—'"
+      );
+      if (done) break;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    const restored = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
+    if (restored.overriddenFields.includes('notes')) throw Error('Section save did not restore original notes');
     await win.webContents.executeJavaScript(
       'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
     );
     await writeFile(join(directory, 'edit.png'), (await win.webContents.capturePage()).toPNG());
-    await win.webContents.executeJavaScript(`(()=>{
-      const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=notes]');
-      if(row.querySelector('[data-current-value]').textContent==='Previewed in the real renderer')throw Error('Original column was overwritten');
-      if(row.querySelector('[data-override-value]').textContent!=='Previewed in the real renderer')throw Error('Saved override not shown');
-      row.querySelector('[data-remove-override]').click();
-      if(row.querySelector('[data-mode]').value!=='restore')throw Error('Saved trash action must restore original');
-      form.requestSubmit();
-    })()`);
-    await waitFor('[data-apply-horse-updates]');
-    await win.webContents.executeJavaScript("document.querySelector('[data-apply-horse-updates]').click()");
-    await waitFor('#horse-update-form:not(:has([data-apply-horse-updates]))');
-    const restored = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
-    if ((restored.notes || '') !== (before.notes || '') || restored.overriddenFields.includes('notes'))
-      throw Error('Trash did not restore original notes');
     console.log('Horse Overrides UI passed: ' + directory);
     win.destroy();
     await backend.closeGameServer();

@@ -3,16 +3,16 @@
 Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then open a horse in **Stables → My Horses** and select its **Edit** tab. The tab is available only for owned horses while that setting is enabled.
 
 1. Expand a section using the Zones-style dropdown headings.
-2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon for the choice modal, or shuffle to stage a roll where available. Unchanged fields stay at **Keep**.
+2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon for the choice modal, or the dice-with-circular-arrows icon to stage a reroll where available. Unchanged fields stay at **Keep**.
 3. Choose **Set**, **Reroll**, or the available clear/reset option. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
-4. Select **Preview Changes** and review current/proposed values and warnings.
-5. Select **Apply Reviewed Changes**. A standalone player-save backup is created first.
+4. Select **Save** inside the section to apply only that section’s edits. A standalone player-save backup is created first.
+5. Select **Cancel** inside a section to discard only its unsaved edits. Other sections keep their drafts when you save or cancel.
 
-Names, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. **Reset Pending Changes** clears staged edits. Trash appears only when a field has a saved or pending override: it cancels a pending override or stages restoration of the recorded original. Preview and apply to confirm restoration.
+Names, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. Trash appears only when a field has a saved or pending override: it cancels a pending override or stages restoration of the recorded original. Save that section to confirm restoration.
 
 Applied fields that actually changed receive a saved **OVERRIDE** marker. Badges appear only while Edit Mode is enabled, including on the corresponding horse profile values. Original values are recorded before the first tracked override and retained across later edits. Older badge-only overrides show **Not recorded** for their original and cannot be restored automatically; their trash action is disabled.
 
-A preview never rerolls when applied: the server keeps the exact generated results for ten minutes. Changing a selected horse, the configuration, or relevant settings invalidates that preview. Reloading/restarting requires generating another preview. Changes apply together; a stale horse prevents the whole batch from applying.
+Each section save validates and applies its changes together. A stale horse or changed configuration prevents the save; unsaved edits remain available to correct or cancel.
 
 ## Available controls
 

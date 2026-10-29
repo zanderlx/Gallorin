@@ -36,7 +36,13 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   };
   assert.ok(!groups.some(group => group.items.some(([route]) => route === 'dev/horse-updates')));
   const controls = horseOverrideControls(state.horses[0], state, catalog);
-  assert.match(controls, /Preview Changes/);
+  assert.ok(!controls.includes('Preview Changes'));
+  assert.ok(!controls.includes('Reset Pending Changes'));
+  assert.ok(!controls.includes('Review Changes'));
+  assert.equal((controls.match(/data-save-section/g) || []).length, 6);
+  assert.equal((controls.match(/data-cancel-section/g) || []).length, 6);
+  assert.match(controls, /title="Reroll Species"/);
+  assert.ok(!controls.includes('title="Roll '));
   assert.match(controls, /<h2>Horse Overrides<\/h2>/);
   assert.match(controls, /<span>Field<\/span><span>Original<\/span><span>Override<\/span><span>Change<\/span>/);
   assert.ok(!controls.includes('Current Value'));

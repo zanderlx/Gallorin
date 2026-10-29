@@ -70,7 +70,7 @@ function fieldRow(field, catalog, state, horse) {
     <span class="horse-override-proposed" data-override-value>—</span>
     <div class="horse-override-actions">
       <button type="button" class="icon-button" data-edit-override="${field.key}" title="Edit ${field.label}" aria-label="Edit ${field.label}">${raw(icon('edit'))}</button>
-      <button type="button" class="icon-button" data-roll-override="${field.key}" title="Roll ${field.label}" aria-label="Roll ${field.label}" ${field.modes.some(mode => ['reroll', 'refresh'].includes(mode)) ? '' : raw('disabled')}>${raw(icon('shuffle'))}</button>
+      <button type="button" class="icon-button" data-roll-override="${field.key}" title="Reroll ${field.label}" aria-label="Reroll ${field.label}" ${field.modes.some(mode => ['reroll', 'refresh'].includes(mode)) ? '' : raw('disabled')}>${raw(icon('reroll'))}</button>
       <button type="button" class="icon-button" data-remove-override="${field.key}" title="Remove ${field.label} override" aria-label="Remove ${field.label} override" ${horse.overriddenFields?.includes(field.key) ? '' : raw('hidden')}>${raw(icon('trash'))}</button>
     </div>
     <div data-editor hidden><label>Operation<select data-mode aria-label="${field.label} operation">${field.modes.map(mode => html`<option value="${mode}">${modeLabel[mode]}</option>`)}<option value="restore" hidden>Restore Original</option></select></label>
@@ -86,11 +86,11 @@ export function horseOverrideControls(horse, state, catalog) {
   if (!state.settings.horseUpdatesEnabled || !state.horses.some(h => h.id === horse.id)) return '';
   const arrow = html`<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>`;
   return String(html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>
-    <div class="horse-update-rules"><div class="horse-edit-heading"><h2>Horse Overrides</h2><div class="horse-edit-actions"><button type="button" class="button secondary" data-reset-overrides>Reset Pending Changes</button></div></div>
-    ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}</div></details>`)}
-    <div class="form-actions"><button type="submit" class="button primary">${raw(icon('refresh'))} Preview Changes</button></div></div>
+    <div class="horse-update-rules"><div class="horse-edit-heading"><h2>Horse Overrides</h2></div>
+    ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section" data-override-section="${group}"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}<p class="horse-section-status" role="status"></p><div class="form-actions horse-section-actions"><button type="button" class="button primary" data-save-section disabled>Save</button><button type="button" class="button secondary" data-cancel-section disabled>Cancel</button></div></div></details>`)}
+    </div>
     <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
-    <section id="horse-update-preview" aria-live="polite"></section></form>`);
+    </form>`);
 }
 function formatValue(value) {
   if (value === null || value === undefined) return '—';
@@ -103,10 +103,9 @@ function formatValue(value) {
     .join('; ');
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied, notify }) {
-  let token = null,
-    working = false,
+  let working = false,
     editing = null,
-    draftRevision = 0;
+    baselines = new Map();
   const selectedHorse = form => getState().horses.find(h => h.id === form.querySelector('[name=horse]:checked')?.value);
   const editorInputs = editor => [...editor.querySelectorAll('input:not([data-trait-choice]),select,textarea')];
   const snapshot = editor =>
@@ -115,6 +114,18 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       selected: input.multiple ? [...input.selectedOptions].map(o => o.value) : null
     }));
   const displayValue = (key, value) => (key === 'palette' ? value?.name || 'None' : formatValue(value));
+  function syncSection(section) {
+    const dirty = [...section.querySelectorAll('[data-mode]')].some(input => input.value !== 'keep');
+    for (const button of section.querySelectorAll('[data-save-section],[data-cancel-section]'))
+      button.disabled = working || !dirty;
+  }
+  function restoreInputs(editor, saved) {
+    editorInputs(editor).forEach((input, index) => {
+      input.value = saved[index].value;
+      if (input.multiple)
+        for (const option of input.options) option.selected = saved[index].selected.includes(option.value);
+    });
+  }
   function updateRow(row, form) {
     const horse = selectedHorse(form);
     if (!horse) return;
@@ -132,10 +143,11 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
             ? `Level ${input.value} · ${row.querySelector('[data-xp]').value} XP`
             : input.value || 'Empty';
     else if (mode !== 'keep') value = modeLabel[mode];
-    row.querySelector('[data-override-value]').textContent = row.dataset.previewValue || value;
+    row.querySelector('[data-override-value]').textContent = value;
     const remove = row.querySelector('[data-remove-override]');
     remove.hidden = mode === 'restore' || (!saved && mode === 'keep');
     remove.disabled = row.dataset.locked === 'true' || (saved && !horse.overrideOriginals?.[key] && mode === 'keep');
+    syncSection(row.closest('[data-override-section]'));
     remove.title =
       remove.disabled && saved && !horse.overrideOriginals?.[key]
         ? 'Original value was not recorded for this older override'
@@ -205,17 +217,91 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     for (const row of form.querySelectorAll('[data-key]')) updateRow(row, form);
   }
   const invalidate = () => {
-    draftRevision++;
-    token = null;
-    const output = root.querySelector('#horse-update-preview');
-    if (output) output.replaceChildren();
     const form = root.querySelector('#horse-update-form');
-    if (form)
-      for (const row of form.querySelectorAll('[data-key]')) {
-        delete row.dataset.previewValue;
-        updateRow(row, form);
-      }
+    if (form) for (const row of form.querySelectorAll('[data-key]')) updateRow(row, form);
   };
+  function readSectionRules(section) {
+    const rules = {};
+    for (const row of section.querySelectorAll('[data-key]')) {
+      const mode = row.querySelector('[data-mode]').value;
+      if (mode === 'keep') continue;
+      const key = row.dataset.key,
+        rule = { mode },
+        input = row.querySelector('[data-value]');
+      if (mode === 'set') {
+        if (input.tagName === 'SELECT' && !input.multiple && !input.value)
+          throw new Error('Choose a value for ' + row.querySelector('strong').textContent + '.');
+        rule.value = input.multiple ? [...input.selectedOptions].map(option => option.value) : input.value;
+        if (key.startsWith('skill:'))
+          rule.value = { level: Number(input.value), xp: Number(row.querySelector('[data-xp]').value) };
+      }
+      const count = row.querySelector('[data-trait-count]');
+      if (mode === 'reroll' && count?.value.trim()) rule.count = Number(count.value);
+      rules[key] = rule;
+    }
+    return rules;
+  }
+  async function saveSection(form, section) {
+    if (working) return;
+    let rules;
+    try {
+      rules = readSectionRules(section);
+    } catch (error) {
+      section.querySelector('[role=status]').textContent = error.message;
+      return;
+    }
+    if (!Object.keys(rules).length) return;
+    const drafts = new Map(
+      [...form.querySelectorAll('[data-key]')]
+        .filter(row => !section.contains(row) && row.querySelector('[data-mode]').value !== 'keep')
+        .map(row => [row.dataset.key, snapshot(row.querySelector('[data-editor]'))])
+    );
+    const open = new Set(
+      [...form.querySelectorAll('[data-override-section][open]')].map(node => node.dataset.overrideSection)
+    );
+    const scroll = root.querySelector('.profile-scroll-frame')?.scrollTop || 0;
+    const id = selectedHorse(form).id;
+    working = true;
+    for (const node of form.querySelectorAll('[data-override-section]')) syncSection(node);
+    section.querySelector('[role=status]').textContent = 'Saving…';
+    try {
+      const result = await preview({
+        ids: [id],
+        rules,
+        allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS
+      });
+      if (!root.contains(form)) return;
+      const changed = result.preview.items.some(item => item.changes.length);
+      if (changed) await apply({ token: result.preview.token });
+      onApplied();
+      const next = root.querySelector('#horse-update-form');
+      if (!next || selectedHorse(next)?.id !== id) return;
+      const restoreDrafts = () => {
+        for (const row of next.querySelectorAll('[data-key]'))
+          if (drafts.has(row.dataset.key))
+            restoreInputs(row.querySelector('[data-editor]'), drafts.get(row.dataset.key));
+      };
+      restoreDrafts();
+      refreshTraits(next);
+      restoreDrafts();
+      refreshTraits(next);
+      for (const row of next.querySelectorAll('[data-key]')) updateRow(row, next);
+      for (const node of next.querySelectorAll('[data-override-section]'))
+        node.open = open.has(node.dataset.overrideSection);
+      const savedSection = [...next.querySelectorAll('[data-override-section]')].find(
+        node => node.dataset.overrideSection === section.dataset.overrideSection
+      );
+      if (savedSection) savedSection.querySelector('[role=status]').textContent = changed ? 'Saved.' : 'No changes.';
+      const frame = root.querySelector('.profile-scroll-frame');
+      if (frame) frame.scrollTop = scroll;
+    } catch (error) {
+      if (root.contains(section)) section.querySelector('[role=status]').textContent = error.message;
+      notify(error.message, true);
+    } finally {
+      working = false;
+      for (const node of root.querySelectorAll('[data-override-section]')) syncSection(node);
+    }
+  }
   function refreshTraits(form) {
     const catalog = getCatalog(),
       state = getState(),
@@ -290,8 +376,18 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
   });
   root.addEventListener('click', async event => {
     const form = event.target.closest('#horse-update-form');
-    if (form && event.target.closest('[data-reset-overrides]')) {
-      selectHorse(form, selectedHorse(form)?.id);
+    if (form && working) return;
+    const sectionButton = event.target.closest('[data-save-section],[data-cancel-section]');
+    if (form && sectionButton) {
+      const section = sectionButton.closest('[data-override-section]');
+      if (sectionButton.matches('[data-save-section]')) await saveSection(form, section);
+      else {
+        for (const row of section.querySelectorAll('[data-key]'))
+          restoreInputs(row.querySelector('[data-editor]'), baselines.get(row.dataset.key));
+        refreshTraits(form);
+        for (const row of form.querySelectorAll('[data-key]')) updateRow(row, form);
+        section.querySelector('[role=status]').textContent = '';
+      }
       return;
     }
     const roll = event.target.closest('[data-roll-override]');
@@ -402,125 +498,14 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       finishEdit(form, true);
       return;
     }
-    const button = event.target.closest('[data-apply-horse-updates]');
-    if (!button || working || !token) return;
-    working = true;
-    button.disabled = true;
-    try {
-      await apply({ token });
-      token = null;
-      onApplied();
-      notify('Horse overrides applied. Backup saved.');
-    } catch (error) {
-      invalidate();
-      notify(error.message, true);
-    } finally {
-      working = false;
-      button.disabled = false;
-    }
   });
   root.addEventListener(
     'submit',
-    async event => {
-      const form = event.target;
-      if (form.id !== 'horse-update-form') return;
+    event => {
+      if (event.target.id !== 'horse-update-form') return;
       event.preventDefault();
       event.stopPropagation();
-      if (editing) {
-        form.querySelector('[data-save-override]').click();
-        return;
-      }
-      if (working) return;
-      invalidate();
-      const revision = draftRevision;
-      working = true;
-      const button = form.querySelector('[type=submit]');
-      button.disabled = true;
-      try {
-        const rules = {};
-        for (const row of form.querySelectorAll('[data-key]')) {
-          const mode = row.querySelector('[data-mode]').value;
-          if (mode === 'keep') continue;
-          const key = row.dataset.key,
-            rule = { mode },
-            input = row.querySelector('[data-value]');
-          if (mode === 'set') {
-            if (input.tagName === 'SELECT' && !input.multiple && !input.value)
-              throw new Error('Choose a value for ' + row.querySelector('strong').textContent + '.');
-            rule.value = input.multiple ? [...input.selectedOptions].map(o => o.value) : input.value;
-            if (key === 'favorite') rule.value = rule.value === 'true';
-            if (key === 'daysOwned') rule.value = input.value.trim() ? Number(input.value) : NaN;
-            if (key.startsWith('skill:'))
-              rule.value = {
-                level: input.value.trim() ? Number(input.value) : NaN,
-                xp: row.querySelector('[data-xp]').value.trim() ? Number(row.querySelector('[data-xp]').value) : NaN
-              };
-          }
-          const count = row.querySelector('[data-trait-count]');
-          if (mode === 'reroll' && count?.value.trim()) rule.count = Number(count.value);
-          rules[key] = rule;
-        }
-        const result = await preview({
-          ids: [...form.querySelectorAll('[name=horse]:checked')].map(i => i.value),
-          rules,
-          allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS
-        });
-        if (revision !== draftRevision || !root.contains(form)) return;
-        token = result.preview.token;
-        const proposed = structuredClone(selectedHorse(form));
-        for (const change of result.preview.items[0]?.changes || [])
-          if (change.field !== 'Override status') proposed[change.field] = change.after;
-        for (const row of form.querySelectorAll('[data-key]'))
-          if (row.querySelector('[data-mode]').value !== 'keep') {
-            row.dataset.previewValue = displayValue(row.dataset.key, horseOverrideValue(proposed, row.dataset.key));
-            updateRow(row, form);
-          }
-        const changed = result.preview.items.filter(item => item.changes.length);
-        // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-        root.querySelector('#horse-update-preview').innerHTML =
-          '<section class="panel"><h2>Review Changes</h2><p>' +
-          changed.length +
-          ' of ' +
-          result.preview.items.length +
-          ' horses will change. Nothing has been applied. Preview expires in 10 minutes.</p>' +
-          result.preview.items
-            .map(
-              item =>
-                '<details open><summary>' +
-                e(item.name) +
-                ' · Revision ' +
-                item.revision +
-                '</summary>' +
-                item.warnings.map(w => '<p class="horse-update-warning">' + e(w) + '</p>').join('') +
-                (item.changes.length
-                  ? '<div class="horse-update-table-wrap"><table><thead><tr><th>Field</th><th>Current</th><th>Proposed</th></tr></thead><tbody>' +
-                    item.changes
-                      .map(
-                        c =>
-                          '<tr><th>' +
-                          e(c.field) +
-                          '</th><td>' +
-                          e(formatValue(c.before)) +
-                          '</td><td>' +
-                          e(formatValue(c.after)) +
-                          '</td></tr>'
-                      )
-                      .join('') +
-                    '</tbody></table></div>'
-                  : '<p>No changes.</p>') +
-                '</details>'
-            )
-            .join('') +
-          (changed.length
-            ? '<div class="form-actions"><button type="button" class="button primary" data-apply-horse-updates>Apply Reviewed Changes</button></div>'
-            : '') +
-          '</section>';
-      } catch (error) {
-        notify(error.message, true);
-      } finally {
-        working = false;
-        button.disabled = false;
-      }
+      if (editing) event.target.querySelector('[data-save-override]').click();
     },
     true
   );
@@ -529,7 +514,15 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       editing = null;
       invalidate();
       const form = root.querySelector('#horse-update-form');
-      if (form) selectHorse(form, form.querySelector('[name=horse]').value);
+      if (form) {
+        selectHorse(form, form.querySelector('[name=horse]').value);
+        baselines = new Map(
+          [...form.querySelectorAll('[data-key]')].map(row => [
+            row.dataset.key,
+            snapshot(row.querySelector('[data-editor]'))
+          ])
+        );
+      }
     }
   };
 }

@@ -58,6 +58,8 @@ export const icons = {
   settings: '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/>',
   spark: '<path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Zm7 0v4m-2-2h4"/>',
   arrow: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
+  reroll:
+    '<path d="M20.5 8A9 9 0 0 0 5 5L3 7m0-4v4h4m-3.5 9A9 9 0 0 0 19 19l2-2m0 4v-4h-4"/><rect x="8" y="8" width="8" height="8" rx="1.5"/><path d="M10.5 10.5h.01M13.5 13.5h.01M12 12h.01" stroke-width="2.5"/>',
   shuffle: '<path d="m16 3 4 4-4 4m0 2 4 4-4 4M4 7h3c4 0 6 10 10 10h3M4 17h3c2 0 3-2 5-5m2-3c1-1 2-2 3-2h3"/>',
   refresh: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1"/>',
   coin: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><path d="m12 8 3 4-3 4-3-4Z"/>',
