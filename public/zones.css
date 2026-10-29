@@ -405,7 +405,7 @@ main {
 }
 .zone-species-controls {
   display: grid;
-  grid-template-columns: minmax(140px, 2fr) repeat(3, minmax(100px, 1fr));
+  grid-template-columns: minmax(140px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
   gap: 12px;
   align-items: end;
   padding: 0 16px 0 4px;
@@ -413,6 +413,14 @@ main {
 .zone-species-controls input,
 .zone-species-controls select {
   min-width: 0;
+  height: 48px;
+}
+.zone-species-controls .definition-sort-controls .zone-field {
+  flex: 1;
+}
+.zone-species-controls .definition-sort-controls .sort-direction {
+  height: 48px;
+  margin-bottom: 16px;
 }
 .zone-spawn-list {
   display: grid;

@@ -639,6 +639,11 @@ document.addEventListener('click', async event => {
     updateZonePalettes($('#zone-form'), catalog);
     return;
   }
+  if (intent === 'zone-species-sort-direction') {
+    button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+    updateZoneSpecies($('#zone-form'), catalog);
+    return;
+  }
   if (intent === 'mutation-sort-direction') {
     button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
     updateMutationGrid(main, catalog);
@@ -1149,7 +1154,9 @@ document.addEventListener('change', async event => {
     $('#zone-form [data-action="zone-palette-sort-direction"]').dataset.direction = 'asc';
   if (['zone-palette-type', 'zone-palette-sort'].includes(event.target.id))
     updateZonePalettes($('#zone-form'), catalog);
-  if (['zone-species-rarity', 'zone-species-sort', 'zone-species-direction'].includes(event.target.id))
+  if (event.target.id === 'zone-species-sort')
+    $('#zone-form [data-action="zone-species-sort-direction"]').dataset.direction = 'asc';
+  if (['zone-species-rarity', 'zone-species-sort'].includes(event.target.id))
     updateZoneSpecies($('#zone-form'), catalog);
   if (event.target.form?.id === 'zone-form' && event.target.name === 'atmosphere') {
     applyZonePreset(event.target.form, catalog);
