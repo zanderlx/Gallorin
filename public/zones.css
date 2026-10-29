@@ -493,8 +493,7 @@ main {
     box-shadow 180ms ease,
     border-color 180ms ease;
 }
-.zones-manager .zone-card:hover,
-.zones-manager .zone-card:focus-within {
+.zones-manager .zone-card:hover {
   transform: translateY(-6px);
   box-shadow:
     0 16px 28px #0007,
@@ -514,15 +513,13 @@ main {
   cursor: pointer;
 }
 .zone-card-open:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: -4px;
+  box-shadow: inset 0 0 0 2px var(--gold);
 }
 @media (prefers-reduced-motion: reduce) {
   .zones-manager .zone-card {
     transition: none;
   }
-  .zones-manager .zone-card:hover,
-  .zones-manager .zone-card:focus-within {
+  .zones-manager .zone-card:hover {
     transform: none;
   }
 }
