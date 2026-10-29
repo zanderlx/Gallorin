@@ -550,12 +550,14 @@ main {
 }
 .zone-palette-controls :is(input, select) {
   min-width: 0;
+  height: 48px;
 }
 .zone-palette-controls .definition-sort-controls .zone-field {
   flex: 1;
 }
 .zone-palette-controls .definition-sort-controls .sort-direction {
   margin-bottom: 16px;
+  height: 48px;
 }
 .zone-palette-results {
   max-height: 460px;
@@ -574,6 +576,7 @@ main {
 .zone-palette-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  grid-auto-rows: 1fr;
   gap: 10px;
 }
 .zone-palette-card {
@@ -594,7 +597,8 @@ main {
 }
 .zone-palette-card-title {
   display: flex;
-  align-items: center;
+  flex: 1;
+  align-items: flex-start;
   gap: 10px;
   font: 16px var(--serif);
   overflow-wrap: anywhere;
