@@ -670,3 +670,21 @@ main {
     grid-column: 1 / -1;
   }
 }
+
+.zone-editor-dialog .color-control {
+  color: var(--gold);
+}
+.zone-editor-dialog .color-inputs {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.zone-editor-dialog .color-inputs input[type='color'] {
+  width: 72px;
+  flex: 0 0 72px;
+}
+.zone-editor-dialog .color-inputs input[data-color-hex] {
+  width: 112px;
+  flex: 0 0 112px;
+  height: 42px;
+}
