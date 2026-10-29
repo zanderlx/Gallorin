@@ -5,6 +5,7 @@ import { locationsFor } from './zones.js';
 import { zoneCreatures, defaultSpawnSettings, rarityTier } from './spawn-config.js';
 import { formBaseline, formSignature } from './form-state.js';
 import { raritySettings } from './rarity-settings.js';
+import { speciesPalettesPanel } from './species-palettes.js';
 
 export function speciesDeleteConfirmation(name) {
   return html`<div class="dialog-top"><h2 id="confirm-title">Delete ${name}</h2></div><p class="delete-warning">Are you sure you want to delete this species?</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>Cancel</button><button class="button primary" data-action="confirm-delete">Delete Species</button></div>`;
@@ -114,7 +115,7 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
   const appearance = raritySettings(catalog);
   const rarityColor = entry => appearance.colors[rarityName(entry).toLowerCase().replaceAll(' ', '-')] || 'var(--text)';
   const species = draft || sortSpeciesEntries(catalog.species, sort, direction)[0] || draftDefinition('species');
-  if (!species.id || !['overview', 'traits', 'zones'].includes(tab)) tab = 'overview';
+  if (!species.id || !['overview', 'traits', 'palettes', 'zones'].includes(tab)) tab = 'overview';
   return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
     <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field">Find A Species<input id="definition-search" type="search" placeholder="Search species…"></label>
     <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label><button type="button" class="icon-button sort-direction species-sort-direction" data-action="species-sort-direction" data-direction="${direction}" aria-label="${direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending'}" title="${direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending'}">${raw(icon('arrow'))}</button></div>
@@ -122,12 +123,13 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
     <section class="species-detail"><div class="species-detail-heading"><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
       ['traits', 'Traits'],
+      ['palettes', 'Palettes'],
       ['zones', 'Zones']
     ].map(
       ([key, label]) =>
         html`<button type="button" role="tab" id="species-tab-${key}" tabindex="${key === tab ? 0 : -1}" aria-selected="${key === tab}" aria-controls="species-tab-panel" data-action="species-tab" data-tab="${key}" ${!species.id && key !== 'overview' ? html`disabled` : ''}>${label}</button>`
     )}</div></div>
-    <div id="species-tab-panel" role="tabpanel" aria-labelledby="species-tab-${tab}">${!species.id ? html`<p>Save this species to manage its traits and view spawning.</p>` : ''}${tab === 'traits' ? raw(traitsEditorPage(catalog, species.id, true)) : tab === 'zones' ? spawningPanel(species, catalog, state) : overviewForm(species, catalog)}</div></section></div></div>`);
+    <div id="species-tab-panel" role="tabpanel" aria-labelledby="species-tab-${tab}">${!species.id ? html`<p>Save this species to manage its traits and view spawning.</p>` : ''}${tab === 'traits' ? raw(traitsEditorPage(catalog, species.id, true)) : tab === 'palettes' ? speciesPalettesPanel(species, catalog) : tab === 'zones' ? spawningPanel(species, catalog, state) : overviewForm(species, catalog)}</div></section></div></div>`);
 }
 
 export function syncSpeciesControls(root) {

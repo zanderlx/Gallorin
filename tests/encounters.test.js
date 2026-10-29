@@ -32,6 +32,15 @@ const sequence = (values, fallback = 0.5) => {
   return () => (i < values.length ? values[i++] : fallback);
 };
 
+test('Wild spawning keeps species palettes across zones while adding each zone palette', () => {
+  const c = structuredClone(catalog);
+  c.species[0].palettePool = ['Gold'];
+  c.palettes.push({ ...c.palettes[0], id: 'blue', name: 'Blue', global: false, speciesIds: ['another-species'] });
+  assert.equal(spawnHorse(c, { ...location, palettePool: [] }, () => 0.5).palette.name, 'Gold');
+  assert.equal(spawnHorse(c, { ...location, palettePool: ['Blue'] }, () => 0.5).palette.name, 'Blue');
+  assert.equal(spawnHorse(c, { ...location, palettePool: ['Gold'] }, () => 0.5).palette.name, 'Gold');
+});
+
 test('spawning uses species trait rules for wild and Cosmic horses', () => {
   const c = structuredClone(catalog);
   for (const s of c.species)

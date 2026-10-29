@@ -1,7 +1,11 @@
 export function formSignature(form) {
   return JSON.stringify(
     [...form.elements]
-      .filter(el => ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) && (form.id !== 'zone-form' || el.name))
+      .filter(
+        el =>
+          ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) &&
+          (!['zone-form', 'species-palettes-form'].includes(form.id) || el.name)
+      )
       .map(el => [
         el.name,
         el.type === 'checkbox' || el.type === 'radio'
@@ -25,7 +29,7 @@ export function updateFormState(form) {
 }
 export function trackForms(root) {
   for (const form of root.querySelectorAll(
-    '#rarity-settings-form,#traits-form,#settings-form,#spawn-settings-form,#economy-form,#gold-form,#keeper-form,#horse-description-form,#horse-notes-form,#definition-form,#zone-form'
+    '#rarity-settings-form,#traits-form,#species-palettes-form,#settings-form,#spawn-settings-form,#economy-form,#gold-form,#keeper-form,#horse-description-form,#horse-notes-form,#definition-form,#zone-form'
   )) {
     if (!baselines.has(form)) baselines.set(form, formSignature(form));
     updateFormState(form);

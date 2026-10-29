@@ -393,6 +393,7 @@ export function validateDefinition(kind, input) {
       throw new Error('System IDs use letters, digits, underscores, and hyphens.');
   }
   if (kind === 'species') {
+    if (input.palettePool !== undefined) result.palettePool = strings('palettePool');
     const tier = input.rarityTier ?? 4;
     if (!Number.isInteger(tier) || tier < 0 || tier > 4)
       throw new Error('Choose a valid rarity from Common through Cosmic.');

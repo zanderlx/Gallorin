@@ -132,6 +132,31 @@ async function add(store, kind, values) {
   return store.getCatalog()[kind].at(-1);
 }
 
+test('species palettes persist, survive overview edits, and follow palette renames and deletion', async t => {
+  const { directory, store } = await fixture(t);
+  const species = store.getCatalog().species[0];
+  const palette = store.getCatalog().palettes.find(p => p.complete && !p.cosmicType);
+  const other = store.getCatalog().species[1];
+  const save = values => store.action('save-definition', { kind: 'species', id: species.id, values });
+  await save({ ...species, palettePool: [palette.name] });
+  const { palettePool: ignored, ...overview } = store.getCatalog().species.find(s => s.id === species.id);
+  assert.deepEqual(ignored, [palette.name]);
+  await save({ ...overview, description: 'Updated description' });
+  let loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === species.id).palettePool, [palette.name]);
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === other.id).palettePool, other.palettePool);
+  await assert.rejects(save({ ...species, palettePool: ['Unknown palette'] }), /complete, non-Cosmic/);
+  await store.action('save-definition', {
+    kind: 'palettes',
+    id: palette.id,
+    values: { ...palette, name: 'Renamed species palette' }
+  });
+  assert.deepEqual(store.getCatalog().species.find(s => s.id === species.id).palettePool, ['Renamed species palette']);
+  await store.action('delete-definition', { kind: 'palettes', id: palette.id });
+  loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === species.id).palettePool, []);
+});
+
 test('trait CRUD stays species-scoped, preserves horse snapshots and persists deletions', async t => {
   const { directory, store } = await fixture(t);
   const first = store.getCatalog().species[0];

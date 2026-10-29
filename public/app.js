@@ -11,7 +11,7 @@ import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
-import { setZoneSelection, zoneAllSelected } from './zone-selection.js';
+import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
 import { handleInvalidHex, validHex } from './hex-inputs.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
@@ -636,13 +636,17 @@ document.addEventListener('click', async event => {
   if (intent === 'zone-toggle-all') {
     const form = button.closest('form');
     setZoneSelection(form, button.dataset.pool, !zoneAllSelected(form, button.dataset.pool));
-    syncZoneEditor(form, catalog, readZoneForm(form));
+    if (form.id === 'species-palettes-form') {
+      updateZonePalettes(form, catalog);
+      syncZoneSelectionButtons(form);
+      syncSpeciesControls(main);
+    } else syncZoneEditor(form, catalog, readZoneForm(form));
     updateFormState(form);
     return;
   }
   if (intent === 'zone-palette-sort-direction') {
     button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
-    updateZonePalettes($('#zone-form'), catalog);
+    updateZonePalettes(button.closest('form'), catalog);
     return;
   }
   if (intent === 'zone-species-sort-direction') {
@@ -983,6 +987,7 @@ document.addEventListener('submit', async event => {
       'zone-form',
       'definition-form',
       'traits-form',
+      'species-palettes-form',
       'rarity-settings-form'
     ].includes(form.id)
   )
@@ -1008,6 +1013,15 @@ document.addEventListener('submit', async event => {
       await action('rarity-settings', readRaritySettings(form));
       render();
       notify('Rarity colors saved.');
+    } else if (form.id === 'species-palettes-form') {
+      const species = catalog.species.find(s => s.id === form.dataset.id);
+      const palettePool = [...form.querySelectorAll('[name="palettePool"]:checked')].map(input => input.value);
+      await action('save-definition', { kind: 'species', id: species.id, values: { ...species, palettePool } });
+      showSpecies(
+        catalog.species.find(s => s.id === species.id),
+        'palettes'
+      );
+      notify('Species palettes saved.');
     } else if (form.id === 'traits-form') {
       const payload = readTraitsForm(form);
       await action('save-traits', payload);
@@ -1138,6 +1152,7 @@ document.addEventListener('input', event => {
   }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
   if (event.target.matches('[data-zone-palette-choice]')) syncZonePaletteChoice(event.target.form, event.target);
+  if (event.target.form?.id === 'species-palettes-form') syncZoneSelectionButtons(event.target.form);
   updateFormState(event.target.form);
   syncSpeciesControls(main);
   if (event.target.id === 'eye-search') updateEyeGrid(main, catalog);
@@ -1152,16 +1167,16 @@ document.addEventListener('input', event => {
   }
   if (event.target.closest('#zone-form')) syncZoneEditor($('#zone-form'), catalog, readZoneForm($('#zone-form')));
   if (event.target.id === 'zone-species-search') updateZoneSpecies($('#zone-form'), catalog);
-  if (event.target.id === 'zone-palette-search') updateZonePalettes($('#zone-form'), catalog);
+  if (event.target.id === 'zone-palette-search') updateZonePalettes(event.target.form, catalog);
   if (event.target.id === 'horse-search') updateStableSort();
   if (event.target.id === 'palette-search') updatePaletteGrid(main, catalog);
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);
 });
 document.addEventListener('change', async event => {
   if (event.target.id === 'zone-palette-sort')
-    $('#zone-form [data-action="zone-palette-sort-direction"]').dataset.direction = 'asc';
+    event.target.form.querySelector('[data-action="zone-palette-sort-direction"]').dataset.direction = 'asc';
   if (['zone-palette-type', 'zone-palette-sort'].includes(event.target.id))
-    updateZonePalettes($('#zone-form'), catalog);
+    updateZonePalettes(event.target.form, catalog);
   if (event.target.id === 'zone-species-sort')
     $('#zone-form [data-action="zone-species-sort-direction"]').dataset.direction =
       event.target.value === 'weight' ? 'desc' : 'asc';
@@ -1215,6 +1230,14 @@ document.addEventListener('change', async event => {
     updateStableSort(['recent', 'rarity', 'favorites'].includes(event.target.value) ? 'desc' : 'asc');
 });
 document.addEventListener('reset', event => {
+  if (event.target.id === 'species-palettes-form') {
+    event.preventDefault();
+    showSpecies(
+      catalog.species.find(s => s.id === event.target.dataset.id),
+      'palettes'
+    );
+    return;
+  }
   if (event.target.id === 'traits-form') {
     event.preventDefault();
     showSpecies(

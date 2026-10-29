@@ -1,5 +1,5 @@
 // @ts-check
-import { regularEyes, isCosmicEye } from '../public/cosmic-types.js';
+import { regularEyes, isCosmicEye, isCosmicPalette } from '../public/cosmic-types.js';
 import { limits, formatLimit } from '../public/limits.js';
 import { withLocalDefaults } from '../public/local-defaults.js';
 import { regenerateHorse, horseFingerprint } from './horse-regeneration.js';
@@ -564,6 +564,9 @@ export class GameStore {
         if (kind === 'species')
           for (const palette of catalog.palettes)
             palette.speciesIds = (palette.speciesIds || []).filter(sid => sid !== id);
+        if (kind === 'palettes')
+          for (const species of catalog.species)
+            if (species.palettePool) species.palettePool = species.palettePool.filter(name => name !== entry.name);
         if (kind === 'atmospheres')
           for (const zone of [...catalog.locations, ...next.customLocations])
             if (zone.atmosphere === id) zone.atmosphere = catalog.atmospheres[0].id;
@@ -682,7 +685,12 @@ export class GameStore {
           ? {
               ...values,
               systemId: existing?.systemId || randomUUID(),
-              ...(kind === 'species' ? { attributes: values.attributes ?? existing?.attributes ?? {} } : {})
+              ...(kind === 'species'
+                ? {
+                    attributes: values.attributes ?? existing?.attributes ?? {},
+                    palettePool: values.palettePool ?? existing?.palettePool
+                  }
+                : {})
             }
           : values;
         const definition = validateDefinition(
@@ -713,6 +721,10 @@ export class GameStore {
           for (const location of [...catalog.locations, ...next.customLocations]) {
             location[pool] = location[pool].map(name => (name === existing.name ? updated.name : name));
           }
+          if (kind === 'palettes')
+            for (const species of catalog.species)
+              if (species.palettePool)
+                species.palettePool = species.palettePool.map(name => (name === existing.name ? updated.name : name));
         }
         if (kind === 'mutations' && !['Cosmic', 'Mutated'].includes(updated.type))
           for (const cosmic of catalog.spawning.cosmic) if (cosmic.mutationId === updated.id) cosmic.chance = 0;
@@ -724,6 +736,12 @@ export class GameStore {
         if (kind === 'palettes' && updated.speciesIds.some(sid => !catalog.species.some(s => s.id === sid)))
           throw new Error('Choose registered species for this palette.');
         if (kind === 'species') {
+          if (
+            updated.palettePool?.some(
+              name => !catalog.palettes.some(p => p.name === name && p.complete && !isCosmicPalette(p))
+            )
+          )
+            throw new Error('Choose complete, non-Cosmic palettes.');
           const locations = [...catalog.locations, ...next.customLocations];
           if (
             values.zoneIds !== undefined &&

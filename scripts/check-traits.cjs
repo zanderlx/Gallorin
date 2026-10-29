@@ -66,6 +66,59 @@ const deadline = setTimeout(() => {
     app.exit(0);
   };
   await wait(() => !!document.querySelector('.species-manager'));
+  if (process.argv.includes('--species-palettes-only')) {
+    await run(() => document.querySelector('#species-tab-palettes').click());
+    await wait(() => !!document.querySelector('#species-palettes-form'));
+    await run(() => {
+      const form = document.querySelector('#species-palettes-form');
+      if (form.querySelector('details')) throw new Error('Species palettes should be inline');
+      const toggle = form.querySelector('[data-action="zone-toggle-all"]');
+      toggle.click();
+      if (!form.querySelector('[name="palettePool"]:checked')) throw new Error('Select all failed');
+      const search = form.querySelector('#zone-palette-search');
+      search.value = 'no matching palette';
+      search.dispatchEvent(new Event('input', { bubbles: true }));
+      if (!form.querySelector('[name="palettePool"]:checked')) throw new Error('Search lost selections');
+      toggle.click();
+      if (form.querySelector('[name="palettePool"]:checked')) throw new Error('Unselect all missed filtered palettes');
+      form.querySelector('[type="reset"]').click();
+    });
+    await wait(() => !!document.querySelector('#species-palettes-form'));
+    await run(() => {
+      const form = document.querySelector('#species-palettes-form');
+      const choice = form.querySelector('[data-zone-palette-choice]');
+      const sort = form.querySelector('#zone-palette-sort');
+      sort.value = 'name';
+      sort.dispatchEvent(new Event('change', { bubbles: true }));
+      const direction = form.querySelector('[data-action="zone-palette-sort-direction"]');
+      direction.click();
+      if (direction.dataset.direction !== 'desc') throw new Error('Palette direction did not change');
+      const type = form.querySelector('#zone-palette-type');
+      if (type.options.length > 1) {
+        type.selectedIndex = 1;
+        type.dispatchEvent(new Event('change', { bubbles: true }));
+        type.selectedIndex = 0;
+        type.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      const currentChoice = form.querySelector(`[data-zone-palette-choice="${choice.dataset.zonePaletteChoice}"]`);
+      document.body.dataset.paletteTestId = currentChoice.dataset.zonePaletteChoice;
+      document.body.dataset.paletteTestChecked = String(!currentChoice.checked);
+      currentChoice.click();
+      form.querySelector('[type="submit"]').click();
+    });
+    await wait(() => !!document.querySelector('#species-palettes-form [type="submit"][hidden]'));
+    await run(() => document.querySelector('#species-tab-overview').click());
+    await wait(() => !!document.querySelector('#definition-form'));
+    await run(() => document.querySelector('#species-tab-palettes').click());
+    await wait(() => !!document.querySelector('#species-palettes-form'));
+    await run(() => {
+      const choice = document.querySelector(`[data-zone-palette-choice="${document.body.dataset.paletteTestId}"]`);
+      if (String(choice.checked) !== document.body.dataset.paletteTestChecked)
+        throw new Error('Saved palette selection was lost');
+    });
+    await finish('Species palette controls and save check');
+    return;
+  }
   if (process.argv.includes('--nav-scrollbar-only')) {
     await run(() => {
       const root = document.documentElement;

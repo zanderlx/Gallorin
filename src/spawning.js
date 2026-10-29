@@ -1,10 +1,10 @@
 // @ts-check
 import { regularEyes } from '../public/cosmic-types.js';
 import { isUnusedTraitCategory } from '../public/unused-traits.js';
+import { eligibleSpeciesPalettes } from '../public/species-palette-rules.js';
 import { rollHorseTrait } from './horse-trait-generation.js';
 import { horseSchemaVersion, horseGenerationVersion } from '../public/horse-version.js';
 import { varyPalette } from '../public/palette-variation.js';
-import { isCosmicPalette } from '../public/cosmic-types.js';
 import { randomInt, randomUUID } from 'node:crypto';
 import { cosmicPalette } from './cosmic-palettes.js';
 import { readHorseSkills } from '../public/skill-progress.js';
@@ -89,13 +89,7 @@ export function spawnHorse(catalog, location, rng = randomFloat) {
   const mutations = rollMutations(catalog, species, cosmic, settings, rng);
   const gender = rng() * 100 < settings.maleChance ? 'Male' : 'Female';
   const size = rollSize(mutations, settings, rng);
-  const palettes = catalog.palettes.filter(
-    p =>
-      p.complete &&
-      !isCosmicPalette(p) &&
-      (p.global !== false || p.speciesIds?.includes(species.id)) &&
-      (cosmic || location.palettePool.includes(p.name))
-  );
+  const palettes = eligibleSpeciesPalettes(catalog, species, location, !!cosmic);
   const matchedPalette = cosmicPalette({ specialSpawn: cosmic?.name, mutations }, catalog);
   if (!matchedPalette && !palettes.length)
     throw new Error(`No eligible palette for ${species.name} in ${location.name || location.id}.`);
