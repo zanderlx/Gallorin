@@ -63,17 +63,11 @@ test('palette browsing preserves named zone selections and does not mark the for
     setAttribute() {}
   };
   const results = {};
-  const count = {};
   const form = {
     id: 'zone-form',
     elements: [...inputs, ...Object.values(controls)],
     querySelectorAll: selector => (selector.includes(':checked') ? inputs.filter(i => i.checked) : inputs),
-    querySelector: selector =>
-      selector === '#zone-palette-results'
-        ? results
-        : selector === '[data-zone-palette-result-count]'
-          ? count
-          : controls[selector]
+    querySelector: selector => (selector === '#zone-palette-results' ? results : controls[selector])
   };
   const baseline = formSignature(form);
   controls['#zone-palette-type'].value = 'Carnival';
@@ -90,7 +84,6 @@ test('palette browsing preserves named zone selections and does not mark the for
   controls['#zone-palette-search'].value = 'abc123';
   updateZonePalettes(form, catalog);
   assert.match(results.innerHTML, /Include Gold" checked/);
-  assert.equal(count.textContent, '1 palette');
   controls['#zone-palette-search'].value = 'missing';
   updateZonePalettes(form, catalog);
   assert.match(results.innerHTML, /No palettes match/);

@@ -35,7 +35,7 @@ export function zonePalettePicker(catalog, selected) {
   const entries = zonePaletteOptions(catalog);
   return html`<div hidden data-zone-palette-pool>${entries.map(p => html`<input type="checkbox" name="palettePool" data-zone-palette-id="${p.id}" value="${p.name}" ${selected.includes(p.name) ? html`checked` : ''}>`)}</div>
   <div class="zone-palette-controls"><label class="zone-field zone-palette-search">Search palettes<input id="zone-palette-search" type="search" placeholder="Search name, color, or type…"></label><label class="zone-field">Type<select id="zone-palette-type"><option value="">All Types</option>${paletteGroups(entries).map(group => html`<option value="${group}">${group}</option>`)}</select></label><div class="definition-sort-controls"><label class="zone-field">Sort By<select id="zone-palette-sort"><option value="group">Type</option><option value="name">Name</option></select></label><button type="button" class="icon-button sort-direction" data-action="zone-palette-sort-direction" data-direction="asc" aria-label="Ascending order. Switch to descending" title="Ascending order. Switch to descending">${raw(icon('arrow'))}</button></div></div>
-  <p class="preview-note" data-zone-palette-result-count role="status">${entries.length} ${entries.length === 1 ? 'palette' : 'palettes'}</p><div id="zone-palette-results" class="zone-palette-results">${zonePaletteResults(filterPalettes(entries), selected)}</div>`;
+  <div id="zone-palette-results" class="zone-palette-results">${zonePaletteResults(filterPalettes(entries), selected)}</div>`;
 }
 
 export function syncZonePaletteChoice(form, choice) {
@@ -62,6 +62,4 @@ export function updateZonePalettes(form, catalog) {
   );
   // Named selection inputs stay outside the filtered view so browsing never drops selections.
   setHTML(form.querySelector('#zone-palette-results'), zonePaletteResults(entries, selected, sort, direction));
-  form.querySelector('[data-zone-palette-result-count]').textContent =
-    `${entries.length} ${entries.length === 1 ? 'palette' : 'palettes'}`;
 }
