@@ -1,6 +1,7 @@
 // @ts-check
 import { regularEyes } from '../public/cosmic-types.js';
 import { isUnusedTraitCategory } from '../public/unused-traits.js';
+import { rollHorseTrait } from './horse-trait-generation.js';
 import { horseSchemaVersion, horseGenerationVersion } from '../public/horse-version.js';
 import { varyPalette } from '../public/palette-variation.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
@@ -105,10 +106,7 @@ export function spawnHorse(catalog, location, rng = randomFloat) {
   const traits = Object.fromEntries(
     Object.entries(availableTraits)
       .filter(([category]) => !isUnusedTraitCategory(category))
-      .map(([category, values]) => {
-        const selected = values.length ? pickUniform(values, rng) : null;
-        return [category, selected && selected !== 'None' ? [selected] : []];
-      })
+      .map(([category, values]) => [category, rollHorseTrait(category, values, species, !!cosmic, rng)])
   );
   for (const category of ['Mane', 'Tail']) if (!traits[category]?.length) traits[category] = ['Awaiting species data'];
   const variedPalette = varyPalette(palette, rng, palette.variationPercent ?? settings.paletteVariationPercent ?? 25);

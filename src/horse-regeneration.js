@@ -7,6 +7,7 @@ import { varyPalette } from '../public/palette-variation.js';
 import { regularEyes } from '../public/cosmic-types.js';
 import { isCosmicPalette } from '../public/cosmic-types.js';
 import { horseUpdateFields, horseTraitLimits } from '../public/horse-update-fields.js';
+import { rollHorseTrait, traitChoices, traitCountRange } from './horse-trait-generation.js';
 import { horseGenerationVersion } from '../public/horse-version.js';
 import { readHorseSkills } from '../public/skill-progress.js';
 import { updateHorseField, validateHorseName } from '../public/horse-fields.js';
@@ -142,7 +143,8 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   // A species change must not silently retain traits that belong to another species.
   for (const [category, max] of Object.entries(horseTraitLimits)) {
     const key = 'trait:' + category,
-      values = (species.traits?.[category] || []).filter(v => v && v !== 'None' && v !== 'Awaiting species data');
+      values = traitChoices(species.traits?.[category]);
+    const range = traitCountRange(category, species, !!identity, values.length);
     const existing = horse.traits?.[category] || [];
     if (active('species') && !active(key) && existing.some(v => v !== 'Awaiting species data' && !values.includes(v)))
       throw new Error('Changing species requires updating incompatible ' + category + ' traits.');
@@ -152,12 +154,10 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       const chosen = Array.isArray(rule(key).value) ? rule(key).value : [rule(key).value];
       if (chosen.length > max || new Set(chosen).size !== chosen.length || chosen.some(v => !values.includes(v)))
         throw new Error('Choose valid ' + category + ' traits for ' + species.name + '.');
-      if (['Mane', 'Tail'].includes(category) && !chosen.length && values.length)
-        throw new Error(category + ' requires one trait.');
+      if (chosen.length < range.min) throw new Error(category + ' requires ' + range.min + ' trait(s).');
       horse.traits[category] = chosen;
     } else if (rule(key).mode === 'clear') {
-      if (['Mane', 'Tail'].includes(category) && values.length)
-        throw new Error(category + ' requires one trait; choose reroll or a value.');
+      if (range.min) throw new Error(category + ' requires ' + range.min + ' trait(s); choose reroll or a value.');
       horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
     } else {
       if (!values.length) {
@@ -167,23 +167,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
         } else warnings.push(species.name + ' has no ' + category + ' definitions; saved traits were kept.');
         continue;
       }
-      let count = ['Mane', 'Tail'].includes(category) ? 1 : Math.floor(rng() * (Math.min(max, values.length) + 1));
-      if (rule(key).count !== undefined) {
-        count = rule(key).count;
-        if (
-          !Number.isInteger(count) ||
-          count < (['Mane', 'Tail'].includes(category) ? 1 : 0) ||
-          count > Math.min(max, values.length)
-        )
-          throw new Error('Invalid ' + category + ' trait count.');
-      }
-      const pool = [...values];
-      horse.traits[category] = [];
-      while (count-- > 0) {
-        const selected = pickUniform(pool, rng);
-        horse.traits[category].push(selected);
-        pool.splice(pool.indexOf(selected), 1);
-      }
+      horse.traits[category] = rollHorseTrait(category, values, species, !!identity, rng, rule(key).count);
     }
   }
   if (active('species') || Object.keys(horseTraitLimits).some(c => active('trait:' + c)))

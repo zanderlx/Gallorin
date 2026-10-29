@@ -31,6 +31,32 @@ const sequence = (values, fallback = 0.5) => {
   let i = 0;
   return () => (i < values.length ? values[i++] : fallback);
 };
+
+test('spawning uses species trait rules for wild and Cosmic horses', () => {
+  const c = structuredClone(catalog);
+  for (const s of c.species)
+    s.traits = {
+      Mane: ['Mane'],
+      Tail: ['Tail'],
+      Pattern: ['A', 'B', 'C', 'D', 'E'],
+      Paint: ['A', 'B', 'C'],
+      Cosmetic: ['A', 'B', 'C', 'D', 'E'],
+      Keratin: ['Horn'],
+      Ears: [],
+      Whiskers: ['Whiskers']
+    };
+  const cosmic = spawnHorse(c, location, sequence([0.0005], 0));
+  assert.equal(cosmic.spawnPath, 'Cosmic');
+  assert.equal(cosmic.traits.Pattern.length, 4);
+  assert.equal(cosmic.traits.Paint.length, 2);
+  assert.equal(cosmic.traits.Cosmetic.length, 4);
+  assert.deepEqual(cosmic.traits.Keratin, []);
+  assert.deepEqual(cosmic.traits.Whiskers, []);
+  const wild = spawnHorse(c, location, sequence([0.5], 0));
+  assert.equal(wild.traits.Pattern.length, 0);
+  assert.deepEqual(wild.traits.Mane, ['Mane']);
+  assert.deepEqual(wild.traits.Tail, ['Tail']);
+});
 test('Cosmic split honors every cumulative boundary and the 0.325% total', () => {
   for (const [roll, name] of [
     [0, 'Solar'],

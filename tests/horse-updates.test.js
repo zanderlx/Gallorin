@@ -141,6 +141,12 @@ test('trait rerolls use species lists, respect counts, and preserve missing data
   assert.equal(result.horse.traits.Pattern.length, 4);
   assert.equal(new Set(result.horse.traits.Pattern).size, 4);
   assert.ok(result.horse.traitsComplete);
+  const cosmicHorse = { ...horse, specialSpawn: 'Solar', spawnPath: 'Cosmic' };
+  const cosmic = regenerateHorse(cosmicHorse, { 'trait:Pattern': { mode: 'reroll' } }, c, store.snapshot(), {
+    rng: () => 0
+  });
+  assert.equal(cosmic.horse.traits.Pattern.length, 4);
+  assert.equal(new Set(cosmic.horse.traits.Pattern).size, 4);
   assert.throws(
     () => regenerateHorse(horse, { 'trait:Mane': { mode: 'set', value: ['Other Species Mane'] } }, c, store.snapshot()),
     /valid/
