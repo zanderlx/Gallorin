@@ -2,6 +2,7 @@ import { html, raw, icon, setHTML } from './ui.js';
 import { regions } from './definitions.js';
 import { isCosmicPalette } from './cosmic-types.js';
 import { filterPalettes, paletteGroups } from './palettes-manager.js';
+import { zoneSelectionButtons } from './zone-selection.js';
 
 export const zonePaletteOptions = catalog => catalog.palettes.filter(p => p.complete && !isCosmicPalette(p));
 
@@ -35,6 +36,7 @@ export function zonePalettePicker(catalog, selected) {
   const entries = zonePaletteOptions(catalog);
   return html`<div hidden data-zone-palette-pool>${entries.map(p => html`<input type="checkbox" name="palettePool" data-zone-palette-id="${p.id}" value="${p.name}" ${selected.includes(p.name) ? html`checked` : ''}>`)}</div>
   <div class="zone-palette-controls"><label class="zone-field zone-palette-search">Search Palettes<input id="zone-palette-search" type="search" placeholder="Search name, color, or type…"></label><label class="zone-field">Type<select id="zone-palette-type"><option value="">All Types</option>${paletteGroups(entries).map(group => html`<option value="${group}">${group}</option>`)}</select></label><div class="definition-sort-controls"><label class="zone-field">Sort By<select id="zone-palette-sort"><option value="group">Type</option><option value="name">Name</option></select></label><button type="button" class="icon-button sort-direction" data-action="zone-palette-sort-direction" data-direction="asc" aria-label="Ascending order. Switch to descending" title="Ascending order. Switch to descending">${raw(icon('arrow'))}</button></div></div>
+  ${zoneSelectionButtons('palettePool', 'palettes')}
   <div id="zone-palette-results" class="zone-palette-results">${zonePaletteResults(filterPalettes(entries), selected)}</div>`;
 }
 

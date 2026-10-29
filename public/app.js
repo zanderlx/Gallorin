@@ -12,6 +12,7 @@ import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
+import { setZoneSelection } from './zone-selection.js';
 import { handleInvalidHex, validHex } from './hex-inputs.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
@@ -633,6 +634,13 @@ document.addEventListener('click', async event => {
   if (intent === 'palette-sort-direction') {
     button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
     updatePaletteGrid(main, catalog);
+    return;
+  }
+  if (intent === 'zone-select-all' || intent === 'zone-unselect-all') {
+    const form = button.closest('form');
+    setZoneSelection(form, button.dataset.pool, intent === 'zone-select-all');
+    syncZoneEditor(form, catalog, readZoneForm(form));
+    updateFormState(form);
     return;
   }
   if (intent === 'zone-palette-sort-direction') {
