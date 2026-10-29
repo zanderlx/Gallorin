@@ -7,7 +7,6 @@ import { createChangelog } from './changelog-ui.js';
 import { horseUpdatesPage, bindHorseUpdates } from './horse-updates.js';
 import { createGoldFeedback } from './gold-feedback.js';
 import { openEmojiPicker } from './emoji-picker.js';
-import { fitMutationDescriptions, watchMutationCardWidths } from './mutation-card-layout.js';
 import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
@@ -109,7 +108,6 @@ const openChangelog = createChangelog({
 document.addEventListener('click', event => {
   if (event.target.closest('#sidebar-changelog')) void openChangelog();
 });
-watchMutationCardWidths(main);
 bindProfileTabs();
 const horseArtViewer = bindHorseArtViewer();
 const profile = $('#profile');
@@ -326,7 +324,6 @@ function render() {
       musicPlayer.bind(main);
     }
   });
-  fitMutationDescriptions(main);
   if ($('#horse-grid-size')) {
     $('#horse-grid-size').value = String(stableGridColumns);
     $('#horse-grid-size').setAttribute('aria-valuetext', `${stableGridColumns} horses per row`);

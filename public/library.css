@@ -2396,7 +2396,7 @@ select:not([multiple]) {
   line-height: 26px;
 }
 .mutation-collapse-card .personality-card-body .personality-card-description {
-  height: var(--mutation-description-height, auto);
+  height: 180px;
 }
 
 .mutation-definition-grid.personality-card-grid {
