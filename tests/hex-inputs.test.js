@@ -1,28 +1,41 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeHexText, sanitizeHexInput } from '../public/hex-inputs.js';
+import { validHex, handleInvalidHex } from '../public/hex-inputs.js';
 
-test('hex entry accepts only six uppercase hexadecimal digits with one leading hash', () => {
-  assert.equal(normalizeHexText('#a0b1cf'), '#A0B1CF');
-  assert.equal(normalizeHexText('123abc'), '#123ABC');
-  assert.equal(normalizeHexText('##G!1z2?3h4i5j6'), '#123456');
-  assert.equal(normalizeHexText('#123456789'), '#123456');
-  assert.equal(normalizeHexText(''), '#');
+test('hex validation accepts six digits and rejects arbitrary input without changing it', () => {
+  assert.ok(validHex('#a0B1cF'));
+  for (const value of ['', 'anything goes', '#123', '#1234567', '#GGGGGG', 'ABCDEF'])
+    assert.equal(validHex(value), false);
 });
 
-test('hex fields filter typing and paste, keep the caret, and block incomplete values', () => {
-  const field = {
-    value: '#aG12',
-    selectionStart: 5,
-    setSelectionRange(start) {
-      this.caret = start;
-    }
+test('invalid hex save shows one popup, opens its section, and selects the first invalid field', async () => {
+  const section = { tagName: 'DETAILS', open: false, parentElement: null };
+  let prevented = 0;
+  const actions = [];
+  const first = {
+    value: 'anything goes',
+    matches: () => true,
+    willValidate: true,
+    validity: { valid: false },
+    isConnected: true,
+    parentElement: section,
+    getAttribute: () => 'Tint hex value',
+    scrollIntoView: () => actions.push('scroll'),
+    focus: () => actions.push('focus'),
+    select: () => actions.push('select')
   };
-  assert.equal(sanitizeHexInput(field), false);
-  assert.equal(field.value, '#A12');
-  assert.equal(field.caret, 4);
-  field.value = '#abcdef';
-  field.selectionStart = 7;
-  assert.equal(sanitizeHexInput(field), true);
-  assert.equal(field.value, '#ABCDEF');
+  const second = { ...first, getAttribute: () => 'Other hex value' };
+  const form = { querySelectorAll: () => [first, second] };
+  first.form = form;
+  second.form = form;
+  const popups = [];
+  for (const target of [first, second])
+    handleInvalidHex({ target, preventDefault: () => prevented++ }, message => popups.push(message));
+  await Promise.resolve();
+  assert.equal(prevented, 2);
+  assert.equal(popups.length, 1);
+  assert.match(popups[0], /Tint hex value/);
+  assert.equal(section.open, true);
+  assert.deepEqual(actions, ['scroll', 'focus', 'select']);
+  assert.equal(first.value, 'anything goes');
 });

@@ -60,7 +60,7 @@ const editorGuidance = {
 };
 export function colorControl(key, value = '#D6B4DF', label = key) {
   const valid = /^#[\da-f]{6}$/i.test(value) ? value : '#D6B4DF';
-  return `<div class="color-control"><span>${e(label)}</span><span class="color-inputs"><input type="color" data-color-picker="${e(key)}" value="${valid}" aria-label="${e(label)} color picker"><input name="color:${e(key)}" data-color-hex="${e(key)}" value="${e(value)}" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="${e(label)} hex value"></span></div>`;
+  return `<div class="color-control"><span>${e(label)}</span><span class="color-inputs"><input type="color" data-color-picker="${e(key)}" value="${valid}" aria-label="${e(label)} color picker"><input name="color:${e(key)}" data-color-hex="${e(key)}" value="${e(value)}" pattern="#[0-9a-fA-F]{6}" required aria-label="${e(label)} hex value"></span></div>`;
 }
 export function themePicker(catalog, state) {
   const mode = state.settings.websiteThemeMode || 'dark';
