@@ -76,9 +76,10 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   let species =
     catalog.species.find(s => s.id === horse.speciesId) || catalog.species.find(s => s.name === horse.species);
   if (active('species')) {
+    const alternatives = catalog.species.filter(entry => entry.id !== species?.id);
     species =
       rule('species').mode === 'reroll'
-        ? pickUniform(catalog.species, rng)
+        ? pickUniform(alternatives.length ? alternatives : catalog.species, rng)
         : find(catalog.species, rule('species').value, 'species');
     Object.assign(horse, {
       species: species.name,
@@ -150,8 +151,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     horse.spawnPath = 'Cosmic';
   }
   // Species edits regenerate existing categories without randomly changing their counts.
-  const speciesChanged = species.id !== original.speciesId && species.name !== original.species;
-  if (speciesChanged && (active('species') || restored.includes('species'))) {
+  if (active('species') || restored.includes('species')) {
     for (const category of Object.keys(horseTraitLimits)) {
       const key = 'trait:' + category;
       if (active(key) || restored.includes(key)) continue;
@@ -190,7 +190,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
     } else {
       if (!values.length) {
-        if ((active('species') || restored.includes('species')) && species.id !== original.speciesId) {
+        if (active('species') || restored.includes('species')) {
           horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
           warnings.push(species.name + ' has no ' + category + ' definitions; incompatible traits were cleared.');
         } else warnings.push(species.name + ' has no ' + category + ' definitions; saved traits were kept.');

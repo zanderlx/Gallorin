@@ -379,3 +379,51 @@ test('species overrides regenerate traits with the existing counts and capture t
   assert.deepEqual(limited.horse.traits.Pattern, ['Only Pattern']);
   assert.ok(limited.warnings.some(warning => warning.includes('Pattern') && warning.includes('using 1')));
 });
+
+test('species reroll chooses another species and rerolls all traits with the existing counts', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  const current = c.species.find(species => species.id === horse.speciesId);
+  const target = c.species.find(species => species.id !== current.id);
+  target.name = 'Reroll Target';
+  target.traits = {
+    Mane: ['Target Mane'],
+    Tail: ['Target Tail'],
+    Pattern: ['Target P1', 'Target P2', 'Target P3', 'Target P4'],
+    Paint: ['Target Paint1', 'Target Paint2'],
+    Cosmetic: ['Target C1', 'Target C2', 'Target C3', 'Target C4'],
+    Keratin: ['Target Horn'],
+    Ears: ['Target Ears'],
+    Whiskers: ['Target Whiskers']
+  };
+  c.species = [current, target];
+  const original = {
+    ...horse,
+    palette: { ...horse.palette, global: true },
+    specialSpawn: null,
+    mutations: [],
+    traits: {
+      Mane: ['Old Mane'],
+      Tail: ['Old Tail'],
+      Pattern: ['Old P1', 'Old P2', 'Old P3'],
+      Paint: ['Old Paint1', 'Old Paint2'],
+      Cosmetic: ['Old Cosmetic'],
+      Keratin: [],
+      Ears: ['Old Ears'],
+      Whiskers: []
+    }
+  };
+  const result = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
+  assert.equal(result.horse.speciesId, target.id);
+  for (const [category, values] of Object.entries(original.traits)) {
+    assert.equal(result.horse.traits[category].length, values.length);
+    assert.ok(result.horse.traits[category].every(value => target.traits[category].includes(value)));
+  }
+  // Even a one-species registry must refresh obsolete saved traits instead of rejecting them.
+  c.species = [current];
+  current.traits = target.traits;
+  const same = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
+  assert.equal(same.horse.speciesId, current.id);
+  assert.deepEqual(same.horse.traits.Mane, ['Target Mane']);
+  assert.equal(same.horse.traits.Pattern.length, 3);
+});
