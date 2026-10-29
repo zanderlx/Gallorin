@@ -43,17 +43,17 @@ async function legacy(f, edit = palettes => palettes) {
   return { save, palettes };
 }
 
-test('the known additions are exactly the forty complete bundled palettes and exclude Template', () => {
-  assert.equal(bundledPaletteAdditionIds.length, 40);
-  assert.equal(new Set(bundledPaletteAdditionIds).size, 40);
+test('the known additions are exactly the forty-four complete bundled palettes and exclude Template', () => {
+  assert.equal(bundledPaletteAdditionIds.length, 44);
+  assert.equal(new Set(bundledPaletteAdditionIds).size, 44);
   for (const id of bundledPaletteAdditionIds) assert.equal(bundled.find(p => p.id === id)?.complete, true, id);
-  assert.equal(bundled.filter(p => p.complete).length, 73);
+  assert.equal(bundled.filter(p => p.complete).length, 77);
   assert.ok(!bundledPaletteAdditionIds.includes(bundled.find(p => p.name === 'Template').id));
 });
 test('fresh installs seed every complete palette, record the upgrade, and later launches leave files untouched', async t => {
   const f = await fixture(t);
   const palettes = await f.json(f.paths.palettes);
-  assert.equal(palettes.length, 73);
+  assert.equal(palettes.length, 77);
   assert.ok(!palettes.some(p => p.name === 'Template'));
   assert.equal((await f.json(f.paths.save)).paletteAdditionsVersion, paletteAdditionsVersion);
   const [save, registry] = await Promise.all([readFile(f.paths.save, 'utf8'), readFile(f.paths.palettes, 'utf8')]);
@@ -62,6 +62,28 @@ test('fresh installs seed every complete palette, record the upgrade, and later 
   assert.equal(await readFile(f.paths.save, 'utf8'), save);
   assert.equal(await readFile(f.paths.palettes, 'utf8'), registry);
   assert.ok(!(await readdir(join(f.directory, 'backups'))).some(n => n.startsWith('pre-palette-additions-')));
+});
+test('version 1 installs receive the four new palettes without restoring earlier deletions or changing local colors', async t => {
+  const f = await fixture(t);
+  const newIds = ['palette-buddy', 'palette-dart-frog', 'palette-magma', 'palette-nephyrian-2'];
+  const save = await f.json(f.paths.save);
+  save.paletteAdditionsVersion = 1;
+  await f.write(f.paths.save, save);
+  const previous = (await f.json(f.paths.palettes)).filter(p => !newIds.includes(p.id) && p.id !== 'palette-lemon');
+  previous[0].colors.Hair = '#123456';
+  await f.write(f.paths.palettes, previous);
+  const store = await f.load();
+  const upgraded = await f.json(f.paths.palettes);
+  assert.deepEqual(upgraded.slice(0, previous.length), previous);
+  assert.deepEqual(
+    upgraded.slice(previous.length),
+    bundled.filter(p => newIds.includes(p.id))
+  );
+  assert.ok(!upgraded.some(p => p.id === 'palette-lemon'));
+  assert.equal(store.state.paletteAdditionsVersion, 2);
+  await store.action('delete-definition', { kind: 'palettes', id: 'palette-buddy' });
+  const reloaded = await f.load();
+  assert.ok(!reloaded.getCatalog().palettes.some(p => p.id === 'palette-buddy'));
 });
 test('a 33-palette registry receives the missing additions while every local customization is preserved', async t => {
   const f = await fixture(t);
@@ -95,14 +117,14 @@ test('a 33-palette registry receives the missing additions while every local cus
   const store = await f.load();
   assert.deepEqual(await others(), unchanged);
   const upgraded = await f.json(f.paths.palettes);
-  assert.equal(upgraded.length, 74);
+  assert.equal(upgraded.length, 78);
   assert.deepEqual(upgraded.slice(0, 34), palettes);
   for (const id of bundledPaletteAdditionIds)
     assert.deepEqual(
       upgraded.find(p => p.id === id),
       bundled.find(p => p.id === id)
     );
-  assert.equal(store.getCatalog().palettes.length, 74);
+  assert.equal(store.getCatalog().palettes.length, 78);
   assert.equal(store.state.paletteAdditionsVersion, paletteAdditionsVersion);
   assert.equal(store.state.gold, save.gold);
   const backups = (await readdir(join(f.directory, 'backups'))).filter(n => n.startsWith('pre-palette-additions-'));
@@ -153,7 +175,7 @@ test('palettes deleted after the upgrade stay deleted on later launches', async 
   await f.load();
   const reloaded = await f.load();
   assert.ok(!reloaded.getCatalog().palettes.some(p => p.id === lemon.id || p.name === 'Lemon'));
-  assert.equal((await f.json(f.paths.palettes)).length, 72);
+  assert.equal((await f.json(f.paths.palettes)).length, 76);
 });
 test('recorded deletions and ID, name, system ID or species collisions keep local entries and skip the bundled copy', async t => {
   const f = await fixture(t);
@@ -182,7 +204,7 @@ test('recorded deletions and ID, name, system ID or species collisions keep loca
   const store = await f.load();
   const upgraded = await f.json(f.paths.palettes);
   assert.deepEqual(upgraded.slice(0, palettes.length), palettes);
-  assert.equal(upgraded.length, palettes.length + 36);
+  assert.equal(upgraded.length, palettes.length + 40);
   assert.equal(upgraded.filter(p => p.id === 'palettes-fae-1').length, 1);
   assert.equal(upgraded.filter(p => p.name.toLowerCase() === 'lemon').length, 1);
   for (const id of ['palette-orange', 'palette-lemon', 'palette-vegetable'])
@@ -219,6 +241,6 @@ test('a failed upgrade write restores the registry, leaves the save unmarked, an
   assert.equal(failing.getCatalog().palettes.length, 33);
   await assert.rejects(access(join(f.directory, 'config', 'transaction.json')));
   const retried = await f.load();
-  assert.equal(retried.getCatalog().palettes.length, 73);
+  assert.equal(retried.getCatalog().palettes.length, 77);
   assert.equal(retried.state.paletteAdditionsVersion, paletteAdditionsVersion);
 });

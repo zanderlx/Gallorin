@@ -2017,6 +2017,98 @@
       "group": "Valentines",
       "complete": true,
       "id": "palette-lemon"
+    },
+    {
+      "name": "Buddy",
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true,
+      "colors": {
+        "Coat Top": "#FF6600",
+        "Coat Bottom": "#FF6600",
+        "Hair": "#FFC524",
+        "Hoof": "#F2D4BF",
+        "Nose": "#FF6600",
+        "Sock": "#FF6600",
+        "Keratin": "#F2D4BF",
+        "Paint": "#7751E1",
+        "Pattern": "#7751E1"
+      },
+      "group": "Developer",
+      "complete": true,
+      "systemId": "buddy",
+      "id": "palette-buddy"
+    },
+    {
+      "name": "Dart Frog",
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true,
+      "colors": {
+        "Coat Top": "#000D70",
+        "Coat Bottom": "#0019D6",
+        "Hair": "#000000",
+        "Hoof": "#67FE16",
+        "Nose": "#DF5216",
+        "Sock": "#04062A",
+        "Keratin": "#FFFFFF",
+        "Paint": "#DF5216",
+        "Pattern": "#FFF700"
+      },
+      "group": "Developer",
+      "complete": true,
+      "systemId": "dart-frog",
+      "id": "palette-dart-frog"
+    },
+    {
+      "name": "Magma",
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true,
+      "colors": {
+        "Coat Top": "#000000",
+        "Coat Bottom": "#370101",
+        "Hair": "#45021F",
+        "Hoof": "#D9771C",
+        "Nose": "#E7970D",
+        "Sock": "#F42601",
+        "Keratin": "#FFDD00",
+        "Paint": "#45021F",
+        "Pattern": "#F43E01"
+      },
+      "group": "Developer",
+      "complete": true,
+      "systemId": "magma",
+      "id": "palette-magma"
+    },
+    {
+      "name": "Nephyrian 2",
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true,
+      "colors": {
+        "Coat Top": "#262627",
+        "Coat Bottom": "#262627",
+        "Hair": "#000000",
+        "Hoof": "#000000",
+        "Nose": "#262627",
+        "Sock": "#000000",
+        "Keratin": "#FFF700",
+        "Paint": "#FFF700",
+        "Pattern": "#FFF700"
+      },
+      "group": "Natural",
+      "complete": true,
+      "systemId": "nephyrian-2",
+      "id": "palette-nephyrian-2"
     }
   ],
   "eyes": [

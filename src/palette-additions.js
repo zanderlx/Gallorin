@@ -2,8 +2,9 @@
 import { normalizeCatalog, validateDefinition } from '../public/definitions.js';
 
 // Bundled palettes added after earlier installs had already written config/palettes.json.
-// Version 1 is applied once; later deletions are never restored.
-export const paletteAdditionsVersion = 1;
+// Each batch is applied once; later deletions are never restored.
+export const paletteAdditionsVersion = 2;
+const secondBatchIds = ['palette-buddy', 'palette-dart-frog', 'palette-magma', 'palette-nephyrian-2'];
 export const bundledPaletteAdditionIds = [
   'palettes-fae-1',
   'palettes-fae-2',
@@ -44,7 +45,8 @@ export const bundledPaletteAdditionIds = [
   'palette-serpentine-4',
   'palette-vegetable',
   'palette-orange',
-  'palette-lemon'
+  'palette-lemon',
+  ...secondBatchIds
 ];
 
 // Returns bundled additions missing from the local registry. Local entries always win:
@@ -57,6 +59,7 @@ export function missingBundledPalettes(bundled, catalog, state) {
   const systemIds = new Set(catalog.palettes.map(p => p.systemId).filter(Boolean));
   const additions = [];
   for (const id of bundledPaletteAdditionIds) {
+    if ((state.paletteAdditionsVersion || 0) >= 1 && !secondBatchIds.includes(id)) continue;
     const palette = source.find(p => p.id === id && p.complete === true);
     if (!palette || ids.has(id) || deleted.has(id) || names.has(palette.name.toLowerCase())) continue;
     const { systemId } = validateDefinition('palettes', palette);
