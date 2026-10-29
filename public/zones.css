@@ -670,7 +670,9 @@ main {
 
 .zone-selection-toggle {
   height: 48px;
-  min-width: 120px;
+  width: 140px;
+  min-width: 140px;
+  flex: 0 0 140px;
   margin-bottom: 16px;
   white-space: nowrap;
 }
