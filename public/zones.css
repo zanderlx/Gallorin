@@ -688,3 +688,33 @@ main {
   flex: 0 0 112px;
   height: 42px;
 }
+
+.zone-artwork-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px;
+  margin: 16px 0;
+}
+.zone-artwork-controls > .zone-field {
+  min-width: 0;
+  margin: 0;
+}
+.zone-artwork-controls select {
+  min-width: 0;
+  height: 48px;
+}
+.zone-artwork-controls .color-inputs input[type='color'] {
+  width: 120px;
+  flex-basis: 120px;
+  height: 48px;
+}
+.zone-artwork-controls .color-inputs input[data-color-hex] {
+  height: 48px;
+}
+@media (max-width: 600px) {
+  .zone-artwork-controls {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
