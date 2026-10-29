@@ -408,6 +408,7 @@ main {
   grid-template-columns: minmax(140px, 2fr) repeat(3, minmax(100px, 1fr));
   gap: 12px;
   align-items: end;
+  padding: 0 16px 0 4px;
 }
 .zone-species-controls input,
 .zone-species-controls select {
@@ -434,6 +435,7 @@ main {
 }
 .zone-spawn-list .zone-creature-row > label:not(.zone-choice) {
   font-size: 12px;
+  text-align: center;
 }
 .zone-creature-row[hidden] {
   display: none;
@@ -447,6 +449,8 @@ main {
 .zone-species-name {
   min-width: 0;
   overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.35;
 }
 .zone-spawn-list input[type='number'] {
   width: 100%;
@@ -454,6 +458,7 @@ main {
   min-height: 30px;
   padding: 3px 6px;
   line-height: 1.2;
+  text-align: center;
 }
 .zone-editor-section .zone-options {
   max-height: 300px;
