@@ -634,6 +634,11 @@ document.addEventListener('click', async event => {
     updatePaletteGrid(main, catalog);
     return;
   }
+  if (intent === 'zone-palette-sort-direction') {
+    button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+    updateZonePalettes($('#zone-form'), catalog);
+    return;
+  }
   if (intent === 'mutation-sort-direction') {
     button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
     updateMutationGrid(main, catalog);
@@ -1140,9 +1145,9 @@ document.addEventListener('input', event => {
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);
 });
 document.addEventListener('change', async event => {
-  if (
-    ['zone-palette-type', 'zone-palette-scope', 'zone-palette-sort', 'zone-palette-direction'].includes(event.target.id)
-  )
+  if (event.target.id === 'zone-palette-sort')
+    $('#zone-form [data-action="zone-palette-sort-direction"]').dataset.direction = 'asc';
+  if (['zone-palette-type', 'zone-palette-sort'].includes(event.target.id))
     updateZonePalettes($('#zone-form'), catalog);
   if (['zone-species-rarity', 'zone-species-sort', 'zone-species-direction'].includes(event.target.id))
     updateZoneSpecies($('#zone-form'), catalog);

@@ -28,7 +28,7 @@ test('zone palette browser uses eligible palettes and read-only grouped color ca
   assert.ok(grouped.indexOf('<h3>Carnival</h3>') < grouped.indexOf('<h3>Christmas</h3>'));
   assert.match(grouped, /data-tooltip="Hair - #ABC123"/);
   assert.match(grouped, /aria-label="Include Gold" checked/);
-  assert.match(grouped, /Species Linked/);
+  assert.doesNotMatch(grouped, /Species Linked|Global/);
   assert.doesNotMatch(grouped, /data-action=|edit-definition|type="color"/);
   const named = String(zonePaletteResults(filterPalettes(options, '', '', 'name', 'desc'), [], 'name', 'desc'));
   assert.doesNotMatch(named, /<h3>/);
@@ -47,7 +47,7 @@ test('palette browsing preserves named zone selections and does not mark the for
     dataset: { zonePaletteId: p.id }
   }));
   const controls = Object.fromEntries(
-    ['search', 'type', 'sort', 'direction', 'scope'].map(key => [
+    ['search', 'type', 'sort'].map(key => [
       `#zone-palette-${key}`,
       {
         tagName: key === 'search' ? 'INPUT' : 'SELECT',
@@ -57,6 +57,11 @@ test('palette browsing preserves named zone selections and does not mark the for
       }
     ])
   );
+  controls['[data-action="zone-palette-sort-direction"]'] = {
+    tagName: 'BUTTON',
+    dataset: { direction: 'asc' },
+    setAttribute() {}
+  };
   const results = {};
   const count = {};
   const form = {
@@ -96,6 +101,7 @@ test('zone palette picker keeps saved inputs separate from search and layout con
   const picker = String(zonePalettePicker(catalog, ['Gold']));
   assert.match(picker, /<div hidden data-zone-palette-pool>/);
   assert.equal((picker.match(/name="palettePool"/g) || []).length, 2);
-  assert.match(picker, /id="zone-palette-scope"/);
+  assert.doesNotMatch(picker, /zone-palette-scope|zone-palette-direction/);
+  assert.match(picker, /data-action="zone-palette-sort-direction"/);
   assert.doesNotMatch(picker, /new-definition|import-palette|paletteVariationPercent/);
 });

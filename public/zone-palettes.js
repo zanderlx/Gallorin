@@ -1,4 +1,4 @@
-import { html, setHTML } from './ui.js';
+import { html, raw, icon, setHTML } from './ui.js';
 import { regions } from './definitions.js';
 import { isCosmicPalette } from './cosmic-types.js';
 import { filterPalettes, paletteGroups } from './palettes-manager.js';
@@ -13,7 +13,7 @@ const cards = (entries, selected, showType) =>
           const color = /^#[0-9a-f]{6}$/i.test(p.colors?.[region]) ? p.colors[region].toUpperCase() : null;
           return html`<span data-tooltip="${region} - ${color || 'Not set'}" title="${region} - ${color || 'Not set'}" style="background:${color || 'transparent'}"></span>`;
         }
-      )}</span><span class="zone-palette-meta">${showType ? html`<span>${p.group || 'Custom'}</span>` : ''}<span>${p.global !== false ? 'Global' : 'Species Linked'}</span></span></label>`
+      )}</span>${showType ? html`<span class="zone-palette-meta">${p.group || 'Custom'}</span>` : ''}</label>`
   );
 
 export function zonePaletteResults(entries, selected = [], sort = 'group', direction = 'asc') {
@@ -34,7 +34,7 @@ export function zonePaletteResults(entries, selected = [], sort = 'group', direc
 export function zonePalettePicker(catalog, selected) {
   const entries = zonePaletteOptions(catalog);
   return html`<div hidden data-zone-palette-pool>${entries.map(p => html`<input type="checkbox" name="palettePool" data-zone-palette-id="${p.id}" value="${p.name}" ${selected.includes(p.name) ? html`checked` : ''}>`)}</div>
-  <div class="zone-palette-controls"><label class="zone-field zone-palette-search">Search palettes<input id="zone-palette-search" type="search" placeholder="Search name, color, or type…"></label><label class="zone-field">Type<select id="zone-palette-type"><option value="">All Types</option>${paletteGroups(entries).map(group => html`<option value="${group}">${group}</option>`)}</select></label><label class="zone-field">Scope<select id="zone-palette-scope"><option value="">All Scopes</option><option value="global">Global</option><option value="linked">Species Linked</option></select></label><label class="zone-field">Sort By<select id="zone-palette-sort"><option value="group">Type</option><option value="name">Name</option></select></label><label class="zone-field">Order<select id="zone-palette-direction"><option value="asc">Ascending</option><option value="desc">Descending</option></select></label></div>
+  <div class="zone-palette-controls"><label class="zone-field zone-palette-search">Search palettes<input id="zone-palette-search" type="search" placeholder="Search name, color, or type…"></label><label class="zone-field">Type<select id="zone-palette-type"><option value="">All Types</option>${paletteGroups(entries).map(group => html`<option value="${group}">${group}</option>`)}</select></label><div class="definition-sort-controls"><label class="zone-field">Sort By<select id="zone-palette-sort"><option value="group">Type</option><option value="name">Name</option></select></label><button type="button" class="icon-button sort-direction" data-action="zone-palette-sort-direction" data-direction="asc" aria-label="Ascending order. Switch to descending" title="Ascending order. Switch to descending">${raw(icon('arrow'))}</button></div></div>
   <p class="preview-note" data-zone-palette-result-count role="status">${entries.length} ${entries.length === 1 ? 'palette' : 'palettes'}</p><div id="zone-palette-results" class="zone-palette-results">${zonePaletteResults(filterPalettes(entries), selected)}</div>`;
 }
 
@@ -48,14 +48,17 @@ export function syncZonePaletteChoice(form, choice) {
 export function updateZonePalettes(form, catalog) {
   const selected = [...form.querySelectorAll('[name="palettePool"]:checked')].map(input => input.value);
   const sort = form.querySelector('#zone-palette-sort').value;
-  const direction = form.querySelector('#zone-palette-direction').value;
+  const toggle = form.querySelector('[data-action="zone-palette-sort-direction"]');
+  const direction = toggle.dataset.direction;
+  const label = direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending';
+  toggle.setAttribute('aria-label', label);
+  toggle.title = label;
   const entries = filterPalettes(
     zonePaletteOptions(catalog),
     form.querySelector('#zone-palette-search').value,
     form.querySelector('#zone-palette-type').value,
     sort,
-    direction,
-    form.querySelector('#zone-palette-scope').value
+    direction
   );
   // Named selection inputs stay outside the filtered view so browsing never drops selections.
   setHTML(form.querySelector('#zone-palette-results'), zonePaletteResults(entries, selected, sort, direction));

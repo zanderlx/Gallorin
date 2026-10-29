@@ -541,7 +541,7 @@ main {
 
 .zone-palette-controls {
   display: grid;
-  grid-template-columns: minmax(160px, 2fr) repeat(4, minmax(100px, 1fr));
+  grid-template-columns: minmax(160px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
   align-items: end;
   gap: 12px;
 }
@@ -550,6 +550,12 @@ main {
 }
 .zone-palette-controls :is(input, select) {
   min-width: 0;
+}
+.zone-palette-controls .definition-sort-controls .zone-field {
+  flex: 1;
+}
+.zone-palette-controls .definition-sort-controls .sort-direction {
+  margin-bottom: 16px;
 }
 .zone-palette-results {
   max-height: 460px;
