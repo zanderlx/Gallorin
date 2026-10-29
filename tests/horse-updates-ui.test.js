@@ -124,7 +124,8 @@ test('species confirmation lists changes with the requested introduction and no 
               before: { Mane: ['Old Mane'], Pattern: ['Old Pattern'] },
               after: { Mane: ['New Mane'], Pattern: ['New Pattern'] }
             },
-            { field: 'rarityTier', before: 4, after: 3 }
+            { field: 'rarityTier', before: 3, after: 2 },
+            { field: 'traitsComplete', before: false, after: true }
           ],
           warnings: ['Pattern count adjusted']
         }
@@ -137,12 +138,33 @@ test('species confirmation lists changes with the requested introduction and no 
     'New Mane',
     'Old Pattern',
     'New Pattern',
-    'Rarity Tier',
-    'Updating a species also updates species-specific traits. Update the amount of traits in the Traits override section.'
+    'Rarity',
+    'Uncommon',
+    'Rare',
+    'Updating a species also updates species-specific traits. The amount of traits stay the same. Update the amount of traits in the Traits override section. Cosmic horses get the max amount of traits per category'
   ])
     assert.ok(markup.includes(value));
   assert.ok(!markup.includes('<script>'));
   assert.ok(!markup.includes('new-id'));
   assert.ok(!markup.includes('Pattern count adjusted'));
   assert.ok(!markup.includes('horse-species-warning'));
+  assert.ok(!markup.includes('Rarity Tier'));
+  assert.ok(!markup.includes('Trait Definitions Complete'));
+  assert.match(markup, /color:#58B878/);
+  assert.match(markup, /color:#609DEA/);
+});
+
+test('legacy empty traits display as None in the horse profile and species confirmation', () => {
+  const markup = String(
+    speciesConfirmationContent({
+      items: [
+        {
+          changes: [{ field: 'traits', before: { Mane: ['Awaiting species data'] }, after: { Mane: ['New Mane'] } }],
+          warnings: []
+        }
+      ]
+    })
+  );
+  assert.ok(!markup.includes('Awaiting species data'));
+  assert.match(markup, />None</);
 });

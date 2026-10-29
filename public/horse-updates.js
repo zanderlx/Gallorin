@@ -1,3 +1,5 @@
+import { raritySettings, rarityNames } from './rarity-settings.js';
+import { horseCardRank } from './horse-rank.js';
 import { horseOverrideValue, horseOverrideBadge } from './horse-override-markers.js';
 export { horseOverrideValue } from './horse-override-markers.js';
 import { localCalendarDate } from './dates.js';
@@ -96,22 +98,32 @@ export function horseOverrideControls(horse, state, catalog) {
 function formatValue(value) {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-  if (typeof value !== 'object') return value === '' ? 'Empty' : String(value);
+  if (typeof value !== 'object')
+    return value === 'Awaiting species data' ? 'None' : value === '' ? 'Empty' : String(value);
   if (Array.isArray(value)) return value.map(formatValue).join(', ') || 'None';
   if (value.name) return value.name + (value.colors ? ' (' + formatValue(value.colors) + ')' : '');
   return Object.entries(value)
     .map(([key, v]) => key + ': ' + formatValue(v))
     .join('; ');
 }
-export function speciesConfirmationContent(preview) {
+export function speciesConfirmationContent(preview, catalog, horse) {
   const labels = {
     species: 'Species',
-    rarityTier: 'Rarity Tier',
+    rarityTier: 'Rarity',
     speciesEvent: 'Species Event',
-    traitsComplete: 'Trait Definitions Complete',
     sizePercent: 'Size (%)',
     caughtAt: 'Acquisition Date'
   };
+  const tiers = { 0: 'cosmic', 1: 'ultra-rare', 2: 'rare', 3: 'uncommon', 4: 'common' };
+  const colors = raritySettings(catalog).colors;
+  const proposed = horse ? structuredClone(horse) : null;
+  if (proposed) for (const change of preview.items.flatMap(item => item.changes)) proposed[change.field] = change.after;
+  const rank = (value, current) =>
+    current
+      ? horseCardRank(current, catalog)
+      : { key: tiers[value] || 'none', label: rarityNames[tiers[value]] || 'None' };
+  const rarity = value =>
+    html`<span class="horse-confirm-rarity" ${colors[value.key] ? html`style="color:${colors[value.key]}"` : ''}>${value.label}</span>`;
   const rows = [];
   for (const change of preview.items.flatMap(item => item.changes)) {
     if (change.field === 'traits') {
@@ -120,7 +132,14 @@ export function speciesConfirmationContent(preview) {
           after = change.after?.[category] || [];
         if (JSON.stringify(before) !== JSON.stringify(after)) rows.push({ label: category, before, after });
       }
-    } else if (!/Id$|^eyeLayers$|^Override status$/.test(change.field)) {
+    } else if (change.field === 'rarityTier') {
+      rows.push({
+        label: 'Rarity',
+        before: rank(change.before, horse),
+        after: rank(change.after, proposed),
+        rarity: true
+      });
+    } else if (!/Id$|^eyeLayers$|^Override status$|^traitsComplete$/.test(change.field)) {
       rows.push({
         label: labels[change.field] || change.field[0].toUpperCase() + change.field.slice(1),
         before: change.before,
@@ -128,7 +147,7 @@ export function speciesConfirmationContent(preview) {
       });
     }
   }
-  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p>Updating a species also updates species-specific traits. Update the amount of traits in the Traits override section.</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${formatValue(row.before)}</td><td>${formatValue(row.after)}</td></tr>`)}</tbody></table></div>`;
+  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p>Updating a species also updates species-specific traits. The amount of traits stay the same. Update the amount of traits in the Traits override section. Cosmic horses get the max amount of traits per category</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${row.rarity ? rarity(row.before) : formatValue(row.before)}</td><td>${row.rarity ? rarity(row.after) : formatValue(row.after)}</td></tr>`)}</tbody></table></div>`;
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied }) {
   let working = false,
@@ -373,7 +392,10 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
   }
   function confirmSpecies(form, result) {
     const dialog = form.querySelector('.horse-species-confirm-dialog');
-    setHTML(dialog.querySelector('[data-species-confirm-content]'), speciesConfirmationContent(result.preview));
+    setHTML(
+      dialog.querySelector('[data-species-confirm-content]'),
+      speciesConfirmationContent(result.preview, getCatalog(), selectedHorse(form))
+    );
     dialog.returnValue = '';
     return new Promise(resolve => {
       const onParentClose = () => dialog.close('cancel');

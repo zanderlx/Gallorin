@@ -102,7 +102,7 @@ export function spawnHorse(catalog, location, rng = randomFloat) {
       .filter(([category]) => !isUnusedTraitCategory(category))
       .map(([category, values]) => [category, rollHorseTrait(category, values, species, !!cosmic, rng)])
   );
-  for (const category of ['Mane', 'Tail']) if (!traits[category]?.length) traits[category] = ['Awaiting species data'];
+  for (const category of ['Mane', 'Tail']) if (!traits[category]?.length) traits[category] = ['None'];
   const variedPalette = varyPalette(palette, rng, palette.variationPercent ?? settings.paletteVariationPercent ?? 25);
   return {
     schemaVersion: horseSchemaVersion,

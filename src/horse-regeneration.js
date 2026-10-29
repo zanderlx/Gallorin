@@ -150,15 +150,16 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     horse.specialSpawn = identity;
     horse.spawnPath = 'Cosmic';
   }
-  // Species edits regenerate existing categories without randomly changing their counts.
+  const cosmicTraits = !!identity || horse.rarityTier === 0;
+  // Regular species edits preserve counts; Cosmic rerolls maximize every category.
   if (active('species') || restored.includes('species')) {
     for (const category of Object.keys(horseTraitLimits)) {
       const key = 'trait:' + category;
       if (active(key) || restored.includes(key)) continue;
       const existingCount = traitChoices(original.traits?.[category] || original.traits?.[category + 's']).length;
       const available = traitChoices(species.traits?.[category]).length;
-      const range = traitCountRange(category, species, !!identity, available);
-      const count = Math.min(range.max, Math.max(range.min, existingCount));
+      const range = traitCountRange(category, species, cosmicTraits, available);
+      const count = cosmicTraits ? range.max : Math.min(range.max, Math.max(range.min, existingCount));
       rules[key] = { mode: 'reroll', count };
       if (count !== existingCount)
         warnings.push(
@@ -169,12 +170,12 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   for (const [category, max] of Object.entries(horseTraitLimits)) {
     const key = 'trait:' + category,
       values = traitChoices(species.traits?.[category]);
-    const range = traitCountRange(category, species, !!identity, values.length);
+    const range = traitCountRange(category, species, cosmicTraits, values.length);
     const existing = horse.traits?.[category] || [];
     if (
       (active('species') || restored.includes('species')) &&
       !active(key) &&
-      existing.some(v => v !== 'Awaiting species data' && !values.includes(v))
+      traitChoices(existing).some(value => !values.includes(value))
     )
       throw new Error('Changing species requires updating incompatible ' + category + ' traits.');
     if (!active(key)) continue;
@@ -187,16 +188,23 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       horse.traits[category] = chosen;
     } else if (rule(key).mode === 'clear') {
       if (range.min) throw new Error(category + ' requires ' + range.min + ' trait(s); choose reroll or a value.');
-      horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
+      horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['None'] : [];
     } else {
       if (!values.length) {
         if (active('species') || restored.includes('species')) {
-          horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
+          horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['None'] : [];
           warnings.push(species.name + ' has no ' + category + ' definitions; incompatible traits were cleared.');
         } else warnings.push(species.name + ' has no ' + category + ' definitions; saved traits were kept.');
         continue;
       }
-      horse.traits[category] = rollHorseTrait(category, values, species, !!identity, rng, rule(key).count);
+      horse.traits[category] = rollHorseTrait(
+        category,
+        values,
+        species,
+        cosmicTraits,
+        rng,
+        cosmicTraits ? range.max : rule(key).count
+      );
     }
   }
   if (
@@ -206,7 +214,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   )
     horse.traitsComplete =
       !!(species.traits?.Mane?.length && species.traits?.Tail?.length) &&
-      ['Mane', 'Tail'].every(c => horse.traits?.[c]?.length && !horse.traits[c].includes('Awaiting species data'));
+      ['Mane', 'Tail'].every(c => traitChoices(horse.traits?.[c]).length > 0);
   if (active('palette')) {
     const fixed = cosmicPalette(horse, catalog);
     const eligible = catalog.palettes.filter(

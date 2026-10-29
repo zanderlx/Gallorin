@@ -206,7 +206,7 @@ test('species changes regenerate incompatible traits and handle missing definiti
   target.traits = {};
   const original = { ...horse, traits: { Mane: ['Old Mane'], Tail: ['Old Tail'], Pattern: ['Old Pattern'] } };
   const automatic = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot());
-  assert.deepEqual(automatic.horse.traits.Mane, ['Awaiting species data']);
+  assert.deepEqual(automatic.horse.traits.Mane, ['None']);
   assert.deepEqual(automatic.horse.traits.Pattern, []);
   assert.ok(automatic.warnings.some(warning => warning.includes('Pattern')));
   const rules = {
@@ -216,7 +216,7 @@ test('species changes regenerate incompatible traits and handle missing definiti
     'trait:Pattern': { mode: 'reroll' }
   };
   const result = regenerateHorse(original, rules, c, store.snapshot());
-  assert.deepEqual(result.horse.traits.Mane, ['Awaiting species data']);
+  assert.deepEqual(result.horse.traits.Mane, ['None']);
   assert.deepEqual(result.horse.traits.Pattern, []);
   assert.equal(result.horse.speciesId, target.id);
 });
@@ -426,4 +426,34 @@ test('species reroll chooses another species and rerolls all traits with the exi
   assert.equal(same.horse.speciesId, current.id);
   assert.deepEqual(same.horse.traits.Mane, ['Target Mane']);
   assert.equal(same.horse.traits.Pattern.length, 3);
+});
+
+test('Cosmic override trait rerolls maximize every available category including optional traits', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog(),
+    species = c.species.find(entry => entry.id === horse.speciesId);
+  species.traits = {
+    Mane: ['M1', 'M2'],
+    Tail: ['T1', 'T2'],
+    Pattern: ['P1', 'P2', 'P3', 'P4', 'P5'],
+    Paint: ['Paint1', 'Paint2', 'Paint3'],
+    Cosmetic: ['C1', 'C2', 'C3', 'C4', 'C5'],
+    Keratin: ['K1', 'K2'],
+    Ears: ['E1', 'E2'],
+    Whiskers: ['W1', 'W2']
+  };
+  const original = { ...horse, specialSpawn: 'Solar', mutations: [{ name: 'Solar' }], traits: {} };
+  const limits = { Mane: 1, Tail: 1, Pattern: 4, Paint: 2, Cosmetic: 4, Keratin: 1, Ears: 1, Whiskers: 1 };
+  const rules = Object.fromEntries(
+    Object.keys(limits).map(category => ['trait:' + category, { mode: 'reroll', count: 0 }])
+  );
+  const result = regenerateHorse(original, rules, c, store.snapshot(), { rng: () => 0 });
+  for (const [category, max] of Object.entries(limits)) assert.equal(result.horse.traits[category].length, max);
+  species.traits.Pattern = ['Only Pattern'];
+  const limited = regenerateHorse(original, rules, c, store.snapshot(), { rng: () => 0 });
+  assert.deepEqual(limited.horse.traits.Pattern, ['Only Pattern']);
+  // Rerolling species also fills formerly empty optional Cosmic categories.
+  c.species = [species];
+  const speciesRoll = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
+  for (const category of ['Keratin', 'Ears', 'Whiskers']) assert.equal(speciesRoll.horse.traits[category].length, 1);
 });
