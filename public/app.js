@@ -12,7 +12,7 @@ import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
-import { handleInvalidHex, validHex, eyeHexValue } from './hex-inputs.js';
+import { handleInvalidHex, validHex, hexInputValue } from './hex-inputs.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -1147,13 +1147,11 @@ document.addEventListener('input', event => {
     event.target.closest('.color-inputs').querySelector('[data-color-hex]').value = event.target.value.toUpperCase();
   }
   if (event.target.matches('[data-color-hex]')) {
-    if (event.target.closest('.eye-color-row')) {
-      const field = event.target;
-      const start = field.selectionStart;
-      const caret = eyeHexValue(field.value.slice(0, start)).length;
-      field.value = eyeHexValue(field.value);
-      field.setSelectionRange(caret, caret);
-    }
+    const field = event.target;
+    const start = field.selectionStart;
+    const caret = hexInputValue(field.value.slice(0, start)).length;
+    field.value = hexInputValue(field.value);
+    field.setSelectionRange(caret, caret);
     if (validHex(event.target.value))
       event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
   }

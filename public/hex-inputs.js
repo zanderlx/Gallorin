@@ -2,7 +2,7 @@ import { html, setHTML } from './ui.js';
 
 export const validHex = value => /^#[0-9a-f]{6}$/i.test(value);
 
-export const eyeHexValue = value => `#${value.replace(/[^0-9a-f]/gi, '').slice(0, 6)}`;
+export const hexInputValue = value => `#${value.replace(/[^0-9a-f]/gi, '').slice(0, 6)}`;
 
 function showHexPopup(message, returnToField) {
   const dialog = document.createElement('dialog');

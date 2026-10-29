@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validHex, handleInvalidHex, eyeHexValue } from '../public/hex-inputs.js';
+import { validHex, handleInvalidHex, hexInputValue } from '../public/hex-inputs.js';
 
-test('eye hex input preserves the prefix and limits typing and pasted values to six hex digits', () => {
+test('all hex inputs preserve the prefix and limit typing and pasted values to six hex digits', () => {
   for (const [input, expected] of [
     ['', '#'],
     ['#', '#'],
@@ -11,7 +11,7 @@ test('eye hex input preserves the prefix and limits typing and pasted values to 
     ['#12z!34', '#1234'],
     ['##AABBCCDD', '#AABBCC']
   ])
-    assert.equal(eyeHexValue(input), expected);
+    assert.equal(hexInputValue(input), expected);
 });
 
 test('hex validation accepts six digits and rejects arbitrary input without changing it', () => {

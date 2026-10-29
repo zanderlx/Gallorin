@@ -11,8 +11,6 @@ export function labelEyeColors(root) {
     row.querySelector('.color-control > span').textContent = label;
     row.querySelector('[type="color"]').setAttribute('aria-label', `${label} color picker`);
     row.querySelector('[data-color-hex]').setAttribute('aria-label', `${label} hex value`);
-    row.querySelector('[data-color-hex]').maxLength = 7;
-    row.querySelector('[data-color-hex]').spellcheck = false;
     row.querySelector('[data-action="remove-eye-color"]').hidden = rows.length === 1;
   });
 }
