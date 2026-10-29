@@ -8,7 +8,7 @@ Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then
 4. Select **Save** inside the section to apply only that section’s edits. A standalone player-save backup is created first.
 5. Select **Cancel** inside a section to discard only its unsaved edits. Other sections keep their drafts when you save or cancel.
 
-Names, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. Trash appears only when a field has a saved or pending override: it cancels a pending override or stages restoration of the recorded original. Save that section to confirm restoration.
+Names, descriptions, notes, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. Trash appears only when a field has a saved or pending override: it cancels a pending override or stages restoration of the recorded original. Save that section to confirm restoration.
 
 Applied fields that actually changed receive a saved **OVERRIDE** marker. Badges appear only while Edit Mode is enabled, including on the corresponding horse profile values. Original values are recorded before the first tracked override and retained across later edits. Older badge-only overrides show **Not recorded** for their original and cannot be restored automatically; their trash action is disabled.
 
@@ -17,7 +17,7 @@ Each section save validates and applies its changes together. A stale horse or c
 ## Available controls
 
 - Species, gender, acquisition date/birthday, origin, and size.
-- Personality, description, notes, eye color, and palette.
+- Personality (under Identity), eye color, and palette. Palette and eye choices show their colors in the popup. Cosmic palettes are locked.
 - Each species trait category: Mane, Tail, Pattern, Paint, Cosmetic, Keratin, Ears, Whiskers.
 - All unlocked mutations together or individual slots.
 - Each skill's level and XP, or reset to level 0. XP uses the normal level-up rules.

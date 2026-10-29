@@ -1,3 +1,4 @@
+import { horseCardRank } from '../public/horse-rank.js';
 // @ts-check
 import { createHash } from 'node:crypto';
 import { removeUnusedTraits } from '../public/unused-traits.js';
@@ -60,6 +61,8 @@ export function validateHorseRules(rules) {
 }
 export function regenerateHorse(original, rules, catalog, state, { rng = randomFloat, allowDuplicates = false } = {}) {
   validateHorseRules(rules);
+  if (rules.palette?.mode && rules.palette.mode !== 'keep' && horseCardRank(original, catalog).key === 'cosmic')
+    throw new Error('Cosmic palettes are fixed to the horse’s Cosmic identity and cannot be overridden.');
   const horse = structuredClone(original),
     warnings = [];
   const restored = Object.keys(rules).filter(key => rules[key].mode === 'restore');

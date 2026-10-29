@@ -27,7 +27,10 @@ app
       return result;
     }
     let result = await action('visit', { locationId: 'aetherion' });
-    const id = result.state.encounters.aetherion[0].id;
+    const id = (
+      result.state.encounters.aetherion.find(horse => !horse.specialSpawn && horse.rarityTier !== 0) ||
+      result.state.encounters.aetherion[0]
+    ).id;
     const caught = await action('catch', { id, name: 'Renderer Test' });
     const target = caught.catalog.species.find(
       species => species.id !== caught.state.horses[0].speciesId && !['Unicorn', 'Anticorn'].includes(species.name)
@@ -71,17 +74,21 @@ app
       document.querySelector('#collection-grid [data-action=inspect]').click();
       document.querySelector('[data-profile-tab=overrides]').click();
       let form=document.querySelector('#horse-update-form');
-      const notes=form.querySelector('[data-key=notes]');
-      notes.closest('details').open=true;
-      notes.querySelector('[data-edit-override]').click();
+      if(form.querySelector('[data-key=notes],[data-key=description]'))throw Error('Notes or description still editable');
+      const eye=form.querySelector('[data-key=eye]');
+      eye.closest('details').open=true;
+      eye.querySelector('[data-edit-override]').click();
       const dialog=form.querySelector('.horse-override-dialog');
-      if(!dialog.open||notes.querySelector('[data-mode]').value!=='set')throw Error('Pencil did not open Set popup');
-      if(getComputedStyle(notes.querySelector('[data-mode]')).display!=='none')throw Error('Operation selector is visible');
-      if(notes.querySelector('[data-value-container]').hidden)throw Error('Value control is hidden');
-      notes.querySelector('[data-value]').value='Direct value popup';
+      if(!dialog.open||eye.querySelector('[data-mode]').value!=='set')throw Error('Pencil did not open Set popup');
+      if(getComputedStyle(eye.querySelector('[data-mode]')).display!=='none')throw Error('Operation selector is visible');
+      const choices=eye.querySelectorAll('[data-appearance-choice]');
+      if(!choices.length||!eye.querySelector('.horse-appearance-swatches'))throw Error('Eye choices missing visual colors');
+      const choice=[...choices].find(input=>input.value!==eye.querySelector('[data-value]').value)||choices[0];
+      const chosen=choice.value;choice.click();
       form.querySelector('[data-save-override]').click();
-      notes.closest('details').querySelector('[data-save-section]').click();
-      await wait(()=>document.querySelector('[data-key=notes] [data-mode]')?.value==='keep');
+      eye.closest('details').querySelector('[data-save-section]').click();
+      await wait(()=>document.querySelector('[data-key=eye] [data-mode]')?.value==='keep');
+      window.testChosenEye=chosen;
       form=document.querySelector('#horse-update-form');
       const gender=form.querySelector('[data-key=gender]');
       gender.closest('details').open=true;
@@ -99,9 +106,10 @@ app
         return value;
       } finally {window.fetch=realFetch}
     })()`);
+    const chosenEye = await win.webContents.executeJavaScript('window.testChosenEye');
     const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
-    if (saved.gender !== rolled || saved.notes !== 'Direct value popup')
-      throw Error('Saved values differ from the displayed choices');
+    if (saved.eye.id !== chosenEye) throw Error('Chosen eye did not persist');
+    if (saved.gender !== rolled) throw Error('Saved values differ from the displayed choices');
     await win.webContents.executeJavaScript(`(async()=>{
       const wait=async(test)=>{for(let i=0;i<100;i++){if(test())return;await new Promise(resolve=>setTimeout(resolve,50))}throw Error('Species override did not settle')};
       const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=species]');

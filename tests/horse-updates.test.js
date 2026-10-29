@@ -104,7 +104,7 @@ test('Cosmic mutation and palette remain protected during full or individual reg
   const locked = lockedCosmicMutations(horse, c)[0];
   const result = regenerateHorse(
     horse,
-    { mutations: { mode: 'reroll' }, palette: { mode: 'reroll' }, size: { mode: 'reroll' } },
+    { mutations: { mode: 'reroll' }, size: { mode: 'reroll' } },
     c,
     store.snapshot(),
     { rng: () => 0 }
@@ -120,8 +120,9 @@ test('Cosmic mutation and palette remain protected during full or individual reg
   const normal = c.palettes.find(p => p.complete && p.name !== 'Solar');
   assert.throws(
     () => regenerateHorse(horse, { palette: { mode: 'set', value: normal.id } }, c, store.snapshot()),
-    /available/
+    /Cosmic palettes/
   );
+  assert.throws(() => regenerateHorse(horse, { palette: { mode: 'reroll' } }, c, store.snapshot()), /Cosmic palettes/);
 });
 
 test('trait rerolls use species lists, respect counts, and preserve missing data', async t => {

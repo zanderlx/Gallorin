@@ -1,3 +1,4 @@
+import { regularEyes, isCosmicPalette } from './cosmic-types.js';
 import { raritySettings, rarityNames } from './rarity-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { horseOverrideValue, horseOverrideBadge } from './horse-override-markers.js';
@@ -35,8 +36,38 @@ function optionsFor(key, catalog, state) {
   if (key.startsWith('trait:')) return [];
   return null;
 }
+function appearanceSwatches(key, value, compact = false) {
+  const entries =
+    key === 'eye'
+      ? (value?.colors || []).map((color, index) => ['Eye color ' + (index + 1), color])
+      : Object.entries(value?.colors || {});
+  return html`<span class="horse-appearance-swatches ${compact ? 'is-compact' : ''}" aria-label="${key === 'eye' ? 'Eye colors' : 'Palette colors'}">${entries.filter(([, color]) => /^#[0-9a-f]{6}$/i.test(color)).map(([region, color]) => html`<span title="${region}" style="background:${color}"></span>`)}</span>`;
+}
+export function horseAppearanceChoices(key, catalog, horse, speciesId = horse.speciesId, selected = '') {
+  const definitions =
+    key === 'eye'
+      ? regularEyes(catalog.eyes)
+      : catalog.palettes.filter(
+          palette =>
+            palette.complete &&
+            !isCosmicPalette(palette) &&
+            (palette.global !== false || palette.speciesIds?.includes(speciesId))
+        );
+  return html`${sorted(definitions).map(value => html`<label class="horse-appearance-choice"><input type="radio" data-appearance-choice name="horse-choice-${key}" value="${value.id}" ${selected === value.id ? raw('checked') : ''}><span><strong>${value.name}</strong>${appearanceSwatches(key, value)}</span></label>`)}`;
+}
+function overrideValueMarkup(key, value) {
+  if (key.startsWith('trait:') && Array.isArray(value))
+    return html`${(traitChoices(value).length ? traitChoices(value) : ['—']).map(trait => html`<span class="horse-override-trait-line">${trait}</span>`)}`;
+  if (['eye', 'palette'].includes(key) && value && typeof value === 'object')
+    return html`<span class="horse-appearance-value"><span>${value.name || '—'}</span>${appearanceSwatches(key, value, true)}</span>`;
+  return html`${formatValue(value)}`;
+}
 function control(field, catalog, state) {
   const options = optionsFor(field.key, catalog, state);
+  if (['palette', 'eye'].includes(field.key))
+    return String(
+      html`<select data-value hidden aria-label="Choose ${field.label}"><option value="">Choose…</option>${options.map(([id, label]) => html`<option value="${id}">${label}</option>`)}</select><div class="horse-appearance-choices" data-appearance-choices role="radiogroup" aria-label="${field.label}"></div>`
+    );
   if (field.type === 'skill')
     return '<div class="horse-update-skill"><label>Level<input data-value type="number" min="0" max="10" value="0"></label><label>XP<input data-xp type="number" min="0" max="34000" value="0"></label></div>';
   if (options)
@@ -80,10 +111,10 @@ function fieldRow(field, catalog, state, horse) {
     ${field.key.startsWith('trait:') ? html`<input data-trait-count type="hidden" value="">` : ''}
     <p class="muted" data-field-help></p></div></div>`;
 }
-const hiddenFields = new Set(['name', 'age', 'daysOwned', 'favorite']);
-export const editableHorseFields = horseUpdateFields.filter(
-  field => !hiddenFields.has(field.key) && !field.key.startsWith('color:')
-);
+const hiddenFields = new Set(['name', 'age', 'daysOwned', 'favorite', 'description', 'notes']);
+export const editableHorseFields = horseUpdateFields
+  .filter(field => !hiddenFields.has(field.key) && !field.key.startsWith('color:'))
+  .map(field => (field.key === 'personality' ? { ...field, group: 'Identity' } : field));
 export function horseOverrideControls(horse, state, catalog) {
   if (!state.settings.horseUpdatesEnabled || !state.horses.some(h => h.id === horse.id)) return '';
   const arrow = html`<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>`;
@@ -99,8 +130,8 @@ function formatValue(value) {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
   if (typeof value !== 'object')
-    return value === 'Awaiting species data' ? 'None' : value === '' ? 'Empty' : String(value);
-  if (Array.isArray(value)) return value.map(formatValue).join(', ') || 'None';
+    return value === 'Awaiting species data' || value === 'None' ? '—' : value === '' ? 'Empty' : String(value);
+  if (Array.isArray(value)) return value.map(formatValue).join(', ') || '—';
   if (value.name) return value.name + (value.colors ? ' (' + formatValue(value.colors) + ')' : '');
   return Object.entries(value)
     .map(([key, v]) => key + ': ' + formatValue(v))
@@ -152,7 +183,7 @@ export function speciesConfirmationContent(preview, catalog, horse) {
     row.rarity
       ? rarity(value)
       : row.traits
-        ? html`${(value.length ? value : ['None']).map(trait => html`<span class="horse-confirm-trait">${formatValue(trait)}</span>`)}`
+        ? html`${(value.length ? value : ['—']).map(trait => html`<span class="horse-confirm-trait">${formatValue(trait)}</span>`)}`
         : formatValue(value);
   return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p class="horse-species-description">Updating a species also updates species-specific traits. The amount of traits stay the same. Update the amount of traits in the Traits override section. Cosmic horses get the max amount of traits per category</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${cell(row, row.before)}</td><td>${cell(row, row.after)}</td></tr>`)}</tbody></table></div>`;
 }
@@ -162,7 +193,9 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     baselines = new Map(),
     rolledSections = new Map();
   const selectedHorse = form => getState().horses.find(h => h.id === form.querySelector('[name=horse]:checked')?.value);
-  const editorInputs = editor => [...editor.querySelectorAll('input:not([data-trait-choice]),select,textarea')];
+  const editorInputs = editor => [
+    ...editor.querySelectorAll('input:not([data-trait-choice]):not([data-appearance-choice]),select,textarea')
+  ];
   const snapshot = editor =>
     editorInputs(editor).map(input => ({
       value: input.value,
@@ -183,6 +216,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     for (const row of form.querySelectorAll('[data-species-generated]')) {
       delete row.dataset.speciesGenerated;
       delete row.dataset.resolvedValue;
+      delete row.dataset.resolvedData;
       if (row.querySelector('[data-mode]').value === 'keep' && baselines.has(row.dataset.key))
         restoreInputs(row.querySelector('[data-editor]'), baselines.get(row.dataset.key));
     }
@@ -224,7 +258,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     let value = saved ? displayValue(key, horseOverrideValue(horse, key)) : '—';
     if (mode === 'set')
       value = input.multiple
-        ? [...input.selectedOptions].map(option => option.textContent).join(', ') || 'None'
+        ? [...input.selectedOptions].map(option => option.textContent).join(', ') || '—'
         : input.tagName === 'SELECT'
           ? input.selectedOptions[0]?.textContent || 'Choose a value'
           : key.startsWith('skill:')
@@ -233,7 +267,19 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     else if (['reroll', 'refresh'].includes(mode)) value = row.dataset.resolvedValue || '—';
     else if (mode !== 'keep') value = modeLabel[mode];
     if (row.dataset.speciesGenerated && mode === 'keep') value = row.dataset.resolvedValue;
-    row.querySelector('[data-override-value]').textContent = value;
+    let rich = null;
+    if (key.startsWith('trait:') || ['eye', 'palette'].includes(key)) {
+      if (mode === 'set')
+        rich = input.multiple
+          ? [...input.selectedOptions].map(option => option.value)
+          : (key === 'eye' ? getCatalog().eyes : key === 'palette' ? getCatalog().palettes : []).find(
+              entry => entry.id === input.value
+            );
+      else if ((['reroll', 'refresh'].includes(mode) || row.dataset.speciesGenerated) && row.dataset.resolvedData)
+        rich = JSON.parse(row.dataset.resolvedData);
+      else if (mode === 'keep' && saved) rich = horseOverrideValue(horse, key);
+    }
+    setHTML(row.querySelector('[data-override-value]'), overrideValueMarkup(key, rich ?? value));
     const remove = row.querySelector('[data-remove-override]');
     remove.hidden = mode === 'restore' || (!saved && mode === 'keep');
     remove.disabled = row.dataset.locked === 'true' || (saved && !horse.overrideOriginals?.[key] && mode === 'keep');
@@ -274,21 +320,29 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const value = horseOverrideValue(horse, row.dataset.key),
         input = row.querySelector('[data-value]');
       const original = horse.overrideOriginals?.[row.dataset.key];
-      row.querySelector('[data-current-value]').textContent = original
-        ? displayValue(row.dataset.key, original.value)
-        : horse.overriddenFields?.includes(row.dataset.key)
-          ? 'Not recorded'
-          : displayValue(row.dataset.key, value);
+      setHTML(
+        row.querySelector('[data-current-value]'),
+        overrideValueMarkup(
+          row.dataset.key,
+          original ? original.value : horse.overriddenFields?.includes(row.dataset.key) ? 'Not recorded' : value
+        )
+      );
       row.querySelector('[data-mode]').value = 'keep';
-      const protectedSlot = row.dataset.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [value] });
+      const protectedSlot =
+        (row.dataset.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [value] })) ||
+        (row.dataset.key === 'palette' && horseCardRank(horse, getCatalog()).key === 'cosmic');
       row.querySelector('[data-edit-override]').disabled =
         protectedSlot || !horseUpdateFields.find(field => field.key === row.dataset.key).modes.includes('set');
       row.querySelector('[data-roll-override]').disabled ||= protectedSlot;
       row.dataset.locked = String(protectedSlot);
+      if (row.dataset.key === 'palette' && protectedSlot)
+        for (const button of row.querySelectorAll('.horse-override-actions button'))
+          button.title = 'Cosmic palettes are fixed to the horse’s Cosmic identity.';
       row.querySelector('[data-value-container]').hidden = true;
       const count = row.querySelector('[data-trait-count]');
       if (count) count.value = '';
       delete row.dataset.resolvedValue;
+      delete row.dataset.resolvedData;
       input.value = value && typeof value === 'object' ? value.id || '' : String(value ?? '');
       if (row.dataset.key === 'species')
         input.value = horse.speciesId || getCatalog().species.find(s => s.name === horse.species)?.id || '';
@@ -382,6 +436,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
                 ? value.id || ''
                 : String(value ?? '');
         row.dataset.resolvedValue = displayValue(row.dataset.key, value);
+        row.dataset.resolvedData = JSON.stringify(value);
         updateRow(row, form);
       }
       rolledSections.set(key, { signature: JSON.stringify(rules), result });
@@ -577,6 +632,8 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       return;
     }
     const row = event.target.closest('[data-key]');
+    if (row && event.target.matches('[data-appearance-choice]'))
+      row.querySelector('[data-value]').value = event.target.value;
     if (row && event.target.matches('[data-trait-choice]')) {
       const option = [...row.querySelector('[data-value]').options].find(o => o.value === event.target.value);
       option.selected = event.target.checked;
@@ -641,6 +698,25 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       editing = { row, editor, before: snapshot(editor) };
       const mode = row.querySelector('[data-mode]');
       mode.value = 'set';
+      if (row.querySelector('[data-appearance-choices]')) {
+        const horse = selectedHorse(form),
+          speciesRow = form.querySelector('[data-key=species]');
+        const speciesId =
+          form.dataset.resolvedSpeciesId ||
+          (speciesRow.querySelector('[data-mode]').value === 'set'
+            ? speciesRow.querySelector('[data-value]').value
+            : horse.speciesId);
+        setHTML(
+          row.querySelector('[data-appearance-choices]'),
+          horseAppearanceChoices(
+            row.dataset.key,
+            getCatalog(),
+            horse,
+            speciesId,
+            row.querySelector('[data-value]').value
+          )
+        );
+      }
       row.append(dialog);
       dialog.querySelector('[data-dialog-editor]').append(editor);
       editor.hidden = false;
@@ -673,7 +749,11 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
         finishEdit(form, false);
       };
       dialog.showModal();
-      editor.querySelector('[data-trait-choice]:not(:disabled),[data-value]:not([hidden])')?.focus();
+      editor
+        .querySelector(
+          '[data-appearance-choice]:not(:disabled),[data-trait-choice]:not(:disabled),[data-value]:not([hidden])'
+        )
+        ?.focus();
       return;
     }
     if (form && event.target.closest('[data-cancel-override]')) {
@@ -717,6 +797,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       invalidate();
       const section = row.closest('[data-override-section]');
       delete row.dataset.resolvedValue;
+      delete row.dataset.resolvedData;
       finishEdit(form, true);
       await resolveRerolls(form, section);
       return;

@@ -4,7 +4,13 @@ import { horseOverrideBadge } from '../public/horse-override-markers.js';
 import { gameSettingsPage } from '../public/game-settings.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { horseOverrideControls, horseOverrideValue, speciesConfirmationContent } from '../public/horse-updates.js';
+import {
+  horseOverrideControls,
+  horseOverrideValue,
+  speciesConfirmationContent,
+  horseAppearanceChoices,
+  editableHorseFields
+} from '../public/horse-updates.js';
 import { lockedCosmicLabel } from '../public/horse-update-labels.js';
 test('horse admin UI escapes horse names, exposes granular fields, and gates editing independently', () => {
   const state = {
@@ -39,9 +45,9 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.ok(!controls.includes('Preview Changes'));
   assert.ok(!controls.includes('Reset Pending Changes'));
   assert.ok(!controls.includes('Review Changes'));
-  assert.equal((controls.match(/data-save-section/g) || []).length, 6);
-  assert.equal((controls.match(/class="form-actions horse-section-actions" hidden/g) || []).length, 6);
-  assert.equal((controls.match(/data-cancel-section/g) || []).length, 6);
+  assert.equal((controls.match(/data-save-section/g) || []).length, 5);
+  assert.equal((controls.match(/class="form-actions horse-section-actions" hidden/g) || []).length, 5);
+  assert.equal((controls.match(/data-cancel-section/g) || []).length, 5);
   assert.match(controls, /title="Reroll Species"/);
   assert.ok(!controls.includes('title="Roll '));
   assert.ok(!controls.includes('<label>Operation'));
@@ -64,7 +70,9 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.ok(!/data-remove-override="species"[^>]*hidden/.test(markedControls));
   assert.match(controls, /details class="zone-editor-section horse-edit-section"/);
   assert.ok(!controls.includes('Disable Horse Overrides'));
-  for (const key of ['name', 'age', 'daysOwned', 'favorite', 'color:Coat Top'])
+  assert.ok(!controls.includes('Personality &amp; Notes'));
+  assert.equal(editableHorseFields.find(field => field.key === 'personality').group, 'Identity');
+  for (const key of ['name', 'age', 'daysOwned', 'favorite', 'color:Coat Top', 'description', 'notes'])
     assert.ok(!controls.includes('data-key="' + key + '"'));
   assert.ok(!controls.includes('name="allowDuplicates"'));
   for (const key of ['trait:Mane', 'mutation:0', 'skill:bond', 'birthday', 'palette'])
@@ -159,7 +167,7 @@ test('species confirmation lists changes with the requested introduction and no 
   assert.match(markup, /color:#609DEA/);
 });
 
-test('legacy empty traits display as None in the horse profile and species confirmation', () => {
+test('legacy empty traits display as a dash in the horse profile and species confirmation', () => {
   const markup = String(
     speciesConfirmationContent({
       items: [
@@ -171,5 +179,36 @@ test('legacy empty traits display as None in the horse profile and species confi
     })
   );
   assert.ok(!markup.includes('Awaiting species data'));
-  assert.match(markup, />None</);
+  assert.match(markup, />—</);
+});
+
+test('appearance choice cards show colors and omit incompatible or Cosmic palettes', () => {
+  const horse = { speciesId: 'species-one' };
+  const catalog = {
+    palettes: [
+      { id: 'global', name: 'Global Palette', complete: true, colors: { Coat: '#123456' } },
+      {
+        id: 'linked',
+        name: 'Linked Palette',
+        complete: true,
+        global: false,
+        speciesIds: ['species-one'],
+        colors: { Coat: '#654321' }
+      },
+      { id: 'other', name: 'Wrong Species', complete: true, global: false, speciesIds: ['species-two'], colors: {} },
+      { id: 'solar', name: 'Solar', complete: true, colors: {} }
+    ],
+    eyes: [{ id: 'green', name: 'Emerald Eyes', colors: ['#00FF00', '#009900'] }]
+  };
+  const palettes = String(horseAppearanceChoices('palette', catalog, horse));
+  assert.match(palettes, /Global Palette/);
+  assert.match(palettes, /Linked Palette/);
+  assert.ok(!palettes.includes('Wrong Species'));
+  assert.ok(!palettes.includes('Solar'));
+  assert.match(palettes, /background:#123456/);
+  const eyes = String(horseAppearanceChoices('eye', catalog, horse));
+  assert.match(eyes, /Emerald Eyes/);
+  assert.match(eyes, /background:#00FF00/);
+  assert.match(eyes, /background:#009900/);
+  assert.ok(!eyes.includes('>#00FF00<'));
 });

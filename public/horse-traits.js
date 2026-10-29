@@ -16,10 +16,10 @@ const valuesHTML = values =>
     ? values
         .map(
           value =>
-            `<span class="${/^(awaiting species data|none)$/i.test(value) ? 'horse-trait-none' : 'horse-trait-tag'}">${e(value === 'Awaiting species data' ? 'None' : value)}</span>`
+            `<span class="${/^(awaiting species data|none)$/i.test(value) ? 'horse-trait-none' : 'horse-trait-tag'}">${e(['Awaiting species data', 'None'].includes(value) ? '—' : value)}</span>`
         )
         .join('')
-    : '<span class="horse-trait-none">None</span>';
+    : '<span class="horse-trait-none">—</span>';
 
 export function horseTraits(horse, editField = () => '', showOverrideBadges = false) {
   const traits = horse.traits || {};
