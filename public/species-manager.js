@@ -19,6 +19,8 @@ const speciesRarities = [
   [0, 'Cosmic']
 ];
 const rarityName = species => speciesRarities.find(([tier]) => tier === rarityTier(species))?.[1] || 'Common';
+const listTitleCase = value =>
+  value.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, gap, letter) => gap + letter.toUpperCase());
 
 export function sortSpeciesEntries(entries, sort = 'name', direction = 'asc') {
   const rank = species => speciesRarities.findIndex(([tier]) => tier === rarityTier(species));
@@ -119,7 +121,7 @@ export function speciesManagerPage(catalog, state, draft, tab = 'overview', sort
   return String(html`<div class="species-manager" data-species-id="${species.id || ''}" data-species-tab="${tab}"><div class="definitions-header eye-manager-header"><h1 class="manager-heading">Species Manager</h1><button type="button" class="button primary" data-action="new-definition" data-kind="species">${raw(icon('spark'))} Create Species</button></div>
     <div class="species-workbench"><div class="species-list-column"><div class="species-list-controls"><label class="zone-field">Find A Species<input id="definition-search" type="search" placeholder="Search species…"></label>
     <label class="zone-field species-sort-field">Sort By<select id="species-sort"><option value="name" ${sort === 'name' ? html`selected` : ''}>Name</option><option value="rarity" ${sort === 'rarity' ? html`selected` : ''}>Rarity</option></select></label><button type="button" class="icon-button sort-direction species-sort-direction" data-action="species-sort-direction" data-direction="${direction}" aria-label="${direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending'}" title="${direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending'}">${raw(icon('arrow'))}</button></div>
-    <section class="panel library-list-panel"><div class="definition-list">${sortSpeciesEntries(catalog.species, sort, direction).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${s.name}</strong><small><span class="species-rarity" style="color:${rarityColor(s)}">${rarityName(s)}</span> · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section></div>
+    <section class="panel library-list-panel"><div class="definition-list">${sortSpeciesEntries(catalog.species, sort, direction).map(s => html`<button class="definition-list-item ${s.id === species.id ? 'selected' : ''}" data-action="edit-definition" data-kind="species" data-id="${s.id}" data-name="${s.name}" data-rarity-tier="${rarityTier(s)}" data-search="${`${s.name} ${rarityName(s)}`.toLowerCase()}"><strong>${listTitleCase(s.name)}</strong><small><span class="species-rarity" style="color:${rarityColor(s)}">${listTitleCase(rarityName(s))}</span> · ${Object.values(s.traits || {}).reduce((sum, values) => sum + values.length, 0)} Traits</small></button>`)}</div><p id="definition-no-results" hidden>No matching species.</p></section></div>
     <section class="species-detail"><div class="species-detail-heading"><div class="species-tabs" role="tablist" aria-label="Species details">${[
       ['overview', 'Overview'],
       ['traits', 'Traits'],

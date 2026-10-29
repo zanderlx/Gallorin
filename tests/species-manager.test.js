@@ -141,7 +141,7 @@ test('species list shows rarity with trait counts and sorts by rarity then name 
     ['zebra', 'ultra', 'rare', 'cosmic', 'common', 'akhal']
   );
   const page = speciesManagerPage({ ...catalog, species: entries }, {}, entries[0], 'overview', 'rarity');
-  assert.match(page, /<span class="species-rarity"[^>]*>Cosmic<\/span> · 1 traits<\/small>/);
+  assert.match(page, /<span class="species-rarity"[^>]*>Cosmic<\/span> · 1 Traits<\/small>/);
   assert.match(page, /value="rarity" selected/);
   assert.ok(page.indexOf('data-id="akhal"') < page.indexOf('data-id="cosmic"'));
 });
