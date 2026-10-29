@@ -72,6 +72,13 @@ const deadline = setTimeout(() => {
     await run(() => {
       const form = document.querySelector('#species-palettes-form');
       if (form.querySelector('details')) throw new Error('Species palettes should be inline');
+      const controls = [
+        ...form.querySelectorAll(
+          '.zone-palette-controls input, .zone-palette-controls select, .zone-palette-controls button'
+        )
+      ].map(el => el.getBoundingClientRect());
+      if (controls.some(rect => Math.abs(rect.bottom - controls[0].bottom) > 1))
+        throw new Error('Species palette controls should share one aligned row');
       const toggle = form.querySelector('[data-action="zone-toggle-all"]');
       toggle.click();
       if (!form.querySelector('[name="palettePool"]:checked')) throw new Error('Select all failed');
