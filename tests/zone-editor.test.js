@@ -36,7 +36,8 @@ test('zone species filters combine names and all rarity tiers without changing t
     { id: 'c', name: 'Amber', rarityTier: 4 }
   ];
   const ids = entries => entries.map(s => s.id);
-  assert.deepEqual(ids(filterZoneSpecies(species)), ['c', 'a', 'b', 'z']);
+  assert.deepEqual(ids(filterZoneSpecies(species)), ['c', 'z', 'b', 'a']);
+  assert.deepEqual(ids(filterZoneSpecies(species, '', '', 'name')), ['c', 'a', 'b', 'z']);
   assert.deepEqual(ids(filterZoneSpecies(species, '  A ', '4')), ['c', 'z']);
   assert.deepEqual(ids(filterZoneSpecies(species, '', '0')), ['a']);
   assert.deepEqual(ids(filterZoneSpecies(species, '', '', 'rarity')), ['c', 'z', 'b', 'a']);
