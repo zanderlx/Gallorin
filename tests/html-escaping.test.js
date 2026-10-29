@@ -15,7 +15,7 @@ import { keeperPage } from '../public/keeper.js';
 import { saleHistoryTable } from '../public/economy.js';
 import { eyesManagerPage } from '../public/eyes-manager.js';
 import { gameSettingsPage } from '../public/game-settings.js';
-import { horseUpdatesPage } from '../public/horse-updates.js';
+import { horseOverrideControls } from '../public/horse-updates.js';
 import { musicManagerPage } from '../public/music-manager.js';
 import { mutationsManagerPage } from '../public/mutations-manager.js';
 import { palettesManagerPage } from '../public/palettes-manager.js';
@@ -87,7 +87,11 @@ const views = {
   'sale history': () => saleHistoryTable(state),
   'game settings': () => gameSettingsPage(state, hostileCatalog),
   'horse updates': () =>
-    horseUpdatesPage({ ...state, settings: { ...state.settings, horseUpdatesEnabled: true } }, hostileCatalog),
+    horseOverrideControls(
+      horse,
+      { ...state, settings: { ...state.settings, horseUpdatesEnabled: true } },
+      hostileCatalog
+    ),
   'music manager': () => musicManagerPage(music, catalog.locations),
   'eyes manager': () => eyesManagerPage(hostileCatalog),
   'mutations manager': () => mutationsManagerPage(hostileCatalog),

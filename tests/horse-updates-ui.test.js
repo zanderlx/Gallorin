@@ -1,11 +1,16 @@
-import { stablePage } from '../public/pages.js';
+import { groups } from '../public/ui.js';
+import { profileContent } from '../public/profile.js';
+import { horseOverrideBadge } from '../public/horse-override-markers.js';
+import { gameSettingsPage } from '../public/game-settings.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { horseUpdatesPage, horseOverrideValue, horseOverrideProfile } from '../public/horse-updates.js';
+import { horseOverrideControls, horseOverrideValue } from '../public/horse-updates.js';
 import { lockedCosmicLabel } from '../public/horse-update-labels.js';
 test('horse admin UI escapes horse names, exposes granular fields, and gates editing independently', () => {
   const state = {
-    settings: { horseUpdatesEnabled: true },
+    settings: { horseUpdatesEnabled: true, sellingPrice: 100 },
+    sold: [],
+    transactions: [],
     horses: [
       {
         id: 'one',
@@ -29,25 +34,34 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
     mutations: [],
     spawning: { ALLOW_DUPLICATE_MUTATIONS: false }
   };
-  const page = horseUpdatesPage(state, catalog);
-  assert.ok(!page.includes('<script>bad'));
-  assert.ok(page.includes(stablePage('all', state, catalog).replace('>My Horses</h1>', '>Horse Overrides</h1>')));
-  assert.match(page, /horse-overrides-profile/);
-  assert.ok(!page.includes('horse-update-intro'));
-  const profile = String(horseOverrideProfile(state.horses[0], { ...state, sold: [] }, catalog));
-  assert.match(profile, /Preview Changes/);
-  assert.match(profile, /data-profile-tab="overview"/);
-  assert.match(profile, /data-profile-tab="appearance"/);
-  assert.match(profile, /data-profile-tab="overrides"/);
-  for (const key of ['trait:Mane', 'mutation:0', 'skill:bond', 'color:Coat Top', 'daysOwned'])
-    assert.ok(profile.includes('data-key="' + key + '"'));
+  assert.ok(!groups.some(group => group.items.some(([route]) => route === 'dev/horse-updates')));
+  const controls = horseOverrideControls(state.horses[0], state, catalog);
+  assert.match(controls, /Preview Changes/);
+  assert.match(controls, /details class="zone-editor-section horse-edit-section"/);
+  assert.ok(!controls.includes('Disable Horse Overrides'));
+  for (const key of ['name', 'age', 'daysOwned', 'favorite', 'color:Coat Top'])
+    assert.ok(!controls.includes('data-key="' + key + '"'));
+  assert.ok(!controls.includes('name="allowDuplicates"'));
+  for (const key of ['trait:Mane', 'mutation:0', 'skill:bond', 'birthday', 'palette'])
+    assert.ok(controls.includes('data-key="' + key + '"'));
+  const profile = profileContent(state.horses[0], state, { catalog, overrideContent: controls });
+  assert.match(profile, /title="Edit Horse Data"/);
+  assert.match(profile, /<span>Edit<\/span>/);
+  assert.ok(!profile.includes('<script>bad'));
+  assert.match(gameSettingsPage(state, catalog), /Override Horse Data/);
+  assert.ok(!gameSettingsPage(state, catalog).includes('Allow Duplicate Mutations'));
   assert.equal(lockedCosmicLabel({ mutations: [{ name: 'Void' }] }), 'Void');
   state.settings.horseUpdatesEnabled = false;
-  assert.match(
-    String(horseOverrideProfile(state.horses[0], { ...state, sold: [] }, catalog)),
-    /Enable Horse Overrides/
-  );
-  assert.ok(!horseUpdatesPage(state, catalog).includes('id="horse-update-form"'));
+  assert.equal(horseOverrideControls(state.horses[0], state, catalog), '');
+  assert.ok(!profileContent(state.horses[0], state, { catalog }).includes('Edit Horse Data'));
+  const marked = { ...state.horses[0], overriddenFields: ['species', 'trait:Mane'] };
+  assert.equal(horseOverrideBadge(marked, 'species', false), '');
+  assert.equal(horseOverrideBadge(marked, 'gender', true), '');
+  assert.match(horseOverrideBadge(marked, 'species', true), /OVERRIDE/);
+  state.settings.developerEditMode = true;
+  assert.match(profileContent(marked, state, { catalog }), /OVERRIDE/);
+  state.settings.developerEditMode = false;
+  assert.ok(!profileContent(marked, state, { catalog }).includes('OVERRIDE'));
 });
 
 test('override details read saved trait, color, mutation, skill and description values', () => {

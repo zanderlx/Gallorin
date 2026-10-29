@@ -12,6 +12,7 @@ import { horseGenerationVersion } from '../public/horse-version.js';
 import { readHorseSkills } from '../public/skill-progress.js';
 import { updateHorseField, validateHorseName } from '../public/horse-fields.js';
 import { localCalendarDate } from '../public/dates.js';
+import { horseOverrideValue } from '../public/horse-override-markers.js';
 
 const cosmicNames = ['Solar', 'Lunar', 'Heavenly', 'Void', 'Astral'];
 const nameOf = m => (typeof m === 'string' ? m : m?.name);
@@ -283,6 +284,14 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     .filter(key => !equal(original[key], horse[key]))
     .map(key => ({ field: key, before: original[key] ?? null, after: horse[key] ?? null }));
   if (changes.length) {
+    horse.overriddenFields = [
+      ...new Set([
+        ...(Array.isArray(original.overriddenFields) ? original.overriddenFields : []),
+        ...Object.keys(rules).filter(
+          key => active(key) && !equal(horseOverrideValue(original, key), horseOverrideValue(horse, key))
+        )
+      ])
+    ];
     horse.generationVersion = horseGenerationVersion;
     horse.lastRegeneratedAt = new Date().toISOString();
   }

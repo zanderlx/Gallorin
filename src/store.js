@@ -633,6 +633,11 @@ export class GameStore {
         if (typeof payload.ignoreStableLimit !== 'boolean')
           throw new Error('Stable limit override must be true or false.');
         next.settings.ignoreStableLimit = payload.ignoreStableLimit;
+        if (payload.horseUpdatesEnabled !== undefined) {
+          if (typeof payload.horseUpdatesEnabled !== 'boolean')
+            throw new Error('Override Horse Data must be true or false.');
+          next.settings.horseUpdatesEnabled = payload.horseUpdatesEnabled;
+        }
         if (payload.ALLOW_DUPLICATE_MUTATIONS !== undefined)
           catalog.spawning = validateSpawnSettings({
             ...catalog.spawning,

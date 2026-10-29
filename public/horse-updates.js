@@ -1,6 +1,6 @@
-import { stablePage } from './pages.js';
-import { profileContent } from './profile.js';
-import { horseAcquisitionDate, horseDaysOwned, localCalendarDate } from './dates.js';
+import { horseOverrideValue, horseOverrideBadge } from './horse-override-markers.js';
+export { horseOverrideValue } from './horse-override-markers.js';
+import { localCalendarDate } from './dates.js';
 import { escapeHTML as e, icon, html, raw, setHTML } from './ui.js';
 import { horseUpdateFields, horseTraitLimits, traitChoices, traitCountRange } from './horse-update-fields.js';
 import { horseFieldOptions } from './horse-fields.js';
@@ -62,45 +62,28 @@ function control(field, catalog, state) {
     '">'
   );
 }
-export function horseOverrideValue(horse, key) {
-  const [kind, name] = key.split(':');
-  if (kind === 'trait') return horse.traits?.[name] || horse.traits?.[name + 's'] || [];
-  if (kind === 'mutation') return horse.mutations?.[Number(name)] || null;
-  if (kind === 'color') return horse.palette?.colors?.[name] || '';
-  if (kind === 'skill') return horse.skills?.[name] || { level: 0, xp: 0 };
-  if (key === 'description') return horse.personalityDescription ?? horse.personality?.description ?? '';
-  if (key === 'birthday') return horseAcquisitionDate(horse) || horse.birthday || '';
-  if (key === 'daysOwned') return horseDaysOwned(horse);
-  if (key === 'mutations') return horse.mutations || [];
-  return horse[key];
-}
-function fieldRow(field, catalog, state) {
+function fieldRow(field, catalog, state, horse) {
   return html`<div class="horse-update-row" data-key="${field.key}">
-    <strong>${field.label}</strong><span class="horse-override-current" data-current-value>—</span>
+    <strong>${field.label}${raw(horseOverrideBadge(horse, field.key, state.settings.developerEditMode))}</strong><span class="horse-override-current" data-current-value>—</span>
     <button type="button" class="button secondary" data-edit-override="${field.key}" aria-label="Edit ${field.label}">Edit<span data-rule-summary> · Keep</span></button>
     <div data-editor hidden><label>Operation<select data-mode aria-label="${field.label} operation">${field.modes.map(mode => html`<option value="${mode}">${modeLabel[mode]}</option>`)}</select></label>
     <div data-value-container hidden>${raw(control(field, catalog, state))}</div>
     ${field.key.startsWith('trait:') ? html`<label data-count-container hidden>Count (blank = random)<input data-trait-count type="number" min="0" max="${horseTraitLimits[field.label]}" placeholder="Auto"></label>` : ''}
     <p class="muted" data-field-help></p></div></div>`;
 }
-export function horseUpdatesPage(state, catalog) {
-  return String(
-    html`<section id="horse-updates">${raw(stablePage('all', state, catalog).replace('>My Horses</h1>', '>Horse Overrides</h1>'))}<dialog class="horse-overrides-profile horse-import-preview" aria-labelledby="profile-title"></dialog></section>`
-  );
-}
-export function horseOverrideProfile(horse, state, catalog) {
-  const controls = html`<section class="panel horse-update-rules"><div class="settings-section-heading"><h2 data-override-title>Horse Overrides</h2><button type="button" class="button secondary" data-reset-overrides>Reset Overrides</button></div><p>Current saved values appear below. Edit a field to prepare a change; values stay unchanged until you preview and apply. Closing this profile clears prepared overrides.</p>
-      <p>Species changes require compatible traits and palettes. Size rerolls use the final mutations. A new personality keeps the description unless you edit it too.</p>
-      ${[...new Set(horseUpdateFields.map(f => f.group))].map(group => html`<section class="horse-override-group"><h3>${group}</h3>${horseUpdateFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state))}</section>`)}
-      <label class="horse-update-duplicates"><input type="checkbox" name="allowDuplicates" ${catalog.spawning.ALLOW_DUPLICATE_MUTATIONS ? raw('checked') : ''}> Allow Duplicate Mutations For This Override</label>
-      <p>Four mutation slots maximum; Cosmic slots are kept. Choose either all-mutation reroll or individual slots. Acquisition date and age in days control the same date; choose one.</p>
-      <div class="form-actions"><button type="submit" class="button primary">${raw(icon('refresh'))} Preview Changes</button></div></section>
-      <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
-      <section id="horse-update-preview" aria-live="polite"></section>`;
-  const content = state.settings.horseUpdatesEnabled
-    ? html`<button type="button" class="button secondary horse-update-disable" data-enable-horse-updates="false">Disable Horse Overrides</button>${controls}`
-    : html`<p>Enable Horse Overrides to keep, set, or reroll this horse’s values. Every application creates a save backup; Cosmic-defining mutations stay protected.</p><button type="button" class="button primary" data-enable-horse-updates="true">Enable Horse Overrides</button>`;
-  return html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>${raw(profileContent(horse, state, { importPreview: true, catalog, overrideContent: String(content) }))}</form>`;
+const hiddenFields = new Set(['name', 'age', 'daysOwned', 'favorite']);
+export const editableHorseFields = horseUpdateFields.filter(
+  field => !hiddenFields.has(field.key) && !field.key.startsWith('color:')
+);
+export function horseOverrideControls(horse, state, catalog) {
+  if (!state.settings.horseUpdatesEnabled || !state.horses.some(h => h.id === horse.id)) return '';
+  const arrow = html`<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>`;
+  return String(html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>
+    <div class="horse-update-rules"><div class="horse-edit-actions"><button type="button" class="button secondary" data-reset-overrides>Reset Pending Changes</button></div>
+    ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns" aria-hidden="true"><span>Field</span><span>Current Value</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}</div></details>`)}
+    <div class="form-actions"><button type="submit" class="button primary">${raw(icon('refresh'))} Preview Changes</button></div></div>
+    <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
+    <section id="horse-update-preview" aria-live="polite"></section></form>`);
 }
 function formatValue(value) {
   if (value === null || value === undefined) return '—';
@@ -112,7 +95,7 @@ function formatValue(value) {
     .map(([key, v]) => key + ': ' + formatValue(v))
     .join('; ');
 }
-export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, enable, onApplied, notify }) {
+export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied, notify }) {
   let token = null,
     working = false,
     editing = null,
@@ -162,12 +145,12 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
     if (!horse) return;
     invalidate();
     form.querySelector('.horse-update-rules').hidden = false;
-    form.querySelector('[data-override-title]').textContent = horse.name || horse.species;
 
     for (const row of form.querySelectorAll('[data-key]')) {
       const value = horseOverrideValue(horse, row.dataset.key),
         input = row.querySelector('[data-value]');
-      row.querySelector('[data-current-value]').textContent = formatValue(value);
+      row.querySelector('[data-current-value]').textContent =
+        row.dataset.key === 'palette' ? value?.name || 'None' : formatValue(value);
       row.querySelector('[data-mode]').value = 'keep';
       row.querySelector('[data-rule-summary]').textContent = ' · Keep';
       const protectedSlot = row.dataset.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [value] });
@@ -273,29 +256,6 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
     invalidate();
   });
   root.addEventListener('click', async event => {
-    const page = root.querySelector('#horse-updates');
-    if (!page) return;
-    const close = event.target.closest('[data-close-overrides]');
-    if (close) {
-      event.preventDefault();
-      page.querySelector('.horse-overrides-profile').close();
-      invalidate();
-      return;
-    }
-    const horseCard = event.target.closest('#collection-grid .horse-card');
-    if (horseCard && !event.target.closest('[data-action="favorite"]')) {
-      event.stopPropagation();
-      event.preventDefault();
-      const id = horseCard.querySelector('[data-action="inspect"]').dataset.id;
-      const horse = getState().horses.find(h => h.id === id);
-      const dialog = page.querySelector('.horse-overrides-profile');
-      editing = null;
-      setHTML(dialog, horseOverrideProfile(horse, getState(), getCatalog()));
-      if (getState().settings.horseUpdatesEnabled) selectHorse(dialog.querySelector('form'), id);
-      dialog.oncancel = () => invalidate();
-      dialog.showModal();
-      return;
-    }
     const form = event.target.closest('#horse-update-form');
     if (form && event.target.closest('[data-reset-overrides]')) {
       selectHorse(form, selectedHorse(form)?.id);
@@ -386,26 +346,6 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       finishEdit(form, true);
       return;
     }
-    const unlock = event.target.closest('[data-enable-horse-updates]');
-    if (unlock) {
-      if (working) return;
-      working = true;
-      const horseId = selectedHorse(unlock.closest('form'))?.id;
-      try {
-        await enable(unlock.dataset.enableHorseUpdates === 'true');
-        invalidate();
-        onApplied();
-        [...root.querySelectorAll('#collection-grid [data-action="inspect"]')]
-          .find(button => button.dataset.id === horseId)
-          ?.click();
-        root.querySelector('[data-profile-tab="overrides"]')?.click();
-      } catch (error) {
-        notify(error.message, true);
-      } finally {
-        working = false;
-      }
-      return;
-    }
     const button = event.target.closest('[data-apply-horse-updates]');
     if (!button || working || !token) return;
     working = true;
@@ -467,7 +407,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
         const result = await preview({
           ids: [...form.querySelectorAll('[name=horse]:checked')].map(i => i.value),
           rules,
-          allowDuplicates: form.elements.allowDuplicates.checked
+          allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS
         });
         if (revision !== draftRevision || !root.contains(form)) return;
         token = result.preview.token;
@@ -520,4 +460,12 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
     },
     true
   );
+  return {
+    initialize() {
+      editing = null;
+      invalidate();
+      const form = root.querySelector('#horse-update-form');
+      if (form) selectHorse(form, form.querySelector('[name=horse]').value);
+    }
+  };
 }

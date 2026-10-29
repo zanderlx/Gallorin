@@ -1,24 +1,28 @@
 # Horse versions and retroactive updates
 
-Open **Developer Settings → Horse Overrides**, click a horse, and select its **Overrides** tab to enable the tool. This is separate from page-text Edit Mode.
+Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then open a horse in **Stables → My Horses** and select its **Edit** tab. The tab is available only for owned horses while that setting is enabled.
 
-1. Choose a horse from the stable-style card grid. Search by name, species, or personality, or sort the cards. The page shares the My Horses search, grid-size, sort, and favorite controls. Clicking a card opens the same horse profile book with Info and Traits pages plus an Overrides tab. Closing the profile clears prepared overrides.
-2. Leave everything you want to preserve at **Keep**.
-3. On the **Overrides** tab, click **Edit** beside a field to open its modal. Choose **Set** for an exact value, **Reroll** for a generated value, or the available clear/reset option. Trait checkboxes stop accepting choices at the category limit and explain required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits. **Reset Overrides** clears all staged fields.
-4. Generate **Preview Changes**. Review each horse's current/proposed values and warnings.
-5. Choose **Apply Reviewed Changes**. A dated standalone player-save backup is created first.
+1. Expand a section using the Zones-style dropdown headings.
+2. Leave values you want to preserve at **Keep**. Click **Edit** beside a value to open its choice modal.
+3. Choose **Set**, **Reroll**, or the available clear/reset option. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
+4. Select **Preview Changes** and review current/proposed values and warnings.
+5. Select **Apply Reviewed Changes**. A standalone player-save backup is created first.
+
+Names, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. **Reset Pending Changes** clears staged edits.
+
+Applied fields that actually changed receive a saved **OVERRIDE** marker. Badges appear only while Edit Mode is enabled, including on the corresponding horse profile values. Historical changes made before markers were tracked cannot be inferred reliably.
 
 A preview never rerolls when applied: the server keeps the exact generated results for ten minutes. Changing a selected horse, the configuration, or relevant settings invalidates that preview. Reloading/restarting requires generating another preview. Changes apply together; a stale horse prevents the whole batch from applying.
 
 ## Available controls
 
-- Species, name, gender, life stage, acquisition date/birthday, age in days, origin, size, favorite.
-- Personality, description, notes, eye color, palette, and each of the nine palette colors.
+- Species, gender, acquisition date/birthday, origin, and size.
+- Personality, description, notes, eye color, and palette.
 - Each species trait category: Mane, Tail, Pattern, Paint, Cosmetic, Keratin, Ears, Whiskers.
 - All unlocked mutations together or individual slots.
 - Each skill's level and XP, or reset to level 0. XP uses the normal level-up rules.
 
-Age on profiles means days since acquisition. Setting age in days changes the acquisition date. Choose either age in days or birthday/date in one update. The legacy life-stage field does not replace the displayed day count.
+Age on profiles is calculated as days since acquisition. Changing the acquisition date updates that calculated age.
 
 Changing personality preserves the saved description unless Description is also selected. Keeping size preserves it even if a size-affecting mutation changes; choose Size → Reroll to regenerate size with the final mutations.
 
@@ -26,11 +30,11 @@ Changing personality preserves the saved description unless Description is also 
 
 Trait rolls read the current species's Compendium definitions. Mane/Tail require one defined option. Optional categories support up to four Patterns, two Paints, four Cosmetics, and one each of Keratin, Ears, and Whiskers. Rerolls can use a fixed count or a random count. Unknown lists stay unchanged; this tool does not invent missing traits. After adding species traits later, select existing horses and reroll only those categories.
 
-Changing species requires replacing incompatible traits/palettes. Cosmic palettes remain tied to the horse's Cosmic identity. Individual palette colors can still be explicitly adjusted.
+Changing species requires replacing incompatible traits/palettes. Cosmic palettes remain tied to the horse's Cosmic identity. Palette colors use the palette’s variance settings.
 
 Solar, Lunar, Heavenly, Void, and Astral defining mutations are protected. They survive full rerolls and cannot be removed through individual slot updates. A legacy Cosmic horse whose defining mutation is absent has it restored when regenerating mutations. The four-slot limit still applies; legacy records above that limit require separate review and are preserved.
 
-Full mutation rerolls use current cascading slot chances, weights, species thresholds, and the chosen duplicate policy. Individual slot rerolls draw one eligible standard mutation, independent of the cascading slot chances. Exact mutation selections can include non-Cosmic Special mutations; thresholds still apply. Weight 0 prevents random selection but does not prohibit an explicit developer selection. The duplicate checkbox affects this operation only.
+Full mutation rerolls use current cascading slot chances, weights, species thresholds, and the chosen duplicate policy. Individual slot rerolls draw one eligible standard mutation, independent of the cascading slot chances. Exact mutation selections can include non-Cosmic Special mutations; thresholds still apply. Weight 0 prevents random selection but does not prohibit an explicit developer selection. Duplicate behavior follows the existing spawning configuration.
 
 IDs, capture history, favorites, notes, visuals, and other unselected values remain intact. Existing unsupported fields/equipment are not fabricated. Rarity follows species/Cosmic identity and is not an independent override.
 

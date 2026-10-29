@@ -1,83 +1,65 @@
-#horse-updates .horse-update-intro {
-  margin: 16px 0 26px;
-  max-width: 85ch;
+/* Stable profile Edit tab shares the Zones manager disclosures. */
+#profile .profile-overrides-panel {
+  padding: 24px;
 }
-#horse-updates .panel {
-  margin-bottom: 26px;
+#profile .profile-overrides-panel[hidden],
+#profile [data-editor][hidden],
+#profile [data-value-container][hidden],
+#profile [data-count-container][hidden] {
+  display: none !important;
 }
-.horse-update-selection-tools {
+.horse-edit-actions {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 20px 0;
+  justify-content: flex-end;
+  margin-bottom: 16px;
 }
-.horse-update-horses {
-  max-height: 300px;
-  overflow: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 10px;
-  padding: 4px;
-}
-.horse-update-horse {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-}
-.horse-update-horse:has(:checked) {
-  border-color: var(--gold);
-  background: var(--panel-deep);
-}
-.horse-update-horse small {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-}
-.horse-update-horse[hidden] {
-  display: none;
-}
-#horse-updates details {
-  border-top: 1px solid var(--border);
-  padding: 16px 0;
-}
-#horse-updates summary {
-  cursor: pointer;
-  color: var(--gold);
-  font-size: 19px;
-  font-family: var(--serif);
-  margin-bottom: 12px;
-}
+.horse-edit-columns,
 .horse-update-row {
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(120px, 170px) minmax(160px, 2fr);
-  gap: 14px;
+  grid-template-columns: minmax(110px, 1fr) minmax(130px, 1.6fr) minmax(130px, 1fr);
+  gap: 16px;
   align-items: center;
-  padding: 12px 0;
 }
-.horse-update-row [data-value] {
+.horse-edit-columns {
+  color: var(--muted);
+  font-size: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.horse-update-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.horse-update-row > strong {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.horse-update-row > button {
+  display: block;
   width: 100%;
-  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
   text-transform: none;
 }
-.horse-update-row select[multiple] {
-  min-height: 110px;
-}
-.horse-update-row input[type='color'] {
-  height: 48px;
-}
-.horse-update-row [data-count-container] {
-  grid-column: 3;
-  font-size: 13px;
+.horse-override-current {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
   color: var(--muted);
 }
-.horse-update-row [data-count-container] input {
-  width: 90px;
-  margin-left: 10px;
+.horse-override-badge {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 9px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-left: 6px;
+  font-family: var(--sans);
 }
 .horse-update-skill {
   display: flex;
@@ -85,16 +67,9 @@
 }
 .horse-update-skill label {
   flex: 1;
-  font-size: 12px;
 }
 .horse-update-skill input {
   width: 100%;
-}
-.horse-update-duplicates {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 0;
 }
 .horse-update-table-wrap {
   overflow: auto;
@@ -102,85 +77,27 @@
 #horse-update-preview table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
   text-align: left;
+  font-size: 13px;
 }
 #horse-update-preview th,
 #horse-update-preview td {
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid var(--border);
-  vertical-align: top;
+  max-width: 35ch;
   overflow-wrap: anywhere;
-  max-width: 40ch;
-}
-#horse-update-preview thead {
-  color: var(--gold);
 }
 .horse-update-warning {
   color: var(--gold);
-  padding: 8px 0;
-}
-#horse-updates [data-editor][hidden],
-#horse-updates [data-value-container][hidden],
-#horse-updates [data-count-container][hidden],
-#horse-updates .profile-overrides-panel[hidden] {
-  display: none !important;
 }
 @media (max-width: 720px) {
+  .horse-edit-columns {
+    display: none;
+  }
   .horse-update-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
-  .horse-update-row [data-value-container],
-  .horse-update-row [data-count-container] {
-    grid-column: 1/-1;
-  }
-  .horse-update-selection-tools input {
-    width: 100%;
-  }
-}
-
-.horse-update-disable {
-  margin-bottom: 20px;
-}
-
-.horse-override-grid {
-  margin-bottom: 28px;
-}
-.horse-update-rules {
-  scroll-margin-top: 95px;
-}
-.horse-update-row button {
-  display: block;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  text-transform: none;
-}
-.horse-override-card {
-  position: relative;
-  cursor: pointer;
-}
-.horse-override-card:has(:checked) .horse-card {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-}
-.horse-override-lock {
-  display: block;
-  text-align: center;
-  color: var(--gold);
-  margin-top: 8px;
-}
-.horse-override-current {
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-  color: var(--muted);
-}
-.horse-override-group {
-  border-top: 1px solid var(--border);
-  padding-top: 18px;
-  margin-top: 24px;
-}
-.horse-update-rules .horse-update-row {
-  grid-template-columns: minmax(120px, 1fr) minmax(140px, 2fr) minmax(150px, 1fr);
 }
 .horse-override-dialog {
   width: min(620px, calc(100vw - 32px));
@@ -234,17 +151,5 @@
     grid-template-columns: 1fr;
     gap: 8px;
     border-bottom: 1px solid var(--border);
-  }
-}
-
-.horse-overrides-profile .profile-overrides-panel {
-  padding: 24px;
-}
-.horse-overrides-profile .horse-update-row {
-  grid-template-columns: minmax(90px, 1fr) minmax(100px, 1.5fr) minmax(110px, 1fr);
-}
-@media (max-width: 720px) {
-  .horse-overrides-profile .horse-update-row {
-    grid-template-columns: 1fr;
   }
 }

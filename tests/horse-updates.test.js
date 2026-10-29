@@ -63,6 +63,9 @@ test('preview is read-only; apply uses exact reviewed values and a dated backup'
   const state = await store.action('apply-horse-updates', { token: result.preview.token });
   const updated = state.horses[0];
   assert.equal(updated.gender, gender);
+  assert.deepEqual(updated.overriddenFields.sort(), ['gender', 'skill:bond']);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.snapshot().horses[0].overriddenFields.sort(), ['gender', 'skill:bond']);
   assert.deepEqual(updated.skills.bond, { level: 2, xp: 40 });
   assert.equal(updated.id, horse.id);
   assert.equal(updated.name, horse.name);
@@ -287,4 +290,14 @@ test('expired previews and no-op applications cannot write a save', async t => {
   const none = await preview(store, [horse.id], {});
   await assert.rejects(store.action('apply-horse-updates', { token: none.preview.token }), /no changes/);
   assert.equal(await readFile(join(directory, 'player/save.json'), 'utf8'), before);
+});
+
+test('settings checkbox enables horse editing without changing duplicate mutation rules', async t => {
+  const { store } = await fixture(t);
+  const duplicateRule = store.getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS;
+  await store.action('settings', { ...store.snapshot().settings, horseUpdatesEnabled: true });
+  assert.equal(store.snapshot().settings.horseUpdatesEnabled, true);
+  assert.equal(store.getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS, duplicateRule);
+  await store.action('settings', { ...store.snapshot().settings, horseUpdatesEnabled: false });
+  assert.equal(store.snapshot().settings.horseUpdatesEnabled, false);
 });

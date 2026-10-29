@@ -4,7 +4,7 @@ import { bindEncounterCooldown } from './encounter-cooldown.js';
 import { bindNavigationDisclosures } from './navigation-disclosures.js';
 import { createMusicPlayer } from './music-player.js';
 import { createChangelog } from './changelog-ui.js';
-import { horseUpdatesPage, bindHorseUpdates } from './horse-updates.js';
+import { horseOverrideControls, bindHorseUpdates } from './horse-updates.js';
 import { createGoldFeedback } from './gold-feedback.js';
 import { openEmojiPicker } from './emoji-picker.js';
 import { createDefinitionTransfers } from './definition-transfer.js';
@@ -13,7 +13,6 @@ import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './p
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
 import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
-import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
 import { defaultRaritySettings, rarityNames, raritySettings } from './rarity-settings.js';
@@ -147,14 +146,16 @@ const mutationEditor = createMutationEditor(draft => libraryEditorPage('mutation
 const zoneEditor = createZoneEditor(draft => zoneEditorForm(catalog, draft));
 const copyEditor = createCopyEditor({ getState: () => state, getRoute: () => route, save: action, notify });
 
-bindHorseUpdates({
-  root: main,
+const horseUpdates = bindHorseUpdates({
+  root: profile,
   getState: () => state,
   getCatalog: () => catalog,
   preview: payload => request('/api/action', { type: 'preview-horse-updates', payload }),
   apply: payload => action('apply-horse-updates', payload),
-  enable: enabled => action('horse-updates-enabled', { enabled }),
-  onApplied: () => render(),
+  onApplied: () => {
+    render();
+    if (profile.open) inspect(profile.dataset.horseId);
+  },
   notify
 });
 
@@ -291,7 +292,6 @@ function pageContent(pageRoute, pageState = state) {
   else if (route === 'dev/roadmap') return roadmapPage();
   else if (route === 'dev/music') return musicPlayer.page();
   else if (route === 'dev/profile') return keeperPage(state);
-  else if (route === 'dev/horse-updates') return horseUpdatesPage(state, catalog);
   else if (route === 'dev/edit-mode') return editModePage(state);
   else if (route === 'dev/locations' || route === 'dev/atmospheres') return zoneEditorPage(catalog, state);
   else if (section === 'dev' && page === 'rarities') return raritiesManagerPage(catalog);
@@ -350,6 +350,7 @@ async function navigate({ initializeNavigation = false } = {}) {
     history.replaceState(null, '', `#${route}`);
   }
   const movedRoutes = {
+    'dev/horse-updates': 'stable/all',
     'dev/traits': 'dev/species',
     'dev/editor': 'dev/roadmap',
     'dev/generator': 'dev/roadmap',
@@ -495,7 +496,11 @@ function inspect(id) {
   if (rankColor) profile.style.setProperty('--profile-rarity-color', rankColor);
   else profile.style.removeProperty('--profile-rarity-color');
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-  profile.innerHTML = profileContent(horse, state, { catalog });
+  profile.innerHTML = profileContent(horse, state, {
+    catalog,
+    overrideContent: horseOverrideControls(horse, state, catalog)
+  });
+  horseUpdates.initialize();
   selectProfileTab(profile, currentTab || 'overview');
   profileCopyEditor.attach(profile);
   trackForms(profile);
@@ -843,8 +848,7 @@ document.addEventListener('click', async event => {
       if (input.type === 'checkbox') input.checked = value;
       else input.value = value;
     }
-    if (form.id === 'settings-form')
-      form.elements.ALLOW_DUPLICATE_MUTATIONS.checked = defaultSpawnSettings.ALLOW_DUPLICATE_MUTATIONS;
+    if (form.id === 'settings-form') form.elements.horseUpdatesEnabled.checked = false;
     if (form.id === 'economy-form')
       for (const [key, value] of Object.entries(defaults.saleModifiers || defaultSaleModifiers))
         form.elements.namedItem(`saleModifier:${key}`).value = value;
@@ -1118,7 +1122,7 @@ document.addEventListener('submit', async event => {
         startingGold: Number(values.startingGold ?? state.settings.startingGold),
         stableCapacity: Number(values.stableCapacity ?? state.settings.stableCapacity),
         ignoreStableLimit: form.elements.ignoreStableLimit?.checked ?? state.settings.ignoreStableLimit,
-        ALLOW_DUPLICATE_MUTATIONS: form.elements.ALLOW_DUPLICATE_MUTATIONS.checked
+        horseUpdatesEnabled: form.elements.horseUpdatesEnabled.checked
       });
       render();
       notify('Saved successfully.');

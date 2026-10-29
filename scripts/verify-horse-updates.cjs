@@ -47,7 +47,7 @@ app
     });
     win.webContents.setAudioMuted(true);
     win.webContents.on('console-message', event => console.log(event.message));
-    await win.loadURL(origin + '/#dev/horse-updates');
+    await win.loadURL(origin + '/#stable/all');
     async function waitFor(selector) {
       for (let i = 0; i < 100; i++) {
         if (
@@ -60,81 +60,55 @@ app
       throw Error('Missing ' + selector + ': ' + error);
     }
     await waitFor('#collection-grid .horse-card');
-    await win.webContents.executeJavaScript("document.querySelector('#collection-grid [data-action=inspect]').click()");
     await win.webContents.executeJavaScript(`(()=>{
-    const assert=(condition,message)=>{if(!condition)throw Error(message)};
-    const form=document.querySelector('#horse-update-form');
-    assert(document.querySelector('h1').textContent==='Horse Overrides','Page heading');
-    assert(document.querySelector('.horse-overrides-profile').open,'Horse opens profile modal');
-    assert(form.querySelector('[data-profile-tab=overview]').getAttribute('aria-selected')==='true','Starts on the shared Info page');
-    form.querySelector('[data-profile-tab=overrides]').click();
-    const dialog=form.querySelector('dialog');
-    const edit=(key,mode)=>{
-      form.querySelector('[data-edit-override="'+key+'"]').click();
-      assert(dialog.open,'Field dialog should open');
-      const row=form.querySelector('[data-key="'+key+'"]');
-      const operation=row.querySelector('[data-mode]');operation.value=mode;operation.dispatchEvent(new Event('change',{bubbles:true}));
-      return row;
-    };
-    const pattern=edit('trait:Pattern','set');
-    for(const choice of pattern.querySelectorAll('[data-trait-choice]')) if(choice.checked)choice.click();
-    for(let i=0;i<4;i++)pattern.querySelector('[data-trait-choice]:not(:checked):not(:disabled)').click();
-    assert(pattern.querySelectorAll('[data-trait-choice]:checked').length===4,'Four patterns selected');
-    assert(pattern.querySelectorAll('[data-trait-choice]:disabled').length===2,'Fifth and sixth choices blocked');
-    pattern.querySelector('[data-trait-choice]:disabled').click();
-    assert(pattern.querySelectorAll('[data-trait-choice]:checked').length===4,'Cannot exceed pattern maximum');
-    pattern.querySelector('[data-trait-choice]:checked').click();
-    assert(pattern.querySelectorAll('[data-trait-choice]:disabled').length===0,'Removing a pattern frees a slot');
-    form.querySelector('[data-cancel-override]').click();
-    assert(!dialog.open && pattern.querySelector('[data-mode]').value==='keep','Cancel discards field edits');
-    edit('name','set').querySelector('[data-value]').value='Canceled name';
-    dialog.dispatchEvent(new Event('cancel',{cancelable:true}));
-    assert(form.querySelector('[data-key=name] [data-mode]').value==='keep','Escape cancels');
-    edit('notes','set').querySelector('[data-value]').value='Discarded note';
-    form.querySelector('[data-save-override]').click();
-    assert(form.querySelector('[data-key=notes] [data-rule-summary]').textContent.includes('Set'),'Draft operation shown');
-    form.querySelector('[data-reset-overrides]').click();
-    assert(form.querySelector('[data-key=notes] [data-mode]').value==='keep','Reset clears draft');
-    edit('notes','set').querySelector('[data-value]').value='Previewed in the real renderer';
-    form.querySelector('[data-save-override]').click();
-    const row=form.querySelector('[data-key=notes]');
-    assert(row.querySelector('[data-current-value]').textContent!=='Previewed in the real renderer','Saved value remains unchanged');
-    form.requestSubmit();
-  })()`);
+      document.querySelector('#collection-grid [data-action=inspect]').click();
+      const form=document.querySelector('#horse-update-form');
+      if(!document.querySelector('#profile').open)throw Error('Stable profile did not open');
+      const tab=document.querySelector('[data-profile-tab=overrides]');
+      if(tab.textContent.trim()!=='Edit')throw Error('Expected Edit tab');
+      tab.click();
+      if(form.querySelector('[data-key=name],[data-key=age],[data-key=daysOwned],[data-key=favorite],[data-key^="color:"]'))throw Error('Hidden field still editable');
+      if(form.querySelector('[name=allowDuplicates],[data-enable-horse-updates]'))throw Error('Obsolete control remains');
+      const edit=(key,mode)=>{
+        const row=form.querySelector('[data-key="'+key+'"]');
+        row.closest('details').open=true;
+        row.querySelector('[data-edit-override]').click();
+        if(!form.querySelector('.horse-override-dialog').open)throw Error('Field dialog not open');
+        const select=row.querySelector('[data-mode]');select.value=mode;select.dispatchEvent(new Event('change',{bubbles:true}));
+        return row;
+      };
+      const pattern=edit('trait:Pattern','set');
+      for(const choice of pattern.querySelectorAll('[data-trait-choice]'))if(choice.checked)choice.click();
+      for(let i=0;i<4;i++)pattern.querySelector('[data-trait-choice]:not(:checked):not(:disabled)').click();
+      if(pattern.querySelectorAll('[data-trait-choice]:disabled').length!==2)throw Error('Pattern limit missing');
+      form.querySelector('[data-cancel-override]').click();
+      edit('notes','set').querySelector('[data-value]').value='Previewed in the real renderer';
+      form.querySelector('[data-save-override]').click();
+      form.requestSubmit();
+    })()`);
     await waitFor('[data-apply-horse-updates]');
     const before = (await (await fetch(origin + '/api/state')).json()).state.horses[0];
     if (before.notes === 'Previewed in the real renderer') throw Error('Preview mutated the horse');
-    await writeFile(join(directory, 'preview.png'), (await win.webContents.capturePage()).toPNG());
     await win.webContents.executeJavaScript("document.querySelector('[data-apply-horse-updates]').click()");
-    for (let i = 0; i < 100; i++) {
-      const state = (await (await fetch(origin + '/api/state')).json()).state;
-      if (state.horses[0].notes === 'Previewed in the real renderer') break;
-      await new Promise(r => setTimeout(r, 100));
-    }
+    await waitFor('#horse-update-form:not(:has([data-apply-horse-updates]))');
     const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8'));
-    if (saved.horses[0].notes !== 'Previewed in the real renderer' || !saved.horses[0].lastRegeneratedAt)
-      throw Error('Reviewed changes did not persist');
-    await waitFor('.horse-overrides-profile:not([open])');
-    await win.webContents.executeJavaScript("document.querySelector('#collection-grid [data-action=inspect]').click()");
+    if (
+      saved.horses[0].notes !== 'Previewed in the real renderer' ||
+      !saved.horses[0].overriddenFields.includes('notes')
+    )
+      throw Error('Override or marker did not persist');
+    await win.webContents.executeJavaScript(`new Promise(resolve => setTimeout(resolve, 150))`);
+    await win.webContents.executeJavaScript(`(()=>{
+      const profile=document.querySelector('#profile');
+      if(!profile.open)throw Error('Profile closed after apply');
+      profile.querySelector('[data-profile-tab=overrides]').click();
+      const sections=profile.querySelectorAll('.horse-edit-section');
+      sections[0].open=true;sections[1].open=true;
+    })()`);
     await win.webContents.executeJavaScript(
       'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
     );
-    await writeFile(join(directory, 'page.png'), (await win.webContents.capturePage()).toPNG());
-    await win.webContents.executeJavaScript(
-      "document.querySelector('[data-profile-tab=overrides]').click();document.querySelector('[data-edit-override=\"trait:Pattern\"]').click();document.querySelector('.horse-override-dialog [data-mode]').value='set';document.querySelector('.horse-override-dialog [data-mode]').dispatchEvent(new Event('change',{bubbles:true}))"
-    );
-    await win.webContents.executeJavaScript(
-      'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
-    );
-    await win.webContents.executeJavaScript(
-      "(()=>{if(!document.querySelector('.horse-override-dialog').open)throw Error('Field modal closed unexpectedly');if(document.querySelector('[data-profile-tab=overrides]').getAttribute('aria-selected')!=='true')throw Error('Overrides tab not selected')})()"
-    );
-    await writeFile(join(directory, 'field.png'), (await win.webContents.capturePage()).toPNG());
-    await win.setContentSize(600, 850);
-    await win.webContents.executeJavaScript(
-      'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
-    );
-    await writeFile(join(directory, 'field-narrow.png'), (await win.webContents.capturePage()).toPNG());
+    await writeFile(join(directory, 'edit.png'), (await win.webContents.capturePage()).toPNG());
     console.log('Horse Overrides UI passed: ' + directory);
     win.destroy();
     await backend.closeGameServer();
