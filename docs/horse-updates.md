@@ -19,7 +19,7 @@ Each section save validates and applies its changes together. A stale horse or c
 - Species, gender, acquisition date/birthday, origin, and size.
 - Personality (under Identity), eye color, and palette. Palette and eye choices show their colors in the popup. Cosmic palettes are locked.
 - Each species trait category: Mane, Tail, Pattern, Paint, Cosmetic, Keratin, Ears, Whiskers.
-- All unlocked mutations together or individual slots.
+- Individual mutation slots; Cosmic-defining slots are locked.
 - Each skill's level and XP, or reset to level 0. XP uses the normal level-up rules.
 
 Age on profiles is calculated as days since acquisition. Changing the acquisition date updates that calculated age.

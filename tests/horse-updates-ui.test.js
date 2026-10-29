@@ -25,6 +25,7 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
         revision: 1,
         schemaVersion: 1,
         specialSpawn: 'Solar',
+        mutations: [{ name: 'Solar' }],
         palette: { colors: {} },
         eye: { colors: [] },
         personality: { name: 'Calm' },
@@ -70,6 +71,9 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.ok(!/data-remove-override="species"[^>]*hidden/.test(markedControls));
   assert.match(controls, /details class="zone-editor-section horse-edit-section"/);
   assert.ok(!controls.includes('Disable Horse Overrides'));
+  assert.ok(!controls.includes('All Unlocked Mutations'));
+  assert.ok(!controls.includes('data-key="mutations"'));
+  assert.match(controls, /This mutation cannot be updated because this is a Cosmic horse/);
   assert.ok(!controls.includes('Personality &amp; Notes'));
   assert.equal(editableHorseFields.find(field => field.key === 'personality').group, 'Identity');
   for (const key of ['name', 'age', 'daysOwned', 'favorite', 'color:Coat Top', 'description', 'notes'])
@@ -211,4 +215,37 @@ test('appearance choice cards show colors and omit incompatible or Cosmic palett
   assert.match(eyes, /background:#00FF00/);
   assert.match(eyes, /background:#009900/);
   assert.ok(!eyes.includes('>#00FF00<'));
+});
+
+test('species confirmation uses colored rarity tiers rather than Event labels', () => {
+  const catalog = {
+    species: [
+      { id: 'old', name: 'Old', rarityTier: 3, event: 'Autumn' },
+      { id: 'new', name: 'New', rarityTier: 2, event: 'Autumn' }
+    ]
+  };
+  const horse = { speciesId: 'old', species: 'Old', rarityTier: 3 };
+  const markup = String(
+    speciesConfirmationContent(
+      {
+        items: [
+          {
+            changes: [
+              { field: 'speciesId', before: 'old', after: 'new' },
+              { field: 'species', before: 'Old', after: 'New' },
+              { field: 'rarityTier', before: 3, after: 2 }
+            ],
+            warnings: []
+          }
+        ]
+      },
+      catalog,
+      horse
+    )
+  );
+  assert.match(markup, />Uncommon</);
+  assert.match(markup, />Rare</);
+  assert.match(markup, /color:#58B878/);
+  assert.match(markup, /color:#609DEA/);
+  assert.ok(!markup.includes('>Event<'));
 });

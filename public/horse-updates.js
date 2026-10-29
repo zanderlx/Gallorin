@@ -96,22 +96,25 @@ function control(field, catalog, state) {
     '">'
   );
 }
+const cosmicMutationTooltip = 'This mutation cannot be updated because this is a Cosmic horse.';
 function fieldRow(field, catalog, state, horse) {
+  const lockedMutation =
+    field.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [horseOverrideValue(horse, field.key)] });
   return html`<div class="horse-update-row" data-key="${field.key}">
     <strong>${field.label}${raw(horseOverrideBadge(horse, field.key, state.settings.developerEditMode))}</strong>
     <span class="horse-override-current" data-current-value>—</span>
     <span class="horse-override-proposed" data-override-value>—</span>
     <div class="horse-override-actions">
-      <button type="button" class="icon-button" data-edit-override="${field.key}" title="Edit ${field.label}" aria-label="Edit ${field.label}">${raw(icon('edit'))}</button>
-      <button type="button" class="icon-button" data-roll-override="${field.key}" title="Reroll ${field.label}" aria-label="Reroll ${field.label}" ${field.modes.some(mode => ['reroll', 'refresh'].includes(mode)) ? '' : raw('disabled')}>${raw(icon('reroll'))}</button>
-      <button type="button" class="icon-button" data-remove-override="${field.key}" title="Remove ${field.label} override" aria-label="Remove ${field.label} override" ${horse.overriddenFields?.includes(field.key) ? '' : raw('hidden')}>${raw(icon('trash'))}</button>
+      <button type="button" class="icon-button" data-edit-override="${field.key}" title="${lockedMutation ? cosmicMutationTooltip : 'Edit ' + field.label}" aria-label="Edit ${field.label}">${raw(icon('edit'))}</button>
+      <button type="button" class="icon-button" data-roll-override="${field.key}" title="${lockedMutation ? cosmicMutationTooltip : 'Reroll ' + field.label}" aria-label="Reroll ${field.label}" ${field.modes.some(mode => ['reroll', 'refresh'].includes(mode)) ? '' : raw('disabled')}>${raw(icon('reroll'))}</button>
+      <button type="button" class="icon-button" data-remove-override="${field.key}" title="${lockedMutation ? cosmicMutationTooltip : 'Remove ' + field.label + ' override'}" aria-label="Remove ${field.label} override" ${horse.overriddenFields?.includes(field.key) ? '' : raw('hidden')}>${raw(icon('trash'))}</button>
     </div>
     <div data-editor hidden><select data-mode hidden aria-hidden="true" tabindex="-1">${field.modes.map(mode => html`<option value="${mode}">${modeLabel[mode]}</option>`)}<option value="restore" hidden>Restore Original</option></select>
     <div data-value-container hidden>${raw(control(field, catalog, state))}</div>
     ${field.key.startsWith('trait:') ? html`<input data-trait-count type="hidden" value="">` : ''}
     <p class="muted" data-field-help></p></div></div>`;
 }
-const hiddenFields = new Set(['name', 'age', 'daysOwned', 'favorite', 'description', 'notes']);
+const hiddenFields = new Set(['name', 'age', 'daysOwned', 'favorite', 'description', 'notes', 'mutations']);
 export const editableHorseFields = horseUpdateFields
   .filter(field => !hiddenFields.has(field.key) && !field.key.startsWith('color:'))
   .map(field => (field.key === 'personality' ? { ...field, group: 'Identity' } : field));
@@ -149,10 +152,13 @@ export function speciesConfirmationContent(preview, catalog, horse) {
   const colors = raritySettings(catalog).colors;
   const proposed = horse ? structuredClone(horse) : null;
   if (proposed) for (const change of preview.items.flatMap(item => item.changes)) proposed[change.field] = change.after;
-  const rank = (value, current) =>
-    current
-      ? horseCardRank(current, catalog)
-      : { key: tiers[value] || 'none', label: rarityNames[tiers[value]] || 'None' };
+  const rank = (value, current) => {
+    const species = catalog?.species?.find(entry => entry.id === current?.speciesId || entry.name === current?.species);
+    const key = lockedCosmicLabel(current || {})
+      ? 'cosmic'
+      : tiers[species?.rarityTier ?? current?.rarityTier ?? value] || 'none';
+    return { key, label: rarityNames[key] || '—' };
+  };
   const rarity = value =>
     html`<span class="horse-confirm-rarity" ${colors[value.key] ? html`style="color:${colors[value.key]}"` : ''}>${value.label}</span>`;
   const rows = [];
@@ -304,9 +310,11 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     remove.disabled = row.dataset.locked === 'true' || (saved && !horse.overrideOriginals?.[key] && mode === 'keep');
     syncSection(row.closest('[data-override-section]'));
     remove.title =
-      remove.disabled && saved && !horse.overrideOriginals?.[key]
-        ? 'Original value was not recorded for this older override'
-        : 'Remove ' + row.querySelector('strong').textContent + ' override';
+      row.dataset.locked === 'true' && key.startsWith('mutation:')
+        ? cosmicMutationTooltip
+        : remove.disabled && saved && !horse.overrideOriginals?.[key]
+          ? 'Original value was not recorded for this older override'
+          : 'Remove ' + row.querySelector('strong').textContent + ' override';
   }
   function finishEdit(form, save) {
     if (!editing) return;
@@ -354,6 +362,9 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
         protectedSlot || !horseUpdateFields.find(field => field.key === row.dataset.key).modes.includes('set');
       row.querySelector('[data-roll-override]').disabled ||= protectedSlot;
       row.dataset.locked = String(protectedSlot);
+      if (row.dataset.key.startsWith('mutation:') && protectedSlot)
+        for (const button of row.querySelectorAll('.horse-override-actions button'))
+          button.title = cosmicMutationTooltip;
       if (row.dataset.key === 'palette' && protectedSlot)
         for (const button of row.querySelectorAll('.horse-override-actions button'))
           button.title = 'Cosmic palettes are fixed to the horse’s Cosmic identity.';
