@@ -154,7 +154,7 @@
 .species-tabs button:disabled,
 .species-manager .library-list-panel button:disabled,
 .species-manager [data-action='new-definition']:disabled {
-  opacity: 0.55;
+  opacity: 1;
   cursor: default;
 }
 .species-spawn-row {
