@@ -12,6 +12,7 @@ import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
+import { sanitizeHexInput } from './hex-inputs.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -1125,8 +1126,10 @@ document.addEventListener('input', event => {
   if (event.target.matches('[data-color-picker]')) {
     event.target.closest('.color-inputs').querySelector('[data-color-hex]').value = event.target.value.toUpperCase();
   }
-  if (event.target.matches('[data-color-hex]') && /^#[\da-f]{6}$/i.test(event.target.value)) {
-    event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
+  if (event.target.matches('[data-color-hex]')) {
+    sanitizeHexInput(event.target);
+    if (/^#[\da-f]{6}$/i.test(event.target.value))
+      event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
   }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
   if (event.target.matches('[data-zone-palette-choice]')) syncZonePaletteChoice(event.target.form, event.target);

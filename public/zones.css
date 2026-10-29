@@ -711,6 +711,9 @@ main {
 }
 .zone-artwork-controls .color-inputs input[data-color-hex] {
   height: 48px;
+  width: 120px;
+  flex-basis: 120px;
+  text-align: center;
 }
 @media (max-width: 600px) {
   .zone-artwork-controls {
