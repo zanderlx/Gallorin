@@ -126,7 +126,7 @@ export const groups = [
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
 workbench.items = [
-  ['dev/horse-updates', 'Horse Updates'],
+  ['dev/horse-updates', 'Horse Overrides'],
   ['dev/edit-mode', 'Edit Mode'],
   ['dev/settings', 'Game Settings'],
   ['dev/roadmap', 'Remaining Features']

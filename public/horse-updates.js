@@ -1,5 +1,6 @@
-import { escapeHTML as e, icon } from './ui.js';
-import { horseUpdateFields, horseTraitLimits } from './horse-update-fields.js';
+import { horseAcquisitionDate, horseDaysOwned, localCalendarDate } from './dates.js';
+import { escapeHTML as e, icon, card, html, raw, setHTML } from './ui.js';
+import { horseUpdateFields, horseTraitLimits, traitChoices, traitCountRange } from './horse-update-fields.js';
 import { horseFieldOptions } from './horse-fields.js';
 import { lockedCosmicLabel } from './horse-update-labels.js';
 
@@ -36,10 +37,11 @@ function control(field, catalog, state) {
   if (options)
     return (
       '<select data-value ' +
-      (field.key.startsWith('trait:') ? 'multiple aria-label="Choose traits"' : 'aria-label="Choose value"') +
+      (field.key.startsWith('trait:') ? 'multiple hidden aria-label="Choose traits"' : 'aria-label="Choose value"') +
       '><option value="">Choose…</option>' +
       options.map(([id, label]) => '<option value="' + e(id) + '">' + e(label) + '</option>').join('') +
-      '</select>'
+      '</select>' +
+      (field.key.startsWith('trait:') ? '<div class="horse-override-choices" data-trait-choices></div>' : '')
     );
   if (['notes', 'description'].includes(field.key))
     return '<textarea data-value rows="2" maxlength="4000" aria-label="' + e(field.label) + '"></textarea>';
@@ -48,83 +50,56 @@ function control(field, catalog, state) {
     (field.type || 'text') +
     '" ' +
     (field.type === 'number' ? 'min="0" max="365000" step="1"' : '') +
+    (field.type === 'date' ? ' min="0001-01-01" max="' + localCalendarDate(new Date()) + '"' : '') +
     ' ' +
     (field.type === 'color' ? 'value="#FFFFFF"' : '') +
-    ' maxlength="100" aria-label="' +
+    ' maxlength="' +
+    (field.key === 'name' ? 60 : 100) +
+    '" aria-label="' +
     e(field.label) +
     '">'
   );
 }
+export function horseOverrideValue(horse, key) {
+  const [kind, name] = key.split(':');
+  if (kind === 'trait') return horse.traits?.[name] || horse.traits?.[name + 's'] || [];
+  if (kind === 'mutation') return horse.mutations?.[Number(name)] || null;
+  if (kind === 'color') return horse.palette?.colors?.[name] || '';
+  if (kind === 'skill') return horse.skills?.[name] || { level: 0, xp: 0 };
+  if (key === 'description') return horse.personalityDescription ?? horse.personality?.description ?? '';
+  if (key === 'birthday') return horseAcquisitionDate(horse) || horse.birthday || '';
+  if (key === 'daysOwned') return horseDaysOwned(horse);
+  if (key === 'mutations') return horse.mutations || [];
+  return horse[key];
+}
+function fieldRow(field, catalog, state) {
+  return html`<div class="horse-update-row" data-key="${field.key}">
+    <strong>${field.label}</strong><span class="horse-override-current" data-current-value>—</span>
+    <button type="button" class="button secondary" data-edit-override="${field.key}" aria-label="Edit ${field.label}">Edit<span data-rule-summary> · Keep</span></button>
+    <div data-editor hidden><label>Operation<select data-mode aria-label="${field.label} operation">${field.modes.map(mode => html`<option value="${mode}">${modeLabel[mode]}</option>`)}</select></label>
+    <div data-value-container hidden>${raw(control(field, catalog, state))}</div>
+    ${field.key.startsWith('trait:') ? html`<label data-count-container hidden>Count (blank = random)<input data-trait-count type="number" min="0" max="${horseTraitLimits[field.label]}" placeholder="Auto"></label>` : ''}
+    <p class="muted" data-field-help></p></div></div>`;
+}
 export function horseUpdatesPage(state, catalog) {
-  return (
-    '<section id="horse-updates"><div class="settings-section-heading"><h1>Horse Updates</h1></div><p class="horse-update-intro">Keep existing details, reroll selected fields, or choose exact values. Preview first; apply only when ready. Cosmic-defining mutations stay protected. Every application creates a save backup.</p>' +
-    (!state.settings.horseUpdatesEnabled
-      ? '<section class="panel"><p>Enable Horse Updates to unlock this developer tool.</p><button class="button primary" data-enable-horse-updates="true">Enable Horse Updates</button></section>'
-      : '<button type="button" class="button secondary horse-update-disable" data-enable-horse-updates="false">Disable Horse Updates</button><form id="horse-update-form" data-copy-ui><section class="panel"><h2>Choose Horses</h2><div class="horse-update-selection-tools"><input data-horse-search type="search" placeholder="Search horses…" aria-label="Search horses"><button type="button" class="button secondary" data-horse-select="all">Select Visible</button><button type="button" class="button secondary" data-horse-select="none">Clear Selection</button><span data-selected-count>0 selected · Maximum 100</span></div><div class="horse-update-horses">' +
-        state.horses
-          .map(
-            h =>
-              '<label class="horse-update-horse" data-search="' +
-              e((h.name + ' ' + h.species).toLowerCase()) +
-              '"><input type="checkbox" name="horse" value="' +
-              e(h.id) +
-              '"><span><strong>' +
-              e(h.name || h.species) +
-              '</strong><small>' +
-              e(h.species) +
-              ' · Schema ' +
-              (h.schemaVersion || 1) +
-              ' · Revision ' +
-              (h.revision || 1) +
-              (lockedCosmicLabel(h) ? ' · 🔒 ' + e(lockedCosmicLabel(h)) : '') +
-              '</small></span></label>'
-          )
-          .join('') +
-        (!state.horses.length ? '<p>No stable horses yet.</p>' : '') +
-        '</div></section><section class="panel horse-update-rules"><h2>Choose What Changes</h2><p>Everything starts at Keep. Missing species trait lists are preserved. Rerolling size uses the final mutations; keeping size preserves it. Changing a personality keeps your description unless you select it too.</p>' +
-        [...new Set(horseUpdateFields.map(f => f.group))]
-          .map(
-            (group, index) =>
-              '<details ' +
-              (index === 0 ? 'open' : '') +
-              '><summary>' +
-              e(group) +
-              '</summary>' +
-              horseUpdateFields
-                .filter(f => f.group === group)
-                .map(
-                  field =>
-                    '<div class="horse-update-row" data-key="' +
-                    e(field.key) +
-                    '"><strong>' +
-                    e(field.label) +
-                    '</strong><select data-mode aria-label="' +
-                    e(field.label) +
-                    ' operation">' +
-                    field.modes.map(mode => '<option value="' + mode + '">' + modeLabel[mode] + '</option>').join('') +
-                    '</select><div data-value-container hidden>' +
-                    control(field, catalog, state) +
-                    '</div>' +
-                    (field.key.startsWith('trait:')
-                      ? '<label data-count-container hidden>Count (blank = random)<input data-trait-count type="number" min="' +
-                        (['Mane', 'Tail'].includes(field.label) ? 1 : 0) +
-                        '" max="' +
-                        horseTraitLimits[field.label] +
-                        '" placeholder="Auto"></label>'
-                      : '') +
-                    '</div>'
-                )
-                .join('') +
-              '</details>'
-          )
-          .join('') +
-        '<label class="horse-update-duplicates"><input type="checkbox" name="allowDuplicates" ' +
-        (catalog.spawning.ALLOW_DUPLICATE_MUTATIONS ? 'checked' : '') +
-        '> Allow Duplicate Mutations For This Update</label><p>Mutation rerolls use the current weights and species thresholds. Individual slot rerolls draw one eligible mutation. Cosmic slots are kept. Age in days and acquisition date control the same date; choose one.</p><div class="form-actions"><button type="submit" class="button primary">' +
-        icon('refresh') +
-        ' Preview Changes</button></div></section></form><section id="horse-update-preview" aria-live="polite"></section>') +
-    '</section>'
-  );
+  return String(html`<section id="horse-updates"><div class="page-heading stable-heading"><h1>Horse Overrides</h1></div>
+    <p class="horse-update-intro">Choose a horse to view its details and prepare overrides. Keep existing values, set exact choices, or reroll. Preview before applying; every application creates a save backup. Cosmic-defining mutations stay protected.</p>
+    ${
+      !state.settings.horseUpdatesEnabled
+        ? html`<section class="panel"><p>Enable Horse Overrides to unlock this developer tool.</p><button class="button primary" data-enable-horse-updates="true">Enable Horse Overrides</button></section>`
+        : html`<button type="button" class="button secondary horse-update-disable" data-enable-horse-updates="false">Disable Horse Overrides</button>
+      <form id="horse-update-form" data-copy-ui novalidate><div class="collection-toolbar"><label class="search-field">${raw(icon('search'))}<input data-horse-search type="search" placeholder="Search name, species, or personality…" aria-label="Search horses"></label><label class="sort-field">Sort By<select data-override-sort><option value="recent">Newest first</option><option value="name">Name</option><option value="species">Species</option></select></label><span data-selected-count>Choose a horse</span></div>
+      <div class="horse-grid horse-override-grid">${state.horses.map(h => html`<div class="horse-override-card" data-search="${[h.name, h.species, h.personality?.name].join(' ').toLowerCase()}" data-override-id="${h.id}"><input hidden type="radio" name="horse" value="${h.id}">${raw(card(h, state, 'override', catalog).replace('data-action="inspect"', 'type="button" data-open-override'))}${lockedCosmicLabel(h) ? html`<small class="horse-override-lock">🔒 ${lockedCosmicLabel(h)}</small>` : ''}</div>`)}</div>
+      <p data-empty-horses ${state.horses.length ? raw('hidden') : ''}>${state.horses.length ? 'No horses match your search.' : 'No stable horses yet.'}</p>
+      <section class="panel horse-update-rules" hidden><div class="settings-section-heading"><h2 data-override-title>Horse Details</h2><button type="button" class="button secondary" data-reset-overrides>Reset Overrides</button></div><p>Current saved values appear below. Edit a field to prepare a change; values stay unchanged until you preview and apply. Switching horses clears prepared overrides.</p>
+      <p>Species changes require compatible traits and palettes. Size rerolls use the final mutations. A new personality keeps the description unless you edit it too.</p>
+      ${[...new Set(horseUpdateFields.map(f => f.group))].map(group => html`<section class="horse-override-group"><h3>${group}</h3>${horseUpdateFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state))}</section>`)}
+      <label class="horse-update-duplicates"><input type="checkbox" name="allowDuplicates" ${catalog.spawning.ALLOW_DUPLICATE_MUTATIONS ? raw('checked') : ''}> Allow Duplicate Mutations For This Override</label>
+      <p>Four mutation slots maximum; Cosmic slots are kept. Choose either all-mutation reroll or individual slots. Acquisition date and age in days control the same date; choose one.</p>
+      <div class="form-actions"><button type="submit" class="button primary">${raw(icon('refresh'))} Preview Changes</button></div></section>
+      <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
+      </form><section id="horse-update-preview" aria-live="polite"></section>`
+    }</section>`);
 }
 function formatValue(value) {
   if (value === null || value === undefined) return '—';
@@ -138,8 +113,88 @@ function formatValue(value) {
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, enable, onApplied, notify }) {
   let token = null,
-    working = false;
+    working = false,
+    editing = null,
+    draftRevision = 0;
+  const selectedHorse = form => getState().horses.find(h => h.id === form.querySelector('[name=horse]:checked')?.value);
+  const editorInputs = editor => [...editor.querySelectorAll('input:not([data-trait-choice]),select,textarea')];
+  const snapshot = editor =>
+    editorInputs(editor).map(input => ({
+      value: input.value,
+      selected: input.multiple ? [...input.selectedOptions].map(o => o.value) : null
+    }));
+  function finishEdit(form, save) {
+    if (!editing) return;
+    const { row, editor, before } = editing;
+    if (!save)
+      editorInputs(editor).forEach((input, index) => {
+        input.value = before[index].value;
+        if (input.multiple)
+          for (const option of input.options) option.selected = before[index].selected.includes(option.value);
+      });
+    row.append(editor);
+    editor.hidden = true;
+    const dialog = form.querySelector('dialog');
+    dialog.close();
+    form.append(dialog);
+    editing = null;
+    const mode = row.querySelector('[data-mode]').value,
+      input = row.querySelector('[data-value]');
+    row.querySelector('[data-rule-summary]').textContent =
+      ' · ' +
+      modeLabel[mode] +
+      (mode === 'set'
+        ? ': ' +
+          (input.multiple
+            ? [...input.selectedOptions].map(o => o.textContent).join(', ') || 'None'
+            : input.tagName === 'SELECT'
+              ? input.selectedOptions[0]?.textContent || ''
+              : input.value)
+        : '');
+    refreshTraits(form);
+    row.querySelector('[data-edit-override]').focus();
+  }
+  function selectHorse(form, id) {
+    if (editing) finishEdit(form, false);
+    for (const input of form.querySelectorAll('[name=horse]')) input.checked = input.value === id;
+    const horse = selectedHorse(form);
+    if (!horse) return;
+    invalidate();
+    form.querySelector('.horse-update-rules').hidden = false;
+    form.querySelector('[data-override-title]').textContent = horse.name || horse.species;
+    form.querySelector('[data-selected-count]').textContent = 'Editing ' + (horse.name || horse.species);
+    for (const row of form.querySelectorAll('[data-key]')) {
+      const value = horseOverrideValue(horse, row.dataset.key),
+        input = row.querySelector('[data-value]');
+      row.querySelector('[data-current-value]').textContent = formatValue(value);
+      row.querySelector('[data-mode]').value = 'keep';
+      row.querySelector('[data-rule-summary]').textContent = ' · Keep';
+      const protectedSlot = row.dataset.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [value] });
+      row.querySelector('[data-edit-override]').disabled = protectedSlot;
+      if (protectedSlot) row.querySelector('[data-rule-summary]').textContent = ' · Cosmic locked';
+      row.querySelector('[data-value-container]').hidden = true;
+      const count = row.querySelector('[data-count-container]');
+      if (count) {
+        count.hidden = true;
+        row.querySelector('[data-trait-count]').value = '';
+      }
+      input.value = value && typeof value === 'object' ? value.id || '' : String(value ?? '');
+      if (row.dataset.key === 'species')
+        input.value = horse.speciesId || getCatalog().species.find(s => s.name === horse.species)?.id || '';
+      if (row.dataset.key.startsWith('skill:')) {
+        input.value = value.level;
+        row.querySelector('[data-xp]').value = value.xp;
+      }
+    }
+    refreshTraits(form);
+    for (const row of form.querySelectorAll('[data-key^="trait:"]')) {
+      const chosen = horseOverrideValue(horse, row.dataset.key);
+      for (const option of row.querySelector('[data-value]').options) option.selected = chosen.includes(option.value);
+    }
+    refreshTraits(form);
+  }
   const invalidate = () => {
+    draftRevision++;
     token = null;
     const output = root.querySelector('#horse-update-preview');
     if (output) output.replaceChildren();
@@ -161,29 +216,60 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
     for (const category of Object.keys(horseTraitLimits)) {
       const select = form.querySelector('[data-key="trait:' + category + '"] [data-value]');
       const chosen = [...select.selectedOptions].map(o => o.value);
-      const choices = [...new Set(species[0]?.traits?.[category] || [])].filter(
-        v => v !== 'None' && species.every(s => s.traits?.[category]?.includes(v))
+      const choices = traitChoices(species[0]?.traits?.[category]);
+      const range = traitCountRange(
+        category,
+        species[0] || { name: '' },
+        !!lockedCosmicLabel(selectedHorse(form) || {}),
+        choices.length
       );
-      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-      select.innerHTML = choices
-        .map(
-          value =>
-            '<option value="' +
-            e(value) +
-            '" ' +
-            (chosen.includes(value) ? 'selected' : '') +
-            '>' +
-            e(value) +
-            '</option>'
-        )
-        .join('');
+      setHTML(
+        select,
+        html`${choices.map(value => html`<option value="${value}" ${chosen.includes(value) ? raw('selected') : ''}>${value}</option>`)}`
+      );
+      const row = select.closest('[data-key]');
+      setHTML(
+        row.querySelector('[data-trait-choices]'),
+        html`${choices.map(value => html`<label><input type="checkbox" data-trait-choice value="${value}" ${chosen.includes(value) ? raw('checked') : ''} ${!chosen.includes(value) && select.selectedOptions.length >= range.max ? raw('disabled') : ''}>${value}</label>`)}`
+      );
+      row.dataset.min = range.min;
+      row.dataset.max = range.max;
+      const count = row.querySelector('[data-trait-count]');
+      count.min = range.min;
+      count.max = range.max;
+      const unknown = speciesRow.querySelector('[data-mode]').value === 'reroll';
+      row.querySelector('[data-mode] option[value="set"]').disabled = unknown || !choices.length;
+      row.querySelector('[data-mode] option[value="clear"]').disabled = range.min > 0;
+      row.querySelector('[data-field-help]').textContent = unknown
+        ? 'Rerolling species: use Keep or Reroll here, or set a species first to choose exact traits.'
+        : `Choose ${range.min}–${range.max} ${category} traits. Maximum ${horseTraitLimits[category]}. ${select.selectedOptions.length} selected. ${choices.length ? 'Uncheck a choice to make room for another.' : 'No choices defined for this species; reroll preserves saved values unless species changes.'}`;
     }
   }
   root.addEventListener('change', event => {
     const form = event.target.closest('#horse-update-form');
     if (!form) return;
     invalidate();
+    if (event.target.matches('[name=horse]')) {
+      selectHorse(form, event.target.value);
+      return;
+    }
+    if (event.target.matches('[data-override-sort]')) {
+      const horses = [...getState().horses],
+        sort = event.target.value;
+      horses.sort((a, b) =>
+        sort === 'recent'
+          ? String(b.caughtAt || '').localeCompare(String(a.caughtAt || ''))
+          : String(a[sort] || '').localeCompare(String(b[sort] || ''))
+      );
+      const grid = form.querySelector('.horse-override-grid');
+      for (const horse of horses) grid.append([...grid.children].find(node => node.dataset.overrideId === horse.id));
+      return;
+    }
     const row = event.target.closest('[data-key]');
+    if (row && event.target.matches('[data-trait-choice]')) {
+      const option = [...row.querySelector('[data-value]').options].find(o => o.value === event.target.value);
+      option.selected = event.target.checked;
+    }
     if (row && event.target.matches('[data-mode]')) {
       const mode = event.target.value;
       row.querySelector('[data-value-container]').hidden = mode !== 'set';
@@ -191,18 +277,115 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       if (count) count.hidden = mode !== 'reroll';
     }
     refreshTraits(form);
-    form.querySelector('[data-selected-count]').textContent =
-      form.querySelectorAll('[name=horse]:checked').length + ' selected · Maximum 100';
   });
   root.addEventListener('input', event => {
     const form = event.target.closest('#horse-update-form');
     if (!form) return;
     if (event.target.matches('[data-horse-search]')) {
       const query = event.target.value.toLowerCase();
-      for (const row of form.querySelectorAll('[data-search]')) row.hidden = !row.dataset.search.includes(query);
+      const cards = [...form.querySelectorAll('[data-search]')];
+      for (const row of cards) row.hidden = !row.dataset.search.includes(query);
+      form.querySelector('[data-empty-horses]').hidden = cards.some(row => !row.hidden);
     } else invalidate();
   });
   root.addEventListener('click', async event => {
+    const horseCard = event.target.closest('[data-override-id]');
+    if (horseCard) {
+      if (!horseCard.querySelector('[name=horse]').checked)
+        selectHorse(horseCard.closest('form'), horseCard.dataset.overrideId);
+      root.querySelector('.horse-update-rules').scrollIntoView({ block: 'start', behavior: 'instant' });
+      return;
+    }
+    const form = event.target.closest('#horse-update-form');
+    if (form && event.target.closest('[data-reset-overrides]')) {
+      selectHorse(form, selectedHorse(form)?.id);
+      return;
+    }
+    const edit = event.target.closest('[data-edit-override]');
+    if (edit && form) {
+      if (!selectedHorse(form)) return;
+      const row = edit.closest('[data-key]'),
+        editor = row.querySelector('[data-editor]'),
+        dialog = form.querySelector('dialog');
+      editing = { row, editor, before: snapshot(editor) };
+      row.append(dialog);
+      dialog.querySelector('[data-dialog-editor]').append(editor);
+      editor.hidden = false;
+      const field = horseUpdateFields.find(f => f.key === row.dataset.key);
+      dialog.querySelector('h2').textContent = field.label;
+      dialog.querySelector('[role=status]').textContent = '';
+      if (!field.key.startsWith('trait:'))
+        editor.querySelector('[data-field-help]').textContent =
+          field.type === 'skill'
+            ? 'Level 0–10. XP 0–34,000; overflow advances levels and caps at level 10.'
+            : field.key.startsWith('mutation')
+              ? 'Maximum four mutations. Cosmic-defining slots stay protected. Choices must meet species thresholds; duplicates require the option below.'
+              : field.key === 'palette'
+                ? 'Only species-compatible palettes can be applied. Cosmic horses keep their defining palette. Colors may vary according to palette settings.'
+                : field.key === 'name'
+                  ? 'Maximum 60 characters.'
+                  : ['notes', 'description'].includes(field.key)
+                    ? 'Maximum 4,000 characters.'
+                    : ['birthday', 'daysOwned'].includes(field.key)
+                      ? 'Choose acquisition date or age in days, not both. Dates cannot be in the future. Age: 0–365,000 whole days.'
+                      : field.key === 'origin'
+                        ? '1–100 characters.'
+                        : field.type === 'color'
+                          ? 'Choose a color; stored as a six-digit hex value.'
+                          : '';
+      row.querySelector('[data-value-container]').hidden = row.querySelector('[data-mode]').value !== 'set';
+      const count = row.querySelector('[data-count-container]');
+      if (count) count.hidden = row.querySelector('[data-mode]').value !== 'reroll';
+      dialog.oncancel = event => {
+        event.preventDefault();
+        finishEdit(form, false);
+      };
+      dialog.showModal();
+      editor.querySelector('[data-mode]').focus();
+      return;
+    }
+    if (form && event.target.closest('[data-cancel-override]')) {
+      finishEdit(form, false);
+      return;
+    }
+    if (form && event.target.closest('[data-save-override]') && editing) {
+      const { row, editor } = editing,
+        mode = row.querySelector('[data-mode]').value;
+      const inputs =
+        mode === 'set'
+          ? [...editor.querySelectorAll('[data-value], [data-xp]')]
+          : mode === 'reroll'
+            ? [...editor.querySelectorAll('[data-trait-count]')]
+            : [];
+      const input = inputs.find(input => !input.checkValidity());
+      const value = row.querySelector('[data-value]');
+      let error = input ? input.validationMessage : '';
+      if (mode === 'set' && ['origin', 'birthday', 'daysOwned'].includes(row.dataset.key) && !value.value.trim())
+        error = 'Enter a value.';
+      if (
+        mode === 'set' &&
+        row.dataset.key.startsWith('skill:') &&
+        (!value.value.trim() || !row.querySelector('[data-xp]').value.trim())
+      )
+        error = 'Enter both level and XP.';
+      if (row.querySelector('[data-mode]').selectedOptions[0].disabled)
+        error = 'This operation is unavailable for the chosen species. Choose another operation.';
+      if (mode === 'set' && value.tagName === 'SELECT' && !value.multiple && !value.value) error = 'Choose a value.';
+      if (
+        mode === 'set' &&
+        value.multiple &&
+        (value.selectedOptions.length < Number(row.dataset.min) ||
+          value.selectedOptions.length > Number(row.dataset.max))
+      )
+        error = `Choose ${row.dataset.min}–${row.dataset.max} traits.`;
+      if (error) {
+        form.querySelector('dialog [role=status]').textContent = error;
+        return;
+      }
+      invalidate();
+      finishEdit(form, true);
+      return;
+    }
     const unlock = event.target.closest('[data-enable-horse-updates]');
     if (unlock) {
       if (working) return;
@@ -218,15 +401,6 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       }
       return;
     }
-    const select = event.target.closest('[data-horse-select]');
-    if (select) {
-      const form = select.closest('form');
-      for (const input of form.querySelectorAll('[name=horse]'))
-        if (select.dataset.horseSelect === 'none' || !input.closest('label').hidden)
-          input.checked = select.dataset.horseSelect === 'all';
-      form.querySelector('[name=horse]')?.dispatchEvent(new Event('change', { bubbles: true }));
-      return;
-    }
     const button = event.target.closest('[data-apply-horse-updates]');
     if (!button || working || !token) return;
     working = true;
@@ -235,7 +409,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       await apply({ token });
       token = null;
       onApplied();
-      notify('Horse updates applied. Backup saved.');
+      notify('Horse overrides applied. Backup saved.');
     } catch (error) {
       invalidate();
       notify(error.message, true);
@@ -251,8 +425,13 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       if (form.id !== 'horse-update-form') return;
       event.preventDefault();
       event.stopPropagation();
+      if (editing) {
+        form.querySelector('[data-save-override]').click();
+        return;
+      }
       if (working) return;
       invalidate();
+      const revision = draftRevision;
       working = true;
       const button = form.querySelector('[type=submit]');
       button.disabled = true;
@@ -285,6 +464,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
           rules,
           allowDuplicates: form.elements.allowDuplicates.checked
         });
+        if (revision !== draftRevision || !root.contains(form)) return;
         token = result.preview.token;
         const changed = result.preview.items.filter(item => item.changes.length);
         // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper

@@ -68,3 +68,15 @@ export const horseUpdateFields = [
     type: 'skill'
   }))
 ];
+
+export const traitChoices = values =>
+  [...new Set(values || [])].filter(value => value && value !== 'None' && value !== 'Awaiting species data');
+
+export function traitCountRange(category, species, cosmic, available) {
+  const max = horseTraitLimits[category] ?? 1;
+  const required =
+    ['Mane', 'Tail'].includes(category) ||
+    (category === 'Keratin' && ['unicorn', 'anticorn'].includes(species.name.toLowerCase())) ||
+    (cosmic && ['Pattern', 'Paint', 'Cosmetic'].includes(category));
+  return { min: required ? Math.min(max, available) : 0, max: Math.min(max, available), rollMax: max };
+}
