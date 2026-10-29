@@ -275,6 +275,14 @@
 .horse-species-change-table thead {
   color: var(--gold);
 }
-.horse-species-warning {
-  color: var(--gold);
+.horse-species-confirm-dialog .dialog-top {
+  padding: 0 0 14px;
+}
+.horse-species-change-table th:first-child,
+.horse-species-change-table td:first-child {
+  padding-left: 0;
+}
+.horse-species-change-table th:last-child,
+.horse-species-change-table td:last-child {
+  padding-right: 0;
 }

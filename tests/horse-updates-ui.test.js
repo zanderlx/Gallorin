@@ -111,7 +111,7 @@ test('override details read saved trait, color, mutation, skill and description 
   assert.equal(horseOverrideValue(horse, 'name'), 'Sable');
 });
 
-test('species confirmation lists nested trait changes, other changed values, and warnings safely', () => {
+test('species confirmation lists changes with the requested introduction and no bottom message', () => {
   const markup = String(
     speciesConfirmationContent({
       items: [
@@ -138,9 +138,11 @@ test('species confirmation lists nested trait changes, other changed values, and
     'Old Pattern',
     'New Pattern',
     'Rarity Tier',
-    'Pattern count adjusted'
+    'Updating a species also updates species-specific traits. Update the amount of traits in the Traits override section.'
   ])
     assert.ok(markup.includes(value));
   assert.ok(!markup.includes('<script>'));
   assert.ok(!markup.includes('new-id'));
+  assert.ok(!markup.includes('Pattern count adjusted'));
+  assert.ok(!markup.includes('horse-species-warning'));
 });

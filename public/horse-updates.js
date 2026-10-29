@@ -128,7 +128,7 @@ export function speciesConfirmationContent(preview) {
       });
     }
   }
-  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p>Confirm Save applies the species and all resulting changes shown below.</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${formatValue(row.before)}</td><td>${formatValue(row.after)}</td></tr>`)}</tbody></table></div>${preview.items.flatMap(item => item.warnings || []).map(warning => html`<p class="horse-species-warning">${warning}</p>`)}`;
+  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p>Updating a species also updates species-specific traits. Update the amount of traits in the Traits override section.</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${formatValue(row.before)}</td><td>${formatValue(row.after)}</td></tr>`)}</tbody></table></div>`;
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied }) {
   let working = false,
