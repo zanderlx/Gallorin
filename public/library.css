@@ -1386,6 +1386,12 @@ option:not(nav option) {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+.horse-trait-group dd > .horse-trait-tag {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-width: calc((100% - 7px) / 2);
+  max-width: 100%;
+}
 .horse-trait-none {
   font-size: 13px;
   color: var(--muted);
