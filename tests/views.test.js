@@ -100,7 +100,7 @@ test('zone tags render as safe text without icons and can be removed', () => {
   assert.doesNotMatch(landing, /data-action="delete-zone"/);
   assert.doesNotMatch(editor, /data-action="delete-zone"/);
   assert.match(String(zoneEditorForm(catalog, locationsFor(catalog, state)[0])), /data-action="delete-zone"/);
-  assert.match(landing, />My Zones<\/h1>/);
+  assert.match(landing, />Zone Manager<\/h1>/);
   assert.doesNotMatch(landing, /id="zone-form"|id="definition-form"|zone-atmospheres/);
   assert.match(landing, /hero zone-preview/);
   assert.doesNotMatch(
