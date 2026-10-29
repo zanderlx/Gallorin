@@ -3,8 +3,8 @@
 Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then open a horse in **Stables → My Horses** and select its **Edit** tab. The tab is available only for owned horses while that setting is enabled.
 
 1. Expand a section using the Zones-style dropdown headings.
-2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon for the choice modal, or the dice-with-circular-arrows icon to stage a reroll where available. Unchanged fields stay at **Keep**.
-3. Choose **Set**, **Reroll**, or the available clear/reset option. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
+2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon to choose an exact value. The dice-with-circular-arrows icon generates a value immediately in the Override column; Save applies that displayed result without rerolling it.
+3. Pencil popups show only the field’s available values. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
 4. Select **Save** inside the section to apply only that section’s edits. A standalone player-save backup is created first.
 5. Select **Cancel** inside a section to discard only its unsaved edits. Other sections keep their drafts when you save or cancel.
 
