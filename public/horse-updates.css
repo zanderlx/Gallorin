@@ -221,3 +221,7 @@
 .horse-section-status:empty {
   display: none;
 }
+
+#profile .horse-section-actions[hidden] {
+  display: none !important;
+}

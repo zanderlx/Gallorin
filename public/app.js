@@ -150,8 +150,8 @@ const horseUpdates = bindHorseUpdates({
   root: profile,
   getState: () => state,
   getCatalog: () => catalog,
-  preview: payload => request('/api/action', { type: 'preview-horse-updates', payload }),
-  apply: payload => action('apply-horse-updates', payload),
+  preview: (payload, signal) => request('/api/action', { type: 'preview-horse-updates', payload }, signal),
+  apply: (payload, signal) => action('apply-horse-updates', payload, signal),
   onApplied: () => {
     render();
     if (profile.open) inspect(profile.dataset.horseId);
@@ -206,10 +206,12 @@ const horseTransfers = createHorseTransfers({
     render();
   }
 });
-async function request(path, body) {
+async function request(path, body, signal) {
   const response = await fetch(
     path,
-    body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}
+    body
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal }
+      : { signal }
   );
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Unable to save. Please try again.');
@@ -222,8 +224,8 @@ const updateEncounterCooldown = bindEncounterCooldown(
     void musicPlayer.playEvent('effect/respawn-ready').catch(error => notify(error.message, true));
   }
 );
-async function action(type, payload) {
-  const result = await request('/api/action', { type, payload });
+async function action(type, payload, signal) {
+  const result = await request('/api/action', { type, payload }, signal);
   const goldChange = result.state.gold - state.gold;
   const previousState = state;
   state = result.state;

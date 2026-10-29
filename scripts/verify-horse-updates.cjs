@@ -59,6 +59,7 @@ app
       const tab=document.querySelector('[data-profile-tab=overrides]');
       if(tab.textContent.trim()!=='Edit')throw Error('Expected Edit tab');
       tab.click();
+      if([...form.querySelectorAll('.horse-section-actions')].some(node=>!node.hidden))throw Error('Save/Cancel shown without changes');
       if(form.querySelector('[data-key=name],[data-key=age],[data-key=daysOwned],[data-key=favorite],[data-key^="color:"]'))throw Error('Hidden field still editable');
       if(form.querySelector('[name=allowDuplicates],[data-enable-horse-updates]'))throw Error('Obsolete control remains');
       const edit=(key,mode)=>{
@@ -76,6 +77,7 @@ app
       gender.closest('details').open=true;
       gender.querySelector('[data-roll-override]').click();
       if(gender.querySelector('[data-mode]').value!=='reroll')throw Error('Shuffle must stage reroll');
+      if(gender.closest('details').querySelector('.horse-section-actions').hidden)throw Error('Save/Cancel hidden for draft');
       if(gender.querySelector('[data-remove-override]').hidden)throw Error('Pending reroll needs trash action');
       gender.querySelector('[data-remove-override]').click();
       if(gender.querySelector('[data-mode]').value!=='keep'||!gender.querySelector('[data-remove-override]').hidden)throw Error('Trash must cancel unsaved override');
@@ -104,6 +106,7 @@ app
       if(document.querySelector('[data-apply-horse-updates],#horse-update-preview,[data-reset-overrides]'))throw Error('Global review remains');
       gender.closest('details').querySelector('[data-cancel-section]').click();
       if(gender.querySelector('[data-mode]').value!=='keep')throw Error('Section cancel did not reset its draft');
+      if(!gender.closest('details').querySelector('.horse-section-actions').hidden)throw Error('Cancel did not hide Save/Cancel');
       const notes=form.querySelector('[data-key=notes]');
       notes.querySelector('[data-remove-override]').click();
       notes.closest('details').querySelector('[data-save-section]').click();
@@ -117,6 +120,32 @@ app
     }
     const restored = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
     if (restored.overriddenFields.includes('notes')) throw Error('Section save did not restore original notes');
+    await win.webContents.executeJavaScript(`(async()=>{
+      const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=notes]');
+      row.closest('details').open=true;
+      row.querySelector('[data-edit-override]').click();
+      form.querySelector('[data-save-override]').click();
+      if(!row.closest('details').querySelector('.horse-section-actions').hidden)throw Error('Same value counts as a change');
+      row.querySelector('[data-edit-override]').click();
+      row.querySelector('[data-value]').value='Retained after timeout';
+      form.querySelector('[data-save-override]').click();
+      const realFetch=window.fetch, realTimeout=window.setTimeout;
+      window.setTimeout=(fn,delay,...args)=>realTimeout(fn,delay===15000?40:delay,...args);
+      window.fetch=(url,options)=>{
+        if(url==='/api/action'&&JSON.parse(options?.body||'{}').type==='preview-horse-updates')return new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
+        return realFetch(url,options);
+      };
+      try {
+        row.closest('details').querySelector('[data-save-section]').click();
+        await new Promise(resolve=>realTimeout(resolve,120));
+        const section=row.closest('details');
+        if(!section.querySelector('[role=status]').textContent.includes('timed out'))throw Error('Stalled save did not leave loading state');
+        if(section.querySelector('[data-save-section]').disabled)throw Error('Timeout left Save disabled');
+        if(row.querySelector('[data-value]').value!=='Retained after timeout')throw Error('Timeout lost edits');
+        section.querySelector('[data-cancel-section]').click();
+        if(!section.querySelector('.horse-section-actions').hidden)throw Error('Timeout draft could not be canceled');
+      } finally { window.fetch=realFetch; window.setTimeout=realTimeout; }
+    })()`);
     await win.webContents.executeJavaScript(
       'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
     );

@@ -87,7 +87,7 @@ export function horseOverrideControls(horse, state, catalog) {
   const arrow = html`<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>`;
   return String(html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>
     <div class="horse-update-rules"><div class="horse-edit-heading"><h2>Horse Overrides</h2></div>
-    ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section" data-override-section="${group}"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}<p class="horse-section-status" role="status"></p><div class="form-actions horse-section-actions"><button type="button" class="button primary" data-save-section disabled>Save</button><button type="button" class="button secondary" data-cancel-section disabled>Cancel</button></div></div></details>`)}
+    ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section" data-override-section="${group}"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}<p class="horse-section-status" role="status"></p><div class="form-actions horse-section-actions" hidden><button type="button" class="button primary" data-save-section disabled>Save</button><button type="button" class="button secondary" data-cancel-section disabled>Cancel</button></div></div></details>`)}
     </div>
     <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
     </form>`);
@@ -114,8 +114,23 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       selected: input.multiple ? [...input.selectedOptions].map(o => o.value) : null
     }));
   const displayValue = (key, value) => (key === 'palette' ? value?.name || 'None' : formatValue(value));
+  function rowChanged(row) {
+    const mode = row.querySelector('[data-mode]').value;
+    if (mode === 'keep') return false;
+    if (mode === 'set' && baselines.has(row.dataset.key))
+      return (
+        JSON.stringify(snapshot(row.querySelector('[data-editor]')).slice(1)) !==
+        JSON.stringify(baselines.get(row.dataset.key).slice(1))
+      );
+    if (mode === 'clear') {
+      const value = horseOverrideValue(selectedHorse(row.closest('form')), row.dataset.key);
+      return Array.isArray(value) ? value.length > 0 : !!value;
+    }
+    return true;
+  }
   function syncSection(section) {
-    const dirty = [...section.querySelectorAll('[data-mode]')].some(input => input.value !== 'keep');
+    const dirty = [...section.querySelectorAll('[data-key]')].some(rowChanged);
+    section.querySelector('.horse-section-actions').hidden = !dirty;
     for (const button of section.querySelectorAll('[data-save-section],[data-cancel-section]'))
       button.disabled = working || !dirty;
   }
@@ -224,7 +239,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     const rules = {};
     for (const row of section.querySelectorAll('[data-key]')) {
       const mode = row.querySelector('[data-mode]').value;
-      if (mode === 'keep') continue;
+      if (!rowChanged(row)) continue;
       const key = row.dataset.key,
         rule = { mode },
         input = row.querySelector('[data-value]');
@@ -262,17 +277,26 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     const scroll = root.querySelector('.profile-scroll-frame')?.scrollTop || 0;
     const id = selectedHorse(form).id;
     working = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let applying = false;
     for (const node of form.querySelectorAll('[data-override-section]')) syncSection(node);
     section.querySelector('[role=status]').textContent = 'Saving…';
     try {
-      const result = await preview({
-        ids: [id],
-        rules,
-        allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS
-      });
+      const result = await preview(
+        {
+          ids: [id],
+          rules,
+          allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS
+        },
+        controller.signal
+      );
       if (!root.contains(form)) return;
       const changed = result.preview.items.some(item => item.changes.length);
-      if (changed) await apply({ token: result.preview.token });
+      if (changed) {
+        applying = true;
+        await apply({ token: result.preview.token }, controller.signal);
+      }
       onApplied();
       const next = root.querySelector('#horse-update-form');
       if (!next || selectedHorse(next)?.id !== id) return;
@@ -295,9 +319,15 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const frame = root.querySelector('.profile-scroll-frame');
       if (frame) frame.scrollTop = scroll;
     } catch (error) {
-      if (root.contains(section)) section.querySelector('[role=status]').textContent = error.message;
-      notify(error.message, true);
+      const message = controller.signal.aborted
+        ? applying
+          ? 'The save response timed out. Your edits were kept. Reload the app to check whether the save completed before retrying.'
+          : 'Validation timed out. Your edits were kept; please try again.'
+        : error.message;
+      if (root.contains(section)) section.querySelector('[role=status]').textContent = message;
+      notify(message, true);
     } finally {
+      clearTimeout(timeout);
       working = false;
       for (const node of root.querySelectorAll('[data-override-section]')) syncSection(node);
     }

@@ -40,6 +40,7 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.ok(!controls.includes('Reset Pending Changes'));
   assert.ok(!controls.includes('Review Changes'));
   assert.equal((controls.match(/data-save-section/g) || []).length, 6);
+  assert.equal((controls.match(/class="form-actions horse-section-actions" hidden/g) || []).length, 6);
   assert.equal((controls.match(/data-cancel-section/g) || []).length, 6);
   assert.match(controls, /title="Reroll Species"/);
   assert.ok(!controls.includes('title="Roll '));
