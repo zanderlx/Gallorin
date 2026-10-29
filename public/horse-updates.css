@@ -329,6 +329,7 @@
   padding: 4px;
 }
 .horse-appearance-choice {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -354,6 +355,11 @@
 }
 .horse-appearance-choice input[type='radio'] {
   position: absolute;
+  top: 50%;
+  left: 12px;
+  margin: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
   width: 1px;
   height: 1px;
   opacity: 0;

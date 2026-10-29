@@ -82,8 +82,14 @@ app
           const dialog=form.querySelector('.horse-override-dialog'), list=dialog.querySelector('[data-appearance-choices]');
           if(getComputedStyle(dialog).overflowY!=='hidden')throw Error('Appearance dialog still scrolls');
           const choices=[...list.querySelectorAll('[data-appearance-choice]')];
-          const selected=choices.find(choice=>!choice.checked)||choices[0];
-          selected.click();const accepted=selected.value;
+          const selected=[...choices].reverse().find(choice=>!choice.checked)||choices[0];
+          const card=selected.closest('label');
+          list.scrollTop+=card.getBoundingClientRect().top-list.getBoundingClientRect().top-(list.clientHeight-card.clientHeight)/2;
+          await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+          const beforeHeader=dialog.querySelector('.dialog-top').getBoundingClientRect().top, beforeFooter=dialog.querySelector('.form-actions').getBoundingClientRect().top, beforeScroll=dialog.scrollTop;
+          card.click();const accepted=selected.value;
+          await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+          if(dialog.scrollTop!==beforeScroll||Math.abs(dialog.querySelector('.dialog-top').getBoundingClientRect().top-beforeHeader)>1||Math.abs(dialog.querySelector('.form-actions').getBoundingClientRect().top-beforeFooter)>1)throw Error('Selecting a color shifted the modal');
           form.querySelector('[data-save-override]').click();
           row.querySelector('[data-edit-override]').click();
           const checked=dialog.querySelector('[data-appearance-choice]:checked');
