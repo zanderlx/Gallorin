@@ -551,6 +551,8 @@ export class GameStore {
           for (const cosmic of catalog.spawning.cosmic) if (cosmic.mutationId === id) cosmic.chance = 0;
         if (kind === 'palettes')
           next.deletedBuiltinPalettes = [...new Set([...(next.deletedBuiltinPalettes || []), id])];
+        if (kind === 'atmospheres')
+          next.deletedBuiltinAtmospheres = [...new Set([...(next.deletedBuiltinAtmospheres || []), id])];
         if (['species', 'palettes'].includes(kind)) {
           const pool = kind === 'species' ? 'speciesPool' : 'palettePool';
           for (const zone of [...catalog.locations, ...next.customLocations]) {

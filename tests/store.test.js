@@ -756,3 +756,13 @@ test('zone atmosphere edits are local to the zone and survive configuration relo
     appearance
   );
 });
+
+test('deleted built-in artwork presets stay deleted after restart', async t => {
+  const { directory, store } = await fixture(t);
+  assert.ok(store.getCatalog().atmospheres.some(a => a.id === 'meadow'));
+  await store.action('delete-definition', { kind: 'atmospheres', id: 'meadow' });
+  assert.ok(!store.getCatalog().atmospheres.some(a => a.id === 'meadow'));
+  const restored = await new GameStore(directory, catalog, defaults).init();
+  assert.ok(!restored.getCatalog().atmospheres.some(a => a.id === 'meadow'));
+  assert.ok(restored.getCatalog().atmospheres.some(a => a.id === 'coast'));
+});

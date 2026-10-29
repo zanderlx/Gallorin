@@ -14,7 +14,7 @@ export function keepTraitArrowOnLine(event) {
   const field = event.target;
   if (
     event.key === 'ArrowRight' &&
-    field.matches('[data-trait-values]') &&
+    field.matches('[data-trait-values], [data-zone-tags]') &&
     field.selectionStart === field.selectionEnd &&
     field.value[field.selectionEnd] === '\n'
   )

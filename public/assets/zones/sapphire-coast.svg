@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#528aa7"/><stop offset="1" stop-color="#d0dcd0"/></linearGradient>
+    <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#4d97ab"/><stop offset="1" stop-color="#163d63"/></linearGradient>
+    <linearGradient id="rock" x2=".5" y2="1"><stop stop-color="#8e9f8b"/><stop offset="1" stop-color="#354951"/></linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v650H0z"/>
+  <circle cx="1049" cy="139" r="48" fill="#e5e5be" opacity=".8"/>
+  <path d="M627 170q75-45 137 0m418-65q75-30 154 1" fill="none" stroke="#e5eadd" stroke-width="15" stroke-linecap="round" opacity=".45"/>
+  <path d="M0 337q205-58 407-1t367-13 826 4v323H0Z" fill="url(#sea)"/>
+  <path d="M994 374 1050 295 1116 304 1147 375Z" fill="#648785"/>
+  <path d="M1064 305V227h32v78Z" fill="#e1ddbc"/><path d="M1058 222h44v14h-44Z" fill="#3d5260"/><path d="m1054 222 26-24 26 24Z" fill="#5b4f4d"/>
+  <path d="M0 317Q190 214 373 283l157 63-69 140-153 164H0Z" fill="url(#rock)"/>
+  <path d="M0 317Q190 214 373 283l157 63-45 29-153-51-168-3-164 47Z" fill="#75946a"/>
+  <path d="m360 349-35 134m83-114-41 151m77-130-37 92" stroke="#31434b" stroke-width="8" opacity=".55"/>
+  <path d="m1269 493 35-147 66-25 43 62 16 110Z M1426 550l52-199 80-32 42 73v158Z" fill="url(#rock)"/>
+  <path d="m1304 346 66-25 43 62-57-15Z m174 5 80-32 42 73-91-27Z" fill="#6c8b6c"/>
+  <path d="M603 423q167 18 331-5m-250 52q149 20 289-3m-443 53q228 24 454-10m63 60q163 20 337-10" fill="none" stroke="#b3d6d2" stroke-width="4" opacity=".55"/>
+  <path d="M335 650q86-102 234-118-109 39-181 118Zm1003-155q-121 11-136 38 92-25 144-11Z" fill="#d6e7dd"/>
+  <path d="M0 593q177-55 324-2l79 59H0Z" fill="#273e3b"/>
+  <path d="m891 216 11 5 11-5m262-34 12 6 12-6m-72 53 9 4 9-4" fill="none" stroke="#476876" stroke-width="3"/>
+  <path d="m143 591 14-34 6 36m18 2 16-48 2 52" fill="none" stroke="#a3af7c" stroke-width="4"/>
+</svg>

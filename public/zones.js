@@ -34,8 +34,21 @@ export function locationsFor(catalog, state = {}) {
 export const availableAtmospheres = catalog => catalog?.atmospheres || baseAtmospheres;
 export const atmosphereFor = (catalog, id) =>
   availableAtmospheres(catalog).find(a => a.id === id) || baseAtmospheres[0];
-export const atmosphereStyle = atmosphere =>
-  /^#[\da-f]{6}$/i.test(atmosphere.tint) ? `--zone-tint:${atmosphere.tint}` : '';
+export const zoneArtwork = Object.freeze({
+  forest: '/assets/wilds.svg',
+  autumn: '/assets/zones/amber-woodland.svg',
+  moonlit: '/assets/zones/moonlit-grove.svg',
+  frost: '/assets/zones/frosted-forest.svg',
+  meadow: '/assets/zones/sunlit-meadow.svg',
+  coast: '/assets/zones/sapphire-coast.svg',
+  desert: '/assets/zones/ember-dunes.svg'
+});
+export function atmosphereStyle(atmosphere) {
+  const artwork = Object.hasOwn(zoneArtwork, atmosphere.id) ? zoneArtwork[atmosphere.id] : zoneArtwork.forest;
+  const preset = baseAtmospheres.find(a => a.id === atmosphere.id);
+  const tint = /^#[\da-f]{6}$/i.test(atmosphere.tint) ? `--zone-tint:${atmosphere.tint};` : '';
+  return `${tint}--zone-art:url('${artwork}');--zone-blend:${preset?.tint.toLowerCase() === atmosphere.tint?.toLowerCase() ? 'normal' : 'luminosity'}`;
+}
 export const zoneAtmosphere = (zone, catalog) => ({
   ...atmosphereFor(catalog, zone.atmosphere),
   ...zone.appearance

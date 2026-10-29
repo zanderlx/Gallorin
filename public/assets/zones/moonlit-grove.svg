@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#161f42"/><stop offset="1" stop-color="#766a9d"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#cdd3f0" stop-opacity=".4"/><stop offset="1" stop-color="#bac8f0" stop-opacity="0"/></radialGradient>
+    <linearGradient id="water" x2="0" y2="1"><stop stop-color="#999bc5"/><stop offset="1" stop-color="#293c63"/></linearGradient>
+    <g id="willow"><path d="M-8 0Q-25-111 0-248M-8-123q-85-98-130-45M-2-164q75-121 145-49" fill="none" stroke="#263244" stroke-width="16"/><path d="M-154-185q32-90 140-86 143-65 191 46-63-8-82 122-5-112-58-117-24 42-26 132-24-93-55-101-67-16-88 81Z"/></g>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v650H0z"/>
+  <ellipse cx="1040" cy="170" rx="350" ry="275" fill="url(#halo)"/>
+  <path d="M1090 64a79 79 0 1 0 68 119 72 72 0 0 1-68-119Z" fill="#e2e2f0"/>
+  <g fill="#d0d5f3"><circle cx="644" cy="84" r="2"/><circle cx="789" cy="158" r="2"/><circle cx="936" cy="65" r="2.4"/><circle cx="1288" cy="91" r="2"/><circle cx="1409" cy="176" r="2"/><circle cx="1190" cy="255" r="1.5"/><circle cx="843" cy="259" r="2"/></g>
+  <path d="m574 98 3 8 9 3-9 3-3 9-3-9-8-3 8-3Zm692 104 3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="#e5def9"/>
+  <path d="M0 390Q290 250 570 340t480-44 550 40v314H0Z" fill="#4c5279"/>
+  <g fill="#4d5c78" opacity=".75"><use href="#willow" transform="translate(728 424) scale(.8)"/><use href="#willow" transform="translate(1198 425) scale(.75)"/></g>
+  <path d="M0 477Q330 365 660 440t940-15v225H0Z" fill="#344c60"/>
+  <ellipse cx="1010" cy="533" rx="385" ry="100" fill="url(#water)"/>
+  <path d="M1006 453h92m-137 20h173m-209 26h230m-283 35h306m-253 36h213" stroke="#d5d5e6" stroke-width="3" opacity=".35"/>
+  <g fill="#243c4c"><use href="#willow" transform="translate(254 539) scale(1.7)"/><use href="#willow" transform="translate(1465 553) scale(1.8)"/></g>
+  <path d="M0 590q320-81 590 12t1010-40v88H0Z" fill="#182d3b"/>
+  <g fill="#d8dfb7"><circle cx="628" cy="472" r="2.3"/><circle cx="711" cy="521" r="2"/><circle cx="1309" cy="460" r="2.3"/><circle cx="1160" cy="590" r="2"/><circle cx="900" cy="413" r="1.7"/></g>
+</svg>

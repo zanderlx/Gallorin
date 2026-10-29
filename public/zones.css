@@ -526,3 +526,18 @@ main {
     transform: none;
   }
 }
+
+.hero:is(.forest, .autumn, .moonlit, .frost, .atmosphere-custom)[style*='--zone-art'] {
+  background-image: var(--zone-art);
+  background-blend-mode: var(--zone-blend, normal);
+}
+.zone-editor-dialog textarea[name='description'] {
+  min-height: 160px;
+  resize: none;
+}
+.zone-editor-dialog textarea[data-zone-tags] {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  font-family: var(--sans);
+}

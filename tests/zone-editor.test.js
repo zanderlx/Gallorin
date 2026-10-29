@@ -7,13 +7,38 @@ import {
   zoneEditorPage,
   zonePreview
 } from '../public/zone-editor.js';
-import { normalizeCatalog } from '../public/definitions.js';
-import { newZoneDraft, validateZone, zoneAtmosphere } from '../public/zones.js';
+import { normalizeCatalog, baseAtmospheres, catalogFor } from '../public/definitions.js';
+import { newZoneDraft, validateZone, zoneAtmosphere, zoneArtwork, atmosphereStyle } from '../public/zones.js';
 import { readFile } from 'node:fs/promises';
 
 const catalog = normalizeCatalog(
   JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'))
 );
+
+test('all built-in artwork presets have distinct bundled scenes and safe style paths', async () => {
+  const paths = baseAtmospheres.map(a => zoneArtwork[a.id]);
+  assert.equal(new Set(paths).size, baseAtmospheres.length);
+  const scenes = await Promise.all(paths.map(path => readFile(new URL(`../public${path}`, import.meta.url), 'utf8')));
+  assert.equal(new Set(scenes).size, baseAtmospheres.length);
+  for (const [i, preset] of baseAtmospheres.entries()) {
+    assert.match(scenes[i], /viewBox="0 0 1600 650"/);
+    assert.ok(atmosphereStyle(preset).includes(paths[i]));
+    assert.match(atmosphereStyle(preset), /--zone-blend:normal/);
+  }
+  assert.doesNotMatch(atmosphereStyle({ id: "');url(https://example.com)", tint: 'bad' }), /example.com|bad/);
+  assert.match(atmosphereStyle({ ...baseAtmospheres[0], tint: '#123456' }), /--zone-blend:luminosity/);
+});
+
+test('older artwork libraries gain new presets while customizations and deletions survive', () => {
+  const library = { ...catalog, atmospheres: baseAtmospheres.slice(0, 4).map(a => ({ ...a })) };
+  library.atmospheres[0].tint = '#123456';
+  const migrated = catalogFor(catalog, { library });
+  assert.equal(migrated.atmospheres.length, 7);
+  assert.equal(migrated.atmospheres[0].tint, '#123456');
+  const deleted = catalogFor(catalog, { library, deletedBuiltinAtmospheres: ['meadow'] });
+  assert.ok(!deleted.atmospheres.some(a => a.id === 'meadow'));
+  assert.ok(deleted.atmospheres.some(a => a.id === 'coast'));
+});
 
 test('zone percentages match encounter tickets including signed, zero and empty weights', () => {
   const chances = zoneSpawnChances([
