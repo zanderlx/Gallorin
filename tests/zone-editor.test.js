@@ -53,7 +53,7 @@ test('landing page contains artwork cards while editing keeps atmosphere inside 
   assert.equal((editor.match(/<form/g) || []).length, 1);
   assert.match(editor, /name="color:zone-tint"/);
   assert.match(editor, /name="encounterTitle"/);
-  assert.match(editor, /<details class="zone-editor-section" open>/);
+  assert.doesNotMatch(editor, /<details[^>]*\bopen\b/);
   assert.match(editor, /id="zone-species-rarity"/);
   assert.doesNotMatch(editor, /id="definition-form"|name="event"/);
 });

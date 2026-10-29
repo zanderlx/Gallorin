@@ -428,7 +428,7 @@ test('custom zones appear in navigation and wild pages with safe text; disabled 
   assert.match(html, /&lt;script&gt;magic&lt;\/script&gt;/);
   assert.doesNotMatch(html, /#wilds\/zone-hidden/);
   const editor = String(zoneEditorForm(catalog, zone));
-  assert.match(editor, /Generate random zone/);
+  assert.doesNotMatch(editor, /Generate random zone/);
   assert.match(editor, /name="speciesPool"/);
   assert.doesNotMatch(editor, /<script>/);
 });
