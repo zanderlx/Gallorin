@@ -69,6 +69,26 @@ const deadline = setTimeout(() => {
   if (process.argv.includes('--species-palettes-only')) {
     await run(() => document.querySelector('#species-tab-palettes').click());
     await wait(() => !!document.querySelector('#species-palettes-form'));
+    for (const width of [1200, 1000, 1440]) {
+      window.setSize(width, 1100);
+      await window.webContents.executeJavaScript(
+        'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
+      );
+      await run(() => {
+        const form = document.querySelector('#species-palettes-form');
+        const controls = [
+          ...form.querySelectorAll(
+            '.zone-palette-controls input, .zone-palette-controls select, .zone-palette-controls button'
+          )
+        ].map(el => el.getBoundingClientRect());
+        const columns = getComputedStyle(form.querySelector('.zone-palette-controls')).gridTemplateColumns.split(
+          ' '
+        ).length;
+        const rows = columns === 2 ? [controls.slice(0, 2), controls.slice(2)] : [controls];
+        if (rows.some(row => row.some(rect => Math.abs(rect.bottom - row[0].bottom) > 1)))
+          throw new Error('Responsive palette controls lost their alignment');
+      });
+    }
     await run(() => {
       const form = document.querySelector('#species-palettes-form');
       if (form.querySelector('details')) throw new Error('Species palettes should be inline');
