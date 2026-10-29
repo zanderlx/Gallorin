@@ -30,7 +30,7 @@ Changing personality preserves the saved description unless Description is also 
 
 Trait rolls read the current species's Compendium definitions. Mane/Tail require one defined option. Optional categories support up to four Patterns, two Paints, four Cosmetics, and one each of Keratin, Ears, and Whiskers. Rerolls can use a fixed count or a random count. Unknown lists stay unchanged; this tool does not invent missing traits. After adding species traits later, select existing horses and reroll only those categories.
 
-Changing species requires replacing incompatible traits/palettes. Cosmic palettes remain tied to the horse's Cosmic identity. Palette colors use the palette’s variance settings.
+Changing species automatically regenerates traits from the selected species, keeping the existing count in each category where the new species has enough choices and allows that count. Any count adjustment is explained inside the horse modal. Species and generated traits are saved together. A compatible palette is still required. Cosmic palettes remain tied to the horse's Cosmic identity. Palette colors use the palette’s variance settings.
 
 Solar, Lunar, Heavenly, Void, and Astral defining mutations are protected. They survive full rerolls and cannot be removed through individual slot updates. A legacy Cosmic horse whose defining mutation is absent has it restored when regenerating mutations. The four-slot limit still applies; legacy records above that limit require separate review and are preserved.
 

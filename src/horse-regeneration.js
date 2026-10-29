@@ -149,7 +149,23 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     horse.specialSpawn = identity;
     horse.spawnPath = 'Cosmic';
   }
-  // A species change must not silently retain traits that belong to another species.
+  // Species edits regenerate existing categories without randomly changing their counts.
+  const speciesChanged = species.id !== original.speciesId && species.name !== original.species;
+  if (speciesChanged && (active('species') || restored.includes('species'))) {
+    for (const category of Object.keys(horseTraitLimits)) {
+      const key = 'trait:' + category;
+      if (active(key) || restored.includes(key)) continue;
+      const existingCount = traitChoices(original.traits?.[category] || original.traits?.[category + 's']).length;
+      const available = traitChoices(species.traits?.[category]).length;
+      const range = traitCountRange(category, species, !!identity, available);
+      const count = Math.min(range.max, Math.max(range.min, existingCount));
+      rules[key] = { mode: 'reroll', count };
+      if (count !== existingCount)
+        warnings.push(
+          `${category}: ${existingCount} traits cannot be kept for ${species.name}; using ${count} within its available choices and required limits.`
+        );
+    }
+  }
   for (const [category, max] of Object.entries(horseTraitLimits)) {
     const key = 'trait:' + category,
       values = traitChoices(species.traits?.[category]);

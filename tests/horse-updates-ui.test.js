@@ -48,6 +48,7 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.match(controls, /<select data-mode hidden aria-hidden="true" tabindex="-1">/);
   assert.ok(!controls.includes('Count (blank = random)'));
   assert.match(controls, /<h2>Horse Overrides<\/h2>/);
+  assert.match(controls, /data-horse-notification role="status" aria-live="polite" hidden/);
   assert.match(controls, /<span>Field<\/span><span>Original<\/span><span>Override<\/span><span>Change<\/span>/);
   assert.ok(!controls.includes('Current Value'));
   assert.ok(!controls.includes('Acquisition Date / Birthday'));

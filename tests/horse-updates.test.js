@@ -199,16 +199,16 @@ test('keeping everything is a no-op and explicit text/date/skill changes are val
   assert.notEqual(changed.horse.caughtAt, horse.caughtAt);
 });
 
-test('species changes clear incompatible rerolled traits and reject invalid kept traits', async t => {
+test('species changes regenerate incompatible traits and handle missing definitions', async t => {
   const { store, horse } = await fixture(t);
   const c = store.getCatalog();
   const target = c.species.find(s => s.id !== horse.speciesId);
   target.traits = {};
   const original = { ...horse, traits: { Mane: ['Old Mane'], Tail: ['Old Tail'], Pattern: ['Old Pattern'] } };
-  assert.throws(
-    () => regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot()),
-    /incompatible/
-  );
+  const automatic = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot());
+  assert.deepEqual(automatic.horse.traits.Mane, ['Awaiting species data']);
+  assert.deepEqual(automatic.horse.traits.Pattern, []);
+  assert.ok(automatic.warnings.some(warning => warning.includes('Pattern')));
   const rules = {
     species: { mode: 'set', value: target.id },
     'trait:Mane': { mode: 'reroll' },
@@ -332,4 +332,50 @@ test('birthday removal restores both the birthday and exact acquisition timestam
   const restored = (await store.action('apply-horse-updates', { token: restoration.preview.token })).horses[0];
   assert.equal(restored.birthday, horse.birthday);
   assert.equal(restored.caughtAt, horse.caughtAt);
+});
+
+test('species overrides regenerate traits with the existing counts and capture their originals', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  const target = c.species.find(s => s.id !== horse.speciesId);
+  target.name = 'Replacement Species';
+  target.traits = {
+    Mane: ['New Mane'],
+    Tail: ['New Tail'],
+    Pattern: ['P1', 'P2', 'P3', 'P4'],
+    Paint: ['Paint1', 'Paint2'],
+    Cosmetic: ['C1', 'C2', 'C3', 'C4'],
+    Keratin: ['New Horn'],
+    Ears: ['New Ears'],
+    Whiskers: ['New Whiskers']
+  };
+  const original = {
+    ...horse,
+    palette: { ...horse.palette, global: true },
+    specialSpawn: null,
+    mutations: [],
+    traits: {
+      Mane: ['Old Mane'],
+      Tail: ['Old Tail'],
+      Pattern: ['Old P1', 'Old P2', 'Old P3'],
+      Paint: ['Old Paint'],
+      Cosmetic: [],
+      Keratin: [],
+      Ears: ['Old Ears'],
+      Whiskers: []
+    }
+  };
+  const result = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot(), {
+    rng: () => 0.5
+  });
+  for (const [category, values] of Object.entries(original.traits)) {
+    assert.equal(result.horse.traits[category].length, values.length);
+    assert.ok(result.horse.traits[category].every(value => target.traits[category].includes(value)));
+  }
+  assert.deepEqual(result.horse.overrideOriginals['trait:Pattern'].value, original.traits.Pattern);
+  assert.ok(result.horse.overriddenFields.includes('trait:Pattern'));
+  target.traits.Pattern = ['Only Pattern'];
+  const limited = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot());
+  assert.deepEqual(limited.horse.traits.Pattern, ['Only Pattern']);
+  assert.ok(limited.warnings.some(warning => warning.includes('Pattern') && warning.includes('using 1')));
 });

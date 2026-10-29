@@ -155,8 +155,7 @@ const horseUpdates = bindHorseUpdates({
   onApplied: () => {
     render();
     if (profile.open) inspect(profile.dataset.horseId);
-  },
-  notify
+  }
 });
 
 const profileCopyEditor = createCopyEditor({

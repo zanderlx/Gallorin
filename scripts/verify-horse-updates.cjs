@@ -28,7 +28,21 @@ app
     }
     let result = await action('visit', { locationId: 'aetherion' });
     const id = result.state.encounters.aetherion[0].id;
-    await action('catch', { id, name: 'Renderer Test' });
+    const caught = await action('catch', { id, name: 'Renderer Test' });
+    const target = caught.catalog.species.find(
+      species => species.id !== caught.state.horses[0].speciesId && !['Unicorn', 'Anticorn'].includes(species.name)
+    );
+    const targetTraits = {
+      Mane: ['Replacement Mane'],
+      Tail: ['Replacement Tail'],
+      Pattern: ['Replacement P1', 'Replacement P2', 'Replacement P3', 'Replacement P4'],
+      Paint: ['Replacement Paint1', 'Replacement Paint2'],
+      Cosmetic: ['Replacement C1', 'Replacement C2', 'Replacement C3', 'Replacement C4'],
+      Keratin: ['Replacement Horn'],
+      Ears: ['Replacement Ears'],
+      Whiskers: ['Replacement Whiskers']
+    };
+    await action('save-traits', { id: target.id, traits: targetTraits });
     await action('horse-updates-enabled', { enabled: true });
     await action('save-profile', { name: 'Renderer Keeper', about: 'i<3horses', avatarSeed: 11 });
     const win = new BrowserWindow({
@@ -88,6 +102,31 @@ app
     const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
     if (saved.gender !== rolled || saved.notes !== 'Direct value popup')
       throw Error('Saved values differ from the displayed choices');
+    await win.webContents.executeJavaScript(`(async()=>{
+      const wait=async(test)=>{for(let i=0;i<100;i++){if(test())return;await new Promise(resolve=>setTimeout(resolve,50))}throw Error('Species override did not settle')};
+      const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=species]');
+      row.closest('details').open=true;
+      row.querySelector('[data-edit-override]').click();
+      row.querySelector('[data-value]').value=${JSON.stringify(target.id)};
+      form.querySelector('[data-save-override]').click();
+      await wait(()=>form.dataset.resolvedSpeciesId===${JSON.stringify(target.id)}&&!row.closest('details').querySelector('[data-save-section]').disabled);
+      const pattern=form.querySelector('[data-key="trait:Pattern"]');
+      if(!pattern.dataset.speciesGenerated)throw Error('Traits did not update dynamically');
+      if(document.querySelector('[data-horse-notification]').hidden)throw Error('Species notice not visible in modal');
+      row.closest('details').querySelector('[data-save-section]').click();
+      await wait(()=>document.querySelector('[data-key=species] [data-mode]')?.value==='keep');
+      const notice=document.querySelector('[data-horse-notification]');
+      if(notice.hidden||!notice.textContent.includes('saved'))throw Error('Save notification missing inside modal');
+    })()`);
+    const speciesSaved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
+    for (const [category, values] of Object.entries(caught.state.horses[0].traits)) {
+      if (!Object.hasOwn(targetTraits, category)) continue;
+      const old = values.filter(value => value !== 'None' && value !== 'Awaiting species data').length;
+      const actual = speciesSaved.traits[category];
+      if (actual.length !== old) throw Error('Species override changed ' + category + ' count unexpectedly');
+      if (!actual.every(value => targetTraits[category].includes(value)))
+        throw Error('Species override kept old traits');
+    }
     await writeFile(join(directory, 'edit.png'), (await win.webContents.capturePage()).toPNG());
     console.log('Horse Overrides UI passed: ' + directory);
     win.destroy();

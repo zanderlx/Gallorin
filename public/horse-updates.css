@@ -229,3 +229,21 @@
 #profile .horse-section-actions[hidden] {
   display: none !important;
 }
+
+.horse-edit-notification {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  background: var(--panel-deep, #28221d);
+  color: var(--text);
+}
+.horse-edit-notification[data-error='true'] {
+  border-color: #c7796e;
+}
+.horse-edit-notification[hidden] {
+  display: none !important;
+}
