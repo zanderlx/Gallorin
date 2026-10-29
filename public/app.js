@@ -12,7 +12,7 @@ import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
-import { handleInvalidHex, validHex, hexInputValue } from './hex-inputs.js';
+import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
 import { defaultSpawnSettings } from './spawn-config.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -973,6 +973,8 @@ profile.addEventListener('keydown', event => {
   }
 });
 document.addEventListener('invalid', handleInvalidHex, true);
+document.addEventListener('select', event => protectHexSelection(event.target), true);
+document.addEventListener('selectionchange', () => protectHexSelection(document.activeElement));
 document.addEventListener('submit', async event => {
   const form = event.target;
   if (

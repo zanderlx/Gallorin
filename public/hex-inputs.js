@@ -4,6 +4,11 @@ export const validHex = value => /^#[0-9a-f]{6}$/i.test(value);
 
 export const hexInputValue = value => `#${value.replace(/[^0-9a-f]/gi, '').slice(0, 6)}`;
 
+export function protectHexSelection(field) {
+  if (!field?.matches('[data-color-hex]') || !field.value.startsWith('#')) return;
+  if (field.selectionStart === 0) field.setSelectionRange(1, Math.max(1, field.selectionEnd), field.selectionDirection);
+}
+
 function showHexPopup(message, returnToField) {
   const dialog = document.createElement('dialog');
   dialog.className = 'eye-save-confirm';
@@ -39,7 +44,7 @@ export function handleInvalidHex(event, showPopup = showHexPopup) {
       if (!field.isConnected) return;
       field.scrollIntoView({ block: 'center', behavior: 'instant' });
       field.focus({ preventScroll: true });
-      field.select();
+      field.setSelectionRange(1, field.value.length);
     };
     focusField();
     showPopup(

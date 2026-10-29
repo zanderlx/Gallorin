@@ -1,6 +1,28 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validHex, handleInvalidHex, hexInputValue } from '../public/hex-inputs.js';
+import { validHex, handleInvalidHex, hexInputValue, protectHexSelection } from '../public/hex-inputs.js';
+
+test('hex selection excludes the prefix for select-all, backward drags and Home without disturbing digit selections', () => {
+  for (const [start, end, direction, expected] of [
+    [0, 7, 'forward', [1, 7, 'forward']],
+    [0, 4, 'backward', [1, 4, 'backward']],
+    [0, 0, 'none', [1, 1, 'none']],
+    [2, 5, 'backward', null]
+  ]) {
+    let selection = null;
+    protectHexSelection({
+      matches: () => true,
+      value: '#ABCDEF',
+      selectionStart: start,
+      selectionEnd: end,
+      selectionDirection: direction,
+      setSelectionRange: (...args) => (selection = args)
+    });
+    assert.deepEqual(selection, expected);
+  }
+  protectHexSelection(null);
+  protectHexSelection({ matches: () => false });
+});
 
 test('all hex inputs preserve the prefix and limit typing and pasted values to six hex digits', () => {
   for (const [input, expected] of [
@@ -34,7 +56,11 @@ test('invalid hex save shows one popup, opens its section, and selects the first
     getAttribute: () => 'Tint hex value',
     scrollIntoView: () => actions.push('scroll'),
     focus: () => actions.push('focus'),
-    select: () => actions.push('select')
+    setSelectionRange: (start, end) => {
+      assert.equal(start, 1);
+      assert.equal(end, first.value.length);
+      actions.push('select');
+    }
   };
   const second = { ...first, getAttribute: () => 'Other hex value' };
   const form = { querySelectorAll: () => [first, second] };
