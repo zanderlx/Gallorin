@@ -44,7 +44,21 @@ export function profileContent(horse, state, { importPreview = false, catalog } 
   const mutations = `<div class="horse-mutations-heading"><h3>Mutations</h3></div>${`<ol class="horse-mutations mutation-slots" data-copy-skip>${Array.from(
     { length: 4 },
     (_, index) => {
-      const mutation = horse.mutations?.[index];
+      const saved = horse.mutations?.[index];
+      // Current definitions keep existing horses' mutation cards up to date.
+      // Unknown/deleted definitions retain their saved text; rolls stay untouched.
+      const definitions = catalog?.mutations || [];
+      const mutation =
+        (saved && typeof saved === 'object'
+          ? definitions.find(m => saved.systemId && m.systemId === saved.systemId) ||
+            definitions.find(m => saved.id && m.id === saved.id)
+          : undefined) ||
+        (saved &&
+          (typeof saved === 'string' || (!saved.id && !saved.systemId)) &&
+          definitions.find(
+            m => m.name === (typeof saved === 'string' ? saved : saved.name) && (!saved.type || m.type === saved.type)
+          )) ||
+        saved;
       return `<li class="mutation-slot ${mutation ? '' : 'is-empty'}">${mutation ? `<div class="mutation-slot-text"><strong>${e(typeof mutation === 'string' ? mutation : mutation.name)}</strong>${typeof mutation === 'object' && mutation.description ? `<span class="mutation-description">: ${e(mutation.description)}</span>` : ''}</div>` : `<span class="mutation-slot-lock" role="img" aria-label="Locked mutation slot">${icon('lock')}</span>`}</li>`;
     }
   ).join('')}</ol>`}`;

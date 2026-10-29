@@ -14,6 +14,42 @@ const settings = JSON.parse(await readFile(new URL('../data/defaults/settings.js
 const horse = createEncounters(catalog, 'aetherion', 1, 0, undefined, () => 0.5)[0];
 const state = { horses: [], sold: [], settings };
 
+test('existing horse mutation cards follow current definitions without changing saved rolls', () => {
+  const saved = {
+    id: 'mutation-old',
+    systemId: 'stable-id',
+    name: 'Old Name',
+    type: 'Standard',
+    description: 'Old text'
+  };
+  const current = { ...saved, id: 'mutation-new', name: 'New Name', description: '<Updated description>' };
+  const existing = { ...horse, mutations: [saved, { id: 'deleted', name: 'Deleted', description: 'Saved text' }] };
+  const before = structuredClone(existing);
+  for (const records of [{ horses: [existing] }, { sold: [existing] }, {}]) {
+    const html = profileContent(existing, { ...state, ...records }, { catalog: { ...catalog, mutations: [current] } });
+    assert.match(html, /New Name/);
+    assert.match(html, /&lt;Updated description&gt;/);
+    assert.doesNotMatch(html, /Old text/);
+    assert.match(html, /Saved text/);
+  }
+  assert.deepEqual(existing, before);
+});
+
+test('mutation cards resolve local IDs and legacy names but preserve missing definitions', () => {
+  const current = { id: 'local', name: 'Current', type: 'Standard', description: 'Current description' };
+  for (const saved of [{ id: 'local', name: 'Before' }, 'Current', { name: 'Current', type: 'Standard' }]) {
+    assert.match(
+      profileContent({ ...horse, mutations: [saved] }, state, { catalog: { ...catalog, mutations: [current] } }),
+      /Current description/
+    );
+  }
+  const deleted = { id: 'deleted', name: 'Current', description: 'Preserved snapshot' };
+  assert.match(
+    profileContent({ ...horse, mutations: [deleted] }, state, { catalog: { ...catalog, mutations: [current] } }),
+    /Preserved snapshot/
+  );
+});
+
 test('horse profile separates overview from appearance and keeps unique portrait IDs', () => {
   const html = profileContent(horse, state, { catalog });
   assert.equal((html.match(/role="tab"/g) || []).length, 2);
