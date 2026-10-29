@@ -121,8 +121,8 @@ test('species confirmation lists changes with the requested introduction and no 
             { field: 'speciesId', before: 'old-id', after: 'new-id' },
             {
               field: 'traits',
-              before: { Mane: ['Old Mane'], Pattern: ['Old Pattern'] },
-              after: { Mane: ['New Mane'], Pattern: ['New Pattern'] }
+              before: { Mane: ['Old Mane'], Pattern: ['Old Pattern', 'Old Pattern 2'] },
+              after: { Mane: ['New Mane'], Pattern: ['New Pattern', 'New Pattern 2'] }
             },
             { field: 'rarityTier', before: 3, after: 2 },
             { field: 'traitsComplete', before: false, after: true }
@@ -148,6 +148,11 @@ test('species confirmation lists changes with the requested introduction and no 
   assert.ok(!markup.includes('new-id'));
   assert.ok(!markup.includes('Pattern count adjusted'));
   assert.ok(!markup.includes('horse-species-warning'));
+  assert.match(
+    markup,
+    /<span class="horse-confirm-trait">New Pattern<\/span><span class="horse-confirm-trait">New Pattern 2<\/span>/
+  );
+  assert.ok(!markup.includes('New Pattern, New Pattern 2'));
   assert.ok(!markup.includes('Rarity Tier'));
   assert.ok(!markup.includes('Trait Definitions Complete'));
   assert.match(markup, /color:#58B878/);

@@ -130,7 +130,8 @@ export function speciesConfirmationContent(preview, catalog, horse) {
       for (const category of new Set([...Object.keys(change.before || {}), ...Object.keys(change.after || {})])) {
         const before = change.before?.[category] || [],
           after = change.after?.[category] || [];
-        if (JSON.stringify(before) !== JSON.stringify(after)) rows.push({ label: category, before, after });
+        if (JSON.stringify(before) !== JSON.stringify(after))
+          rows.push({ label: category, before, after, traits: true });
       }
     } else if (change.field === 'rarityTier') {
       rows.push({
@@ -147,7 +148,13 @@ export function speciesConfirmationContent(preview, catalog, horse) {
       });
     }
   }
-  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p>Updating a species also updates species-specific traits. The amount of traits stay the same. Update the amount of traits in the Traits override section. Cosmic horses get the max amount of traits per category</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${row.rarity ? rarity(row.before) : formatValue(row.before)}</td><td>${row.rarity ? rarity(row.after) : formatValue(row.after)}</td></tr>`)}</tbody></table></div>`;
+  const cell = (row, value) =>
+    row.rarity
+      ? rarity(value)
+      : row.traits
+        ? html`${(value.length ? value : ['None']).map(trait => html`<span class="horse-confirm-trait">${formatValue(trait)}</span>`)}`
+        : formatValue(value);
+  return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p class="horse-species-description">Updating a species also updates species-specific traits. The amount of traits stay the same. Update the amount of traits in the Traits override section. Cosmic horses get the max amount of traits per category</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${cell(row, row.before)}</td><td>${cell(row, row.after)}</td></tr>`)}</tbody></table></div>`;
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied }) {
   let working = false,
