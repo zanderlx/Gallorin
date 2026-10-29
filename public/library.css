@@ -1389,12 +1389,9 @@ option:not(nav option) {
 .horse-trait-group dd > .horse-trait-tag {
   flex: 0 0 auto;
   box-sizing: border-box;
-  min-width: calc((100% - 7px) / 2);
-  max-width: 100%;
-}
-.horse-trait-group[data-horse-trait-category='Cosmetic'] dd > .horse-trait-tag {
   min-width: 0;
   width: fit-content;
+  max-width: 100%;
 }
 .horse-trait-none {
   font-size: 13px;
