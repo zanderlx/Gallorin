@@ -16,11 +16,13 @@
 .horse-edit-columns,
 .horse-update-row {
   display: grid;
-  grid-template-columns: minmax(110px, 1fr) minmax(130px, 1.6fr) minmax(130px, 1fr);
+  grid-template-columns: minmax(100px, 1fr) minmax(100px, 1.2fr) minmax(100px, 1.2fr) 116px;
   gap: 16px;
   align-items: center;
 }
 .horse-edit-columns {
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--muted);
   font-size: 12px;
   padding-bottom: 12px;
@@ -43,7 +45,8 @@
   overflow-wrap: anywhere;
   text-transform: none;
 }
-.horse-override-current {
+.horse-override-current,
+.horse-override-proposed {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   color: var(--muted);
@@ -151,5 +154,47 @@
     grid-template-columns: 1fr;
     gap: 8px;
     border-bottom: 1px solid var(--border);
+  }
+}
+
+.horse-edit-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.horse-edit-heading h2 {
+  margin: 0;
+}
+.horse-edit-heading .horse-edit-actions {
+  margin: 0;
+}
+.horse-override-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.horse-override-actions .icon-button {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+.horse-override-actions [hidden] {
+  display: none !important;
+}
+.horse-override-actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+@media (max-width: 720px) {
+  .horse-edit-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .horse-override-current::before {
+    content: 'Original: ';
+  }
+  .horse-override-proposed::before {
+    content: 'Override: ';
   }
 }

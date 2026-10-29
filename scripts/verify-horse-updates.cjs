@@ -28,15 +28,7 @@ app
     }
     let result = await action('visit', { locationId: 'aetherion' });
     const id = result.state.encounters.aetherion[0].id;
-    const caught = await action('catch', { id, name: 'Renderer Test' });
-    const species = caught.catalog.species.find(s => s.id === caught.state.horses[0].speciesId);
-    await action('save-traits', {
-      id: species.id,
-      traits: {
-        ...species.traits,
-        Pattern: ['Pattern A', 'Pattern B', 'Pattern C', 'Pattern D', 'Pattern E', 'Pattern F']
-      }
-    });
+    await action('catch', { id, name: 'Renderer Test' });
     await action('horse-updates-enabled', { enabled: true });
     await action('save-profile', { name: 'Renderer Keeper', about: 'i<3horses', avatarSeed: 11 });
     const win = new BrowserWindow({
@@ -77,11 +69,19 @@ app
         const select=row.querySelector('[data-mode]');select.value=mode;select.dispatchEvent(new Event('change',{bubbles:true}));
         return row;
       };
-      const pattern=edit('trait:Pattern','set');
-      for(const choice of pattern.querySelectorAll('[data-trait-choice]'))if(choice.checked)choice.click();
-      for(let i=0;i<4;i++)pattern.querySelector('[data-trait-choice]:not(:checked):not(:disabled)').click();
-      if(pattern.querySelectorAll('[data-trait-choice]:disabled').length!==2)throw Error('Pattern limit missing');
-      form.querySelector('[data-cancel-override]').click();
+      if(form.querySelector('h2').textContent!=='Horse Overrides')throw Error('Horse Overrides heading missing');
+      const headers=[...form.querySelector('.horse-edit-columns').children].map(node=>node.textContent).join('|');
+      if(headers!=='Field|Original|Override|Change')throw Error('Column headers incorrect');
+      const gender=form.querySelector('[data-key=gender]');
+      gender.closest('details').open=true;
+      gender.querySelector('[data-roll-override]').click();
+      if(gender.querySelector('[data-mode]').value!=='reroll')throw Error('Shuffle must stage reroll');
+      if(gender.querySelector('[data-remove-override]').hidden)throw Error('Pending reroll needs trash action');
+      gender.querySelector('[data-remove-override]').click();
+      if(gender.querySelector('[data-mode]').value!=='keep'||!gender.querySelector('[data-remove-override]').hidden)throw Error('Trash must cancel unsaved override');
+      const columns=[...gender.closest('details').querySelector('.horse-edit-columns').children];
+      const cells=[gender.querySelector('strong'),gender.querySelector('[data-current-value]'),gender.querySelector('[data-override-value]'),gender.querySelector('.horse-override-actions')];
+      cells.forEach((cell,index)=>{if(Math.abs(cell.getBoundingClientRect().x-columns[index].getBoundingClientRect().x)>1)throw Error('Column alignment mismatch')});
       edit('notes','set').querySelector('[data-value]').value='Previewed in the real renderer';
       form.querySelector('[data-save-override]').click();
       form.requestSubmit();
@@ -109,6 +109,20 @@ app
       'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
     );
     await writeFile(join(directory, 'edit.png'), (await win.webContents.capturePage()).toPNG());
+    await win.webContents.executeJavaScript(`(()=>{
+      const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=notes]');
+      if(row.querySelector('[data-current-value]').textContent==='Previewed in the real renderer')throw Error('Original column was overwritten');
+      if(row.querySelector('[data-override-value]').textContent!=='Previewed in the real renderer')throw Error('Saved override not shown');
+      row.querySelector('[data-remove-override]').click();
+      if(row.querySelector('[data-mode]').value!=='restore')throw Error('Saved trash action must restore original');
+      form.requestSubmit();
+    })()`);
+    await waitFor('[data-apply-horse-updates]');
+    await win.webContents.executeJavaScript("document.querySelector('[data-apply-horse-updates]').click()");
+    await waitFor('#horse-update-form:not(:has([data-apply-horse-updates]))');
+    const restored = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
+    if ((restored.notes || '') !== (before.notes || '') || restored.overriddenFields.includes('notes'))
+      throw Error('Trash did not restore original notes');
     console.log('Horse Overrides UI passed: ' + directory);
     win.destroy();
     await backend.closeGameServer();

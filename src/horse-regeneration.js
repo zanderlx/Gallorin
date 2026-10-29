@@ -12,7 +12,7 @@ import { horseGenerationVersion } from '../public/horse-version.js';
 import { readHorseSkills } from '../public/skill-progress.js';
 import { updateHorseField, validateHorseName } from '../public/horse-fields.js';
 import { localCalendarDate } from '../public/dates.js';
-import { horseOverrideValue } from '../public/horse-override-markers.js';
+import { horseOverrideValue, captureHorseOverride, restoreHorseOverride } from '../public/horse-override-markers.js';
 
 const cosmicNames = ['Solar', 'Lunar', 'Heavenly', 'Void', 'Astral'];
 const nameOf = m => (typeof m === 'string' ? m : m?.name);
@@ -42,7 +42,12 @@ export function validateHorseRules(rules) {
   const fields = new Map(horseUpdateFields.map(field => [field.key, field]));
   if (Object.keys(rules).length > horseUpdateFields.length) throw new Error('Too many update fields.');
   for (const [key, rule] of Object.entries(rules)) {
-    if (!fields.has(key) || !rule || typeof rule !== 'object' || !fields.get(key).modes.includes(rule.mode))
+    if (
+      !fields.has(key) ||
+      !rule ||
+      typeof rule !== 'object' ||
+      (!fields.get(key).modes.includes(rule.mode) && rule.mode !== 'restore')
+    )
       throw new Error('Invalid horse update field or operation.');
   }
   if (rules.birthday?.mode === 'set' && rules.daysOwned?.mode === 'set')
@@ -57,6 +62,9 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   validateHorseRules(rules);
   const horse = structuredClone(original),
     warnings = [];
+  const restored = Object.keys(rules).filter(key => rules[key].mode === 'restore');
+  for (const key of restored) restoreHorseOverride(horse, key);
+  rules = Object.fromEntries(Object.entries(rules).filter(([, rule]) => rule.mode !== 'restore'));
   removeUnusedTraits(horse);
   const active = key => rules[key] && rules[key].mode !== 'keep';
   const rule = key => rules[key] || { mode: 'keep' };
@@ -147,7 +155,11 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       values = traitChoices(species.traits?.[category]);
     const range = traitCountRange(category, species, !!identity, values.length);
     const existing = horse.traits?.[category] || [];
-    if (active('species') && !active(key) && existing.some(v => v !== 'Awaiting species data' && !values.includes(v)))
+    if (
+      (active('species') || restored.includes('species')) &&
+      !active(key) &&
+      existing.some(v => v !== 'Awaiting species data' && !values.includes(v))
+    )
       throw new Error('Changing species requires updating incompatible ' + category + ' traits.');
     if (!active(key)) continue;
     horse.traits ??= {};
@@ -162,7 +174,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
     } else {
       if (!values.length) {
-        if (active('species') && species.id !== original.speciesId) {
+        if ((active('species') || restored.includes('species')) && species.id !== original.speciesId) {
           horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['Awaiting species data'] : [];
           warnings.push(species.name + ' has no ' + category + ' definitions; incompatible traits were cleared.');
         } else warnings.push(species.name + ' has no ' + category + ' definitions; saved traits were kept.');
@@ -171,7 +183,11 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       horse.traits[category] = rollHorseTrait(category, values, species, !!identity, rng, rule(key).count);
     }
   }
-  if (active('species') || Object.keys(horseTraitLimits).some(c => active('trait:' + c)))
+  if (
+    active('species') ||
+    restored.includes('species') ||
+    Object.keys(horseTraitLimits).some(c => active('trait:' + c))
+  )
     horse.traitsComplete =
       !!(species.traits?.Mane?.length && species.traits?.Tail?.length) &&
       ['Mane', 'Tail'].every(c => horse.traits?.[c]?.length && !horse.traits[c].includes('Awaiting species data'));
@@ -189,7 +205,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     horse.skinId = palette.assetSkins?.length ? pickUniform(palette.assetSkins, rng) : null;
     if (fixed) warnings.push('Cosmic palette remains ' + fixed.name + '.');
   } else if (
-    active('species') &&
+    (active('species') || restored.includes('species')) &&
     horse.palette?.global === false &&
     !horse.palette.speciesIds?.includes(species.id) &&
     !cosmicPalette(horse, catalog)
@@ -281,19 +297,23 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   }
   // Keep IDs, acquisition history, favorites, and personal notes unless explicitly selected.
   const changes = Object.keys(horse)
-    .filter(key => !equal(original[key], horse[key]))
+    .filter(key => !['overriddenFields', 'overrideOriginals'].includes(key) && !equal(original[key], horse[key]))
     .map(key => ({ field: key, before: original[key] ?? null, after: horse[key] ?? null }));
   if (changes.length) {
+    const changedFields = Object.keys(rules).filter(
+      key => active(key) && !equal(horseOverrideValue(original, key), horseOverrideValue(horse, key))
+    );
+    for (const key of changedFields) {
+      horse.overrideOriginals ??= {};
+      if (!original.overriddenFields?.includes(key))
+        horse.overrideOriginals[key] ??= captureHorseOverride(original, key);
+    }
     horse.overriddenFields = [
-      ...new Set([
-        ...(Array.isArray(original.overriddenFields) ? original.overriddenFields : []),
-        ...Object.keys(rules).filter(
-          key => active(key) && !equal(horseOverrideValue(original, key), horseOverrideValue(horse, key))
-        )
-      ])
+      ...new Set([...(Array.isArray(horse.overriddenFields) ? horse.overriddenFields : []), ...changedFields])
     ];
     horse.generationVersion = horseGenerationVersion;
     horse.lastRegeneratedAt = new Date().toISOString();
   }
+  if (restored.length && !changes.length) changes.push({ field: 'Override status', before: restored, after: [] });
   return { horse, changes, warnings };
 }

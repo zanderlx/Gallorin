@@ -24,7 +24,7 @@ export const horseUpdateFields = [
   { key: 'name', label: 'Name', group: 'Identity', modes: ['keep', 'set'], type: 'text' },
   { key: 'gender', label: 'Gender', group: 'Identity', modes: ['keep', 'set', 'reroll'] },
   { key: 'age', label: 'Life Stage (legacy)', group: 'Identity', modes: ['keep', 'set'] },
-  { key: 'birthday', label: 'Acquisition Date / Birthday', group: 'Identity', modes: ['keep', 'set'], type: 'date' },
+  { key: 'birthday', label: 'Birthday', group: 'Identity', modes: ['keep', 'set'], type: 'date' },
   { key: 'daysOwned', label: 'Age in Days', group: 'Identity', modes: ['keep', 'set'], type: 'number' },
   { key: 'origin', label: 'Origin', group: 'Identity', modes: ['keep', 'set'], type: 'text' },
   { key: 'size', label: 'Size', group: 'Identity', modes: ['keep', 'set', 'reroll'] },

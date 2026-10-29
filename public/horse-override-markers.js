@@ -18,3 +18,44 @@ export function horseOverrideBadge(horse, key, visible) {
     ? String(html`<span class="horse-override-badge">OVERRIDE</span>`)
     : '';
 }
+
+const storedFields = {
+  species: ['species', 'speciesId', 'rarityTier', 'speciesEvent'],
+  palette: ['palette', 'paletteId', 'skinId'],
+  eye: ['eye', 'eyeId', 'eyeTextureId', 'eyeLayers'],
+  personality: ['personality', 'personalityId', 'personalitySystemId'],
+  birthday: ['birthday', 'caughtAt'],
+  daysOwned: ['birthday', 'caughtAt'],
+  size: ['size', 'sizePercent'],
+  description: ['personalityDescription']
+};
+export function captureHorseOverride(horse, key) {
+  const fields = key.includes(':') ? [] : storedFields[key] || [key];
+  return structuredClone({
+    value: horseOverrideValue(horse, key),
+    fields: Object.fromEntries(fields.filter(field => Object.hasOwn(horse, field)).map(field => [field, horse[field]])),
+    missing: fields.filter(field => !Object.hasOwn(horse, field))
+  });
+}
+export function restoreHorseOverride(horse, key) {
+  const saved = horse.overrideOriginals?.[key];
+  if (!saved) throw new Error('The original value was not recorded for this older override.');
+  const [kind, name] = key.split(':');
+  if (kind === 'trait') {
+    horse.traits ??= {};
+    horse.traits[name] = structuredClone(saved.value);
+  } else if (kind === 'skill') {
+    horse.skills ??= {};
+    horse.skills[name] = structuredClone(saved.value);
+  } else if (kind === 'color') horse.palette.colors[name] = saved.value;
+  else if (kind === 'mutation') {
+    horse.mutations ??= [];
+    horse.mutations[Number(name)] = structuredClone(saved.value);
+    horse.mutations = horse.mutations.filter(Boolean);
+  } else {
+    Object.assign(horse, structuredClone(saved.fields));
+    for (const field of saved.missing) delete horse[field];
+  }
+  delete horse.overrideOriginals[key];
+  horse.overriddenFields = (horse.overriddenFields || []).filter(field => field !== key);
+}

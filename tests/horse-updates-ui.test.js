@@ -37,6 +37,20 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.ok(!groups.some(group => group.items.some(([route]) => route === 'dev/horse-updates')));
   const controls = horseOverrideControls(state.horses[0], state, catalog);
   assert.match(controls, /Preview Changes/);
+  assert.match(controls, /<h2>Horse Overrides<\/h2>/);
+  assert.match(controls, /<span>Field<\/span><span>Original<\/span><span>Override<\/span><span>Change<\/span>/);
+  assert.ok(!controls.includes('Current Value'));
+  assert.ok(!controls.includes('Acquisition Date / Birthday'));
+  assert.match(controls, /aria-label="Edit Birthday"/);
+  assert.match(controls, /data-roll-override="species"/);
+  assert.match(controls, /data-remove-override="species"[^>]*hidden/);
+  const savedOverride = {
+    ...state.horses[0],
+    overriddenFields: ['species'],
+    overrideOriginals: { species: { value: 'Original species', fields: { species: 'Original species' }, missing: [] } }
+  };
+  const markedControls = horseOverrideControls(savedOverride, state, catalog);
+  assert.ok(!/data-remove-override="species"[^>]*hidden/.test(markedControls));
   assert.match(controls, /details class="zone-editor-section horse-edit-section"/);
   assert.ok(!controls.includes('Disable Horse Overrides'));
   for (const key of ['name', 'age', 'daysOwned', 'favorite', 'color:Coat Top'])

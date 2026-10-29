@@ -301,3 +301,35 @@ test('settings checkbox enables horse editing without changing duplicate mutatio
   await store.action('settings', { ...store.snapshot().settings, horseUpdatesEnabled: false });
   assert.equal(store.snapshot().settings.horseUpdatesEnabled, false);
 });
+
+test('override originals survive repeated changes and removal restores the exact value', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  async function applyRules(rules) {
+    const result = await preview(store, [horse.id], rules);
+    return (await store.action('apply-horse-updates', { token: result.preview.token })).horses[0];
+  }
+  const before = horse.notes || '';
+  let updated = await applyRules({ notes: { mode: 'set', value: 'First override' } });
+  assert.equal(updated.overrideOriginals.notes.value || '', before);
+  updated = await applyRules({ notes: { mode: 'set', value: 'Second override' } });
+  assert.equal(updated.overrideOriginals.notes.value || '', before);
+  const result = await preview(store, [horse.id], { notes: { mode: 'restore' } });
+  assert.equal(store.snapshot().horses[0].notes, 'Second override');
+  updated = (await store.action('apply-horse-updates', { token: result.preview.token })).horses[0];
+  assert.equal(updated.notes || '', before);
+  assert.ok(!updated.overriddenFields.includes('notes'));
+  assert.ok(!updated.overrideOriginals.notes);
+  await assert.rejects(preview(store, [horse.id], { notes: { mode: 'restore' } }), /not recorded/);
+});
+
+test('birthday removal restores both the birthday and exact acquisition timestamp', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const result = await preview(store, [horse.id], { birthday: { mode: 'set', value: '2000-01-01' } });
+  await store.action('apply-horse-updates', { token: result.preview.token });
+  const restoration = await preview(store, [horse.id], { birthday: { mode: 'restore' } });
+  const restored = (await store.action('apply-horse-updates', { token: restoration.preview.token })).horses[0];
+  assert.equal(restored.birthday, horse.birthday);
+  assert.equal(restored.caughtAt, horse.caughtAt);
+});
