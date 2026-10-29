@@ -1155,9 +1155,16 @@ document.addEventListener('change', async event => {
   if (['zone-palette-type', 'zone-palette-sort'].includes(event.target.id))
     updateZonePalettes($('#zone-form'), catalog);
   if (event.target.id === 'zone-species-sort')
-    $('#zone-form [data-action="zone-species-sort-direction"]').dataset.direction = 'asc';
+    $('#zone-form [data-action="zone-species-sort-direction"]').dataset.direction =
+      event.target.value === 'weight' ? 'desc' : 'asc';
   if (['zone-species-rarity', 'zone-species-sort'].includes(event.target.id))
     updateZoneSpecies($('#zone-form'), catalog);
+  if (
+    event.target.form?.id === 'zone-form' &&
+    event.target.name?.startsWith('weight:') &&
+    $('#zone-species-sort').value === 'weight'
+  )
+    updateZoneSpecies(event.target.form, catalog);
   if (event.target.form?.id === 'zone-form' && event.target.name === 'atmosphere') {
     applyZonePreset(event.target.form, catalog);
     syncZoneEditor(event.target.form, catalog, readZoneForm(event.target.form));

@@ -52,6 +52,32 @@ test('zone species filters combine names and all rarity tiers without changing t
   assert.deepEqual(ids(species), ['z', 'a', 'b', 'c']);
 });
 
+test('zone species weight sorting uses current numeric field values in both directions', () => {
+  const species = [
+    { id: 'a', name: 'Amber', rarityTier: 4 },
+    { id: 'b', name: 'Blue', rarityTier: 2 },
+    { id: 'c', name: 'Cloud', rarityTier: 4 }
+  ];
+  const weights = new Map([
+    ['a', 10],
+    ['b', 100],
+    ['c', 0]
+  ]);
+  assert.deepEqual(
+    filterZoneSpecies(species, '', '', 'weight', 'desc', weights).map(s => s.id),
+    ['b', 'a', 'c']
+  );
+  assert.deepEqual(
+    filterZoneSpecies(species, '', '', 'weight', 'asc', weights).map(s => s.id),
+    ['c', 'a', 'b']
+  );
+  weights.set('a', 500);
+  assert.deepEqual(
+    filterZoneSpecies(species, '', '4', 'weight', 'desc', weights).map(s => s.id),
+    ['a', 'c']
+  );
+});
+
 test('landing page contains artwork cards while editing keeps atmosphere inside one zone form', () => {
   const landing = zoneEditorPage(catalog, {});
   assert.match(landing, /hero zone-preview/);

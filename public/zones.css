@@ -450,7 +450,7 @@ main {
 }
 .zone-creature-row small {
   display: block;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--muted);
   margin-top: 4px;
 }
@@ -467,6 +467,14 @@ main {
   padding: 3px 6px;
   line-height: 1.2;
   text-align: center;
+}
+.zone-spawn-list input[type='number']:not(:focus) {
+  appearance: textfield;
+}
+.zone-spawn-list input[type='number']:not(:focus)::-webkit-inner-spin-button,
+.zone-spawn-list input[type='number']:not(:focus)::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .zone-editor-section .zone-options {
   max-height: 300px;
