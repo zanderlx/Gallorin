@@ -156,9 +156,10 @@ test('trait rerolls use species lists, respect counts, and preserve missing data
     /valid/
   );
   s.traits = {};
-  const missing = regenerateHorse(horse, { 'trait:Mane': { mode: 'reroll' } }, c, store.snapshot());
-  assert.deepEqual(missing.horse.traits.Mane, horse.traits.Mane);
-  assert.ok(missing.warnings.length);
+  assert.throws(
+    () => regenerateHorse(horse, { 'trait:Mane': { mode: 'reroll' } }, c, store.snapshot()),
+    /No different Mane/
+  );
 });
 
 test('keeping everything is a no-op and explicit text/date/skill changes are validated', async t => {
@@ -420,13 +421,12 @@ test('species reroll chooses another species and rerolls all traits with the exi
     assert.equal(result.horse.traits[category].length, values.length);
     assert.ok(result.horse.traits[category].every(value => target.traits[category].includes(value)));
   }
-  // Even a one-species registry must refresh obsolete saved traits instead of rejecting them.
+  // A registry with no alternative must report that fact instead of repeating a species.
   c.species = [current];
-  current.traits = target.traits;
-  const same = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
-  assert.equal(same.horse.speciesId, current.id);
-  assert.deepEqual(same.horse.traits.Mane, ['Target Mane']);
-  assert.equal(same.horse.traits.Pattern.length, 3);
+  assert.throws(
+    () => regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 }),
+    /No different species/
+  );
 });
 
 test('Cosmic override trait rerolls maximize every available category including optional traits', async t => {
@@ -454,7 +454,86 @@ test('Cosmic override trait rerolls maximize every available category including 
   const limited = regenerateHorse(original, rules, c, store.snapshot(), { rng: () => 0 });
   assert.deepEqual(limited.horse.traits.Pattern, ['Only Pattern']);
   // Rerolling species also fills formerly empty optional Cosmic categories.
-  c.species = [species];
+  c.species = [species, { ...species, id: 'cosmic-trait-target', name: 'Target Species' }];
   const speciesRoll = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
   for (const category of ['Keratin', 'Ears', 'Whiskers']) assert.equal(speciesRoll.horse.traits[category].length, 1);
+});
+
+test('rerolls exclude current values and preview reuse preserves independent Size and Personality rolls', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const rules = { personality: { mode: 'reroll' } };
+  const first = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    rerollKey: 'personality',
+    allowDuplicates: false
+  });
+  const personality = first.preview.items[0].changes.find(change => change.field === 'personality').after;
+  assert.notEqual(personality.id, horse.personality.id);
+  rules.size = { mode: 'reroll' };
+  const second = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    previousToken: first.preview.token,
+    rerollKey: 'size',
+    allowDuplicates: false
+  });
+  assert.deepEqual(second.preview.items[0].changes.find(change => change.field === 'personality').after, personality);
+  const size = second.preview.items[0].changes.find(change => change.field === 'size').after;
+  assert.notEqual(size, horse.size);
+  const third = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    previousToken: second.preview.token,
+    rerollKey: 'personality',
+    allowDuplicates: false
+  });
+  assert.equal(third.preview.items[0].changes.find(change => change.field === 'size').after, size);
+  assert.notEqual(
+    (third.preview.items[0].changes.find(change => change.field === 'personality')?.after || horse.personality).id,
+    personality.id
+  );
+  const saved = (await store.action('apply-horse-updates', { token: third.preview.token })).horses[0];
+  assert.equal(saved.size, size);
+  const c = store.getCatalog();
+  const flipped = regenerateHorse(saved, { gender: { mode: 'reroll' } }, c, store.snapshot());
+  assert.notEqual(flipped.horse.gender, saved.gender);
+});
+
+test('unchanged rerolls reject unavailable alternatives instead of repeating the current value', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  c.personalities = [horse.personality];
+  c.eyes = [horse.eye];
+  assert.throws(
+    () => regenerateHorse(horse, { personality: { mode: 'reroll' } }, c, store.snapshot()),
+    /No different personality/
+  );
+  assert.throws(() => regenerateHorse(horse, { eye: { mode: 'reroll' } }, c, store.snapshot()), /No different eye/);
+});
+
+test('preview reuse keeps generated values after an unrelated section is saved', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const rules = { personality: { mode: 'reroll' } };
+  const first = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    rerollKey: 'personality',
+    allowDuplicates: false
+  });
+  const chosen = first.preview.items[0].changes.find(change => change.field === 'personality').after;
+  const other = await preview(store, [horse.id], { notes: { mode: 'set', value: 'Unrelated saved value' } });
+  await store.action('apply-horse-updates', { token: other.preview.token });
+  const refreshed = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    previousToken: first.preview.token,
+    allowDuplicates: false
+  });
+  assert.deepEqual(refreshed.preview.items[0].changes.find(change => change.field === 'personality').after, chosen);
+  const saved = (await store.action('apply-horse-updates', { token: refreshed.preview.token })).horses[0];
+  assert.equal(saved.notes, 'Unrelated saved value');
+  assert.equal(saved.personality.id, chosen.id);
 });

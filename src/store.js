@@ -1,8 +1,10 @@
+import { copyHorseOverrideField, horseOverrideValue } from '../public/horse-override-markers.js';
+import { horseTraitLimits } from '../public/horse-update-fields.js';
 // @ts-check
 import { regularEyes, isCosmicEye, isCosmicPalette } from '../public/cosmic-types.js';
 import { limits, formatLimit } from '../public/limits.js';
 import { withLocalDefaults } from '../public/local-defaults.js';
-import { regenerateHorse, horseFingerprint } from './horse-regeneration.js';
+import { regenerateHorse, horseFingerprint, validateHorseRules } from './horse-regeneration.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
 import { ConfigurationFiles } from './configuration.js';
 import { readHorseSkills, awardHorseSkillXP } from '../public/skill-progress.js';
@@ -334,19 +336,86 @@ export class GameStore {
         if (!horse) throw new Error('Choose horses currently in your stable.');
         return horse;
       });
-      const results = selected.map(original => ({
-        id: original.id,
-        name: original.name || original.species,
-        before: horseFingerprint(original),
-        schemaVersion: original.schemaVersion,
-        revision: original.revision,
-        ...regenerateHorse(original, payload.rules, catalog, this.state, {
+      validateHorseRules(payload.rules);
+      const previous = payload.previousToken ? this.horseUpdatePreviews.get(payload.previousToken) : null;
+      if (
+        payload.previousToken &&
+        (!previous ||
+          previous.expires < Date.now() ||
+          previous.catalog !== horseFingerprint(catalog) ||
+          previous.settings !== horseFingerprint(this.state.settings))
+      )
+        throw new Error('The horse or configuration changed. Reroll again.');
+      const results = selected.map(original => {
+        const prior = previous?.results.find(result => result.id === original.id);
+        if (
+          previous &&
+          (!prior ||
+            !prior.source ||
+            ['species', 'speciesId', 'mutations'].some(
+              key => JSON.stringify(prior.source[key]) !== JSON.stringify(original[key])
+            ) ||
+            Object.keys(payload.rules).some(
+              key =>
+                JSON.stringify(horseOverrideValue(prior.source, key)) !==
+                JSON.stringify(horseOverrideValue(original, key))
+            ))
+        )
+          throw new Error('The horse changed in a way that affects these choices. Reroll again.');
+        const base = structuredClone(original),
+          rules = { ...payload.rules };
+        if (prior)
+          for (const key of Object.keys(rules)) {
+            if (!previous.rules?.[key]) continue;
+            copyHorseOverrideField(prior.horse, base, key);
+            if (key === 'species')
+              for (const category of Object.keys(horseTraitLimits))
+                copyHorseOverrideField(prior.horse, base, 'trait:' + category);
+            if (payload.rerollKey !== key && JSON.stringify(rules[key]) === JSON.stringify(previous.rules[key]))
+              delete rules[key];
+          }
+        const result = regenerateHorse(base, rules, catalog, this.state, {
           rng: this.rng,
           allowDuplicates: payload.allowDuplicates
-        })
-      }));
+        });
+        for (const key of [...(result.horse.overriddenFields || [])])
+          if (
+            !original.overriddenFields?.includes(key) &&
+            JSON.stringify(horseOverrideValue(result.horse, key)) === JSON.stringify(horseOverrideValue(original, key))
+          ) {
+            result.horse.overriddenFields = result.horse.overriddenFields.filter(field => field !== key);
+            if (result.horse.overrideOriginals) delete result.horse.overrideOriginals[key];
+          }
+        const changes = Object.keys(result.horse)
+          .filter(
+            key =>
+              !['overriddenFields', 'overrideOriginals', 'generationVersion', 'lastRegeneratedAt'].includes(key) &&
+              JSON.stringify(result.horse[key]) !== JSON.stringify(original[key])
+          )
+          .map(key => ({ field: key, before: original[key] ?? null, after: result.horse[key] ?? null }));
+        if (
+          !changes.length &&
+          JSON.stringify(original.overriddenFields) !== JSON.stringify(result.horse.overriddenFields)
+        )
+          changes.push({
+            field: 'Override status',
+            before: original.overriddenFields || [],
+            after: result.horse.overriddenFields || []
+          });
+        return {
+          id: original.id,
+          name: original.name || original.species,
+          before: horseFingerprint(original),
+          source: structuredClone(original),
+          schemaVersion: original.schemaVersion,
+          revision: original.revision,
+          ...result,
+          changes
+        };
+      });
       const preview = {
         token: randomUUID(),
+        rules: structuredClone(payload.rules),
         expires: Date.now() + 600000,
         catalog: horseFingerprint(catalog),
         settings: horseFingerprint(this.state.settings),
@@ -361,7 +430,7 @@ export class GameStore {
         preview: {
           token: preview.token,
           expires: preview.expires,
-          items: results.map(({ horse, before, ...result }) => result)
+          items: results.map(({ horse, before, source, ...result }) => result)
         }
       };
     });

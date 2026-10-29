@@ -84,32 +84,46 @@ app
       const choices=eye.querySelectorAll('[data-appearance-choice]');
       if(!choices.length||!eye.querySelector('.horse-appearance-swatches'))throw Error('Eye choices missing visual colors');
       const choice=[...choices].find(input=>input.value!==eye.querySelector('[data-value]').value)||choices[0];
+      const beforeTable=eye.querySelector('[data-override-value]').innerHTML;
       const chosen=choice.value;choice.click();
+      await new Promise(resolve=>setTimeout(resolve,0));
+      if(eye.querySelector('[data-override-value]').innerHTML!==beforeTable)throw Error('Popup selection changed table before Use This Override');
+      if(getComputedStyle(choice).opacity!=='0')throw Error('Choice radio button is visible');
       form.querySelector('[data-save-override]').click();
       eye.closest('details').querySelector('[data-save-section]').click();
       await wait(()=>document.querySelector('[data-key=eye] [data-mode]')?.value==='keep');
       window.testChosenEye=chosen;
       form=document.querySelector('#horse-update-form');
-      const gender=form.querySelector('[data-key=gender]');
-      gender.closest('details').open=true;
-      let previews=0;const realFetch=window.fetch;
-      window.fetch=(url,options)=>{if(url==='/api/action'&&JSON.parse(options?.body||'{}').type==='preview-horse-updates')previews++;return realFetch(url,options)};
+      const personality=form.querySelector('[data-key=personality]'), size=form.querySelector('[data-key=size]');
+      personality.closest('details').open=true;
+      const waitRoll=async(row)=>await wait(()=>row.dataset.resolvedData&&row.closest('details').querySelector('[data-save-section]').disabled===false);
+      const initialPersonality=personality.querySelector('[data-value]').value;
+      personality.querySelector('[data-roll-override]').click();await waitRoll(personality);
+      const pickedPersonality=JSON.parse(personality.dataset.resolvedData).id;
+      if(pickedPersonality===initialPersonality)throw Error('Personality repeated current value');
+      size.querySelector('[data-roll-override]').click();await waitRoll(size);
+      if(JSON.parse(personality.dataset.resolvedData).id!==pickedPersonality)throw Error('Size rerolled Personality');
+      const firstSize=JSON.parse(size.dataset.resolvedData);
+      size.querySelector('[data-roll-override]').click();
+      await wait(()=>size.closest('details').querySelector('[data-save-section]').disabled===false&&JSON.parse(size.dataset.resolvedData)!==firstSize);
+      const pickedSize=JSON.parse(size.dataset.resolvedData);
+      if(JSON.parse(personality.dataset.resolvedData).id!==pickedPersonality)throw Error('Repeated Size reroll changed Personality');
+      const realTimeout=window.setTimeout;
+      window.setTimeout=(fn,delay,...args)=>realTimeout(fn,delay===3000?120:delay===300?40:delay,...args);
       try {
-        gender.querySelector('[data-roll-override]').click();
-        await wait(()=>gender.dataset.resolvedValue&&gender.closest('details').querySelector('[data-save-section]').disabled===false);
-        const value=gender.querySelector('[data-override-value]').textContent;
-        if(!['Male','Female'].includes(value))throw Error('Reroll did not display an actual value');
-        if(previews!==1)throw Error('Reroll generated more than once');
-        gender.closest('details').querySelector('[data-save-section]').click();
-        await wait(()=>document.querySelector('[data-key=gender] [data-mode]')?.value==='keep');
-        if(previews!==1)throw Error('Save rerolled instead of using the shown value');
-        return value;
-      } finally {window.fetch=realFetch}
+        size.closest('details').querySelector('[data-save-section]').click();
+        await wait(()=>document.querySelector('[data-key=size] [data-mode]')?.value==='keep');
+        if([...document.querySelectorAll('.horse-section-status')].some(node=>node.textContent==='Saved.'))throw Error('Persistent Saved text remains');
+        await new Promise(resolve=>realTimeout(resolve,220));
+        if(!document.querySelector('[data-horse-notification]').hidden)throw Error('Bottom notification did not fade away');
+      } finally {window.setTimeout=realTimeout}
+      return {size:pickedSize,personality:pickedPersonality};
     })()`);
     const chosenEye = await win.webContents.executeJavaScript('window.testChosenEye');
     const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8')).horses[0];
     if (saved.eye.id !== chosenEye) throw Error('Chosen eye did not persist');
-    if (saved.gender !== rolled) throw Error('Saved values differ from the displayed choices');
+    if (saved.size !== rolled.size || saved.personality.id !== rolled.personality)
+      throw Error('Saved values differ from the displayed choices');
     await win.webContents.executeJavaScript(`(async()=>{
       const wait=async(test)=>{for(let i=0;i<100;i++){if(test())return;await new Promise(resolve=>setTimeout(resolve,50))}throw Error('Species override did not settle')};
       const form=document.querySelector('#horse-update-form'), row=form.querySelector('[data-key=species]');

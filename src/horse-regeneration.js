@@ -2,7 +2,7 @@ import { horseCardRank } from '../public/horse-rank.js';
 // @ts-check
 import { createHash } from 'node:crypto';
 import { removeUnusedTraits } from '../public/unused-traits.js';
-import { pickUniform, pickWeighted, randomFloat, rollSize, meetsThresholds } from './spawning.js';
+import { pickUniform, pickWeighted, randomFloat, meetsThresholds } from './spawning.js';
 import { cosmicPalette } from './cosmic-palettes.js';
 import { varyPalette } from '../public/palette-variation.js';
 import { regularEyes } from '../public/cosmic-types.js';
@@ -20,6 +20,13 @@ const nameOf = m => (typeof m === 'string' ? m : m?.name);
 const cosmicName = value => cosmicNames.find(name => name.toLowerCase() === String(value || '').toLowerCase());
 export const horseFingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const differentChoice = (values, current, label, rng) => {
+  const choices = values.filter(value =>
+    current?.id && value.id ? value.id !== current.id : value.name !== (current?.name || current)
+  );
+  if (!choices.length) throw new Error('No different ' + label + ' is available.');
+  return pickUniform(choices, rng);
+};
 export function lockedCosmicMutations(horse, catalog) {
   const locked = (horse.mutations || [])
     .filter(m => cosmicName(nameOf(m)))
@@ -65,6 +72,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     throw new Error('Cosmic palettes are fixed to the horse’s Cosmic identity and cannot be overridden.');
   const horse = structuredClone(original),
     warnings = [];
+  const explicitRerolls = new Set(Object.keys(rules).filter(key => rules[key].mode === 'reroll'));
   const restored = Object.keys(rules).filter(key => rules[key].mode === 'restore');
   for (const key of restored) restoreHorseOverride(horse, key);
   rules = Object.fromEntries(Object.entries(rules).filter(([, rule]) => rule.mode !== 'restore'));
@@ -79,10 +87,9 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   let species =
     catalog.species.find(s => s.id === horse.speciesId) || catalog.species.find(s => s.name === horse.species);
   if (active('species')) {
-    const alternatives = catalog.species.filter(entry => entry.id !== species?.id);
     species =
       rule('species').mode === 'reroll'
-        ? pickUniform(alternatives.length ? alternatives : catalog.species, rng)
+        ? differentChoice(catalog.species, species, 'species', rng)
         : find(catalog.species, rule('species').value, 'species');
     Object.assign(horse, {
       species: species.name,
@@ -105,9 +112,11 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     const eligible = catalog.mutations.filter(m => !cosmicName(m.name) && meetsThresholds(m, species.attributes || {}));
     let slots = structuredClone(horse.mutations || []);
     const standard = () => eligible.filter(m => m.type === 'Standard' && Math.abs(m.weight || 0) > 0);
-    const draw = used => {
+    const draw = (used, previous) => {
       const pool = standard().filter(
-        m => allowDuplicates || !used.some(v => (v?.id && v.id === m.id) || nameOf(v) === m.name)
+        m =>
+          nameOf(m) !== nameOf(previous) &&
+          (allowDuplicates || !used.some(v => (v?.id && v.id === m.id) || nameOf(v) === m.name))
       );
       return pool.length ? structuredClone(pickWeighted(pool, m => m.weight, rng)) : null;
     };
@@ -116,7 +125,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       const rates = identity ? settings.cosmicSlots : settings.wildSlots;
       for (let index = slots.length; index < 4; index++) {
         if (rng() * 100 > rates[index]) break;
-        const mutation = draw(slots);
+        const mutation = draw(slots, original.mutations?.[index]);
         if (!mutation) break;
         slots.push(mutation);
       }
@@ -137,7 +146,11 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
           continue;
         }
         if (rule(key).mode === 'clear') slots[index] = null;
-        else if (rule(key).mode === 'reroll') slots[index] = draw(slots.filter((_, i) => i !== index));
+        else if (rule(key).mode === 'reroll')
+          slots[index] = draw(
+            slots.filter((_, i) => i !== index),
+            original.mutations?.[index]
+          );
         else {
           const mutation = find(eligible, rule(key).value, 'non-Cosmic mutation that meets this species threshold');
           if (!allowDuplicates && slots.some((m, i) => i !== index && nameOf(m) === mutation.name))
@@ -194,6 +207,8 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['None'] : [];
     } else {
       if (!values.length) {
+        if (explicitRerolls.has(key) && !active('species') && !restored.includes('species'))
+          throw new Error('No different ' + category + ' traits are available.');
         if (active('species') || restored.includes('species')) {
           horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['None'] : [];
           warnings.push(species.name + ' has no ' + category + ' definitions; incompatible traits were cleared.');
@@ -208,6 +223,16 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
         rng,
         cosmicTraits ? range.max : rule(key).count
       );
+      if (
+        explicitRerolls.has(key) &&
+        equal([...traitChoices(horse.traits[category])].sort(), [...traitChoices(existing)].sort())
+      ) {
+        const chosen = horse.traits[category],
+          other = values.find(value => !chosen.includes(value));
+        if (other && chosen.length) chosen[chosen.length - 1] = other;
+        else if (other && !chosen.length && rule(key).count === undefined && range.max > 0) chosen.push(other);
+        else throw new Error('No different ' + category + ' traits are available.');
+      }
     }
   }
   if (
@@ -226,7 +251,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     const palette =
       rule('palette').mode === 'set'
         ? find(fixed ? [fixed] : eligible, rule('palette').value, 'species-compatible palette')
-        : fixed || pickUniform(eligible, rng);
+        : fixed || differentChoice(eligible, original.palette, 'palette', rng);
     horse.palette = varyPalette(palette, rng, palette.variationPercent ?? settings.paletteVariationPercent ?? 25);
     horse.paletteId = palette.id;
     horse.skinId = palette.assetSkins?.length ? pickUniform(palette.assetSkins, rng) : null;
@@ -252,7 +277,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   if (active('eye')) {
     const eye = structuredClone(
       rule('eye').mode === 'reroll'
-        ? pickUniform(regularEyes(catalog.eyes), rng)
+        ? differentChoice(regularEyes(catalog.eyes), original.eye, 'eye color', rng)
         : find(regularEyes(catalog.eyes), rule('eye').value, 'eye color')
     );
     Object.assign(horse, {
@@ -265,7 +290,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   if (active('personality')) {
     const personality = structuredClone(
       rule('personality').mode === 'reroll'
-        ? pickUniform(catalog.personalities, rng)
+        ? differentChoice(catalog.personalities, original.personality, 'personality', rng)
         : find(catalog.personalities, rule('personality').value, 'personality')
     );
     Object.assign(horse, {
@@ -276,10 +301,20 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
   }
   for (const field of ['gender', 'age', 'origin', 'birthday', 'size']) {
     if (!active(field)) continue;
-    if (field === 'gender' && rule(field).mode === 'reroll')
-      horse.gender = rng() * 100 < settings.maleChance ? 'Male' : 'Female';
+    if (field === 'gender' && rule(field).mode === 'reroll') horse.gender = horse.gender === 'Male' ? 'Female' : 'Male';
     else if (field === 'size' && rule(field).mode === 'reroll') {
-      const size = rollSize(horse.mutations, settings, rng);
+      const shift = [...new Map(horse.mutations.map(m => [m.id || m.name, m])).values()].reduce(
+        (sum, m) => sum + (m.sizeShift ?? (m.name === 'Dwarfism' ? -1 : m.name === 'Gigantism' ? 1 : 0)),
+        0
+      );
+      const choices = settings.sizes
+        .map((base, index) => ({
+          size: settings.sizes[Math.max(0, Math.min(settings.sizes.length - 1, index + shift))],
+          weight: Math.abs(base.weight || 0)
+        }))
+        .filter(entry => entry.weight > 0 && entry.size.name !== horse.size);
+      if (!choices.length) throw new Error('No different size is available.');
+      const size = pickWeighted(choices, entry => entry.weight, rng).size;
       horse.size = size.name;
       horse.sizePercent = size.percent;
     } else if (field === 'origin') {
@@ -322,6 +357,11 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       throw new Error('Choose a skill level from 0 to 10.');
     horse.skills = { ...readHorseSkills(horse.skills), [skill]: readHorseSkills({ [skill]: value })[skill] };
   }
+  if (
+    explicitRerolls.has('mutations') &&
+    equal((original.mutations || []).map(nameOf).sort(), (horse.mutations || []).map(nameOf).sort())
+  )
+    throw new Error('No different mutations are available.');
   // Keep IDs, acquisition history, favorites, and personal notes unless explicitly selected.
   const changes = Object.keys(horse)
     .filter(key => !['overriddenFields', 'overrideOriginals'].includes(key) && !equal(original[key], horse[key]))

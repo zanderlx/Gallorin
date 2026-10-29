@@ -1,10 +1,10 @@
 # Horse versions and retroactive updates
 
-Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then open a horse in **Stables → My Horses** and select its **Edit** tab. The tab is available only for owned horses while that setting is enabled.
+Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then open a horse in **Stables → My Horses** and select its **Edit** tab. The tab is available only for owned horses while that setting is enabled. Save notifications appear at the bottom of the modal and fade away.
 
 1. Expand a section using the Zones-style dropdown headings.
-2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon to choose an exact value. The dice-with-circular-arrows icon generates a value immediately in the Override column; Save applies that displayed result without rerolling it.
-3. Pencil popups show only the field’s available values. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
+2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon to choose an exact value. The dice-with-circular-arrows icon generates a value immediately in the Override column; Save applies that displayed result without rerolling it. Rerolls choose a different value; if no alternative exists, a message explains why. Rerolling one field preserves other prepared values.
+3. Pencil popups show only the field’s available values. The table changes only after **Use This Override** is clicked; Cancel leaves it unchanged. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
 4. Select **Save** inside the section to apply only that section’s edits. A standalone player-save backup is created first.
 5. Select **Cancel** inside a section to discard only its unsaved edits. Other sections keep their drafts when you save or cancel.
 

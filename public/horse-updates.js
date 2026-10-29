@@ -53,13 +53,13 @@ export function horseAppearanceChoices(key, catalog, horse, speciesId = horse.sp
             !isCosmicPalette(palette) &&
             (palette.global !== false || palette.speciesIds?.includes(speciesId))
         );
-  return html`${sorted(definitions).map(value => html`<label class="horse-appearance-choice"><input type="radio" data-appearance-choice name="horse-choice-${key}" value="${value.id}" ${selected === value.id ? raw('checked') : ''}><span><strong>${value.name}</strong>${appearanceSwatches(key, value)}</span></label>`)}`;
+  return html`${sorted(definitions).map(value => html`<label class="horse-appearance-choice ${key === 'eye' ? 'is-eye' : ''}"><input type="radio" data-appearance-choice name="horse-choice-${key}" value="${value.id}" ${selected === value.id ? raw('checked') : ''}><span><strong>${value.name}</strong>${appearanceSwatches(key, value)}</span></label>`)}`;
 }
 function overrideValueMarkup(key, value) {
   if (key.startsWith('trait:') && Array.isArray(value))
     return html`${(traitChoices(value).length ? traitChoices(value) : ['—']).map(trait => html`<span class="horse-override-trait-line">${trait}</span>`)}`;
   if (['eye', 'palette'].includes(key) && value && typeof value === 'object')
-    return html`<span class="horse-appearance-value"><span>${value.name || '—'}</span>${appearanceSwatches(key, value, true)}</span>`;
+    return html`<span class="horse-appearance-value ${key === 'eye' ? 'is-eye' : ''}"><span>${value.name || '—'}</span>${appearanceSwatches(key, value, true)}</span>`;
   return html`${formatValue(value)}`;
 }
 function control(field, catalog, state) {
@@ -119,7 +119,7 @@ export function horseOverrideControls(horse, state, catalog) {
   if (!state.settings.horseUpdatesEnabled || !state.horses.some(h => h.id === horse.id)) return '';
   const arrow = html`<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>`;
   return String(html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>
-    <div class="horse-update-rules"><div class="horse-edit-heading"><h2>Horse Overrides</h2></div><p class="horse-edit-notification" data-horse-notification role="status" aria-live="polite" hidden></p>
+    <div class="horse-update-rules"><div class="horse-edit-heading"><h2>Horse Overrides</h2></div>
     ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section" data-override-section="${group}"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}<div class="form-actions horse-section-actions" hidden><button type="button" class="button primary" data-save-section disabled>Save</button><button type="button" class="button secondary" data-cancel-section disabled>Cancel</button></div><p class="horse-section-status" role="status"></p></div></details>`)}
     </div>
     <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
@@ -191,7 +191,9 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
   let working = false,
     editing = null,
     baselines = new Map(),
-    rolledSections = new Map();
+    rolledSections = new Map(),
+    noticeTimer,
+    noticeHideTimer;
   const selectedHorse = form => getState().horses.find(h => h.id === form.querySelector('[name=horse]:checked')?.value);
   const editorInputs = editor => [
     ...editor.querySelectorAll('input:not([data-trait-choice]):not([data-appearance-choice]),select,textarea')
@@ -203,12 +205,30 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     }));
   const displayValue = (key, value) => (key === 'palette' ? value?.name || 'None' : formatValue(value));
   function showNotice(message, error = false) {
-    const notice = root.querySelector('[data-horse-notification]');
-    if (!notice) return;
+    clearTimeout(noticeTimer);
+    clearTimeout(noticeHideTimer);
+    let notice = root.querySelector(':scope > [data-horse-notification]');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.className = 'horse-edit-notification';
+      notice.dataset.horseNotification = '';
+      notice.setAttribute('role', 'status');
+      notice.setAttribute('aria-live', 'polite');
+      root.append(notice);
+    }
     notice.hidden = false;
+    notice.classList.remove('is-fading');
     notice.textContent = message;
     notice.dataset.error = String(error);
-    notice.scrollIntoView({ block: 'nearest' });
+    noticeTimer = setTimeout(
+      () => {
+        notice.classList.add('is-fading');
+        noticeHideTimer = setTimeout(() => {
+          notice.hidden = true;
+        }, 300);
+      },
+      error ? 6000 : 3000
+    );
   }
   function clearSpeciesPreview(form) {
     delete form.dataset.resolvedSpeciesId;
@@ -222,13 +242,11 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     }
   }
   function rowChanged(row) {
-    const mode = row.querySelector('[data-mode]').value;
+    const committed = editing?.row === row ? editing.before : snapshot(row.querySelector('[data-editor]'));
+    const mode = committed[0].value;
     if (mode === 'keep') return false;
     if (mode === 'set' && baselines.has(row.dataset.key))
-      return (
-        JSON.stringify(snapshot(row.querySelector('[data-editor]')).slice(1)) !==
-        JSON.stringify(baselines.get(row.dataset.key).slice(1))
-      );
+      return JSON.stringify(committed.slice(1)) !== JSON.stringify(baselines.get(row.dataset.key).slice(1));
     if (mode === 'clear') {
       const value = horseOverrideValue(selectedHorse(row.closest('form')), row.dataset.key);
       return Array.isArray(value) ? value.length > 0 : !!value;
@@ -249,6 +267,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     });
   }
   function updateRow(row, form) {
+    if (editing?.row === row) return;
     const horse = selectedHorse(form);
     if (!horse) return;
     const key = row.dataset.key,
@@ -384,9 +403,10 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     }
     return rules;
   }
-  async function resolveRerolls(form, section) {
+  async function resolveRerolls(form, section, rerollKey) {
     const rules = readSectionRules(section),
-      key = section.dataset.overrideSection;
+      key = section.dataset.overrideSection,
+      previousToken = rolledSections.get(key)?.result.preview.token;
     rolledSections.delete(key);
     const rows = [...section.querySelectorAll('[data-key]')].filter(row =>
       ['reroll', 'refresh'].includes(row.querySelector('[data-mode]').value)
@@ -407,7 +427,13 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       timeout = setTimeout(() => controller.abort(), 15000);
     try {
       const result = await preview(
-        { ids: [selectedHorse(form).id], rules, allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS },
+        {
+          ids: [selectedHorse(form).id],
+          rules,
+          previousToken,
+          rerollKey,
+          allowDuplicates: !!getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS
+        },
         controller.signal
       );
       if (!root.contains(form)) return;
@@ -441,10 +467,12 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       }
       rolledSections.set(key, { signature: JSON.stringify(rules), result });
       status.textContent = '';
+      return true;
     } catch (error) {
       const message = controller.signal.aborted ? 'Reroll timed out. Please try again.' : error.message;
       status.textContent = message;
       showNotice(message, true);
+      return false;
     } finally {
       clearTimeout(timeout);
       section.removeAttribute('aria-busy');
@@ -491,9 +519,23 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     if (!Object.keys(rules).length) return;
     const drafts = new Map(
       [...form.querySelectorAll('[data-key]')]
-        .filter(row => !section.contains(row) && row.querySelector('[data-mode]').value !== 'keep')
-        .map(row => [row.dataset.key, snapshot(row.querySelector('[data-editor]'))])
+        .filter(
+          row =>
+            !section.contains(row) &&
+            (row.querySelector('[data-mode]').value !== 'keep' || row.dataset.speciesGenerated)
+        )
+        .map(row => [
+          row.dataset.key,
+          {
+            inputs: snapshot(row.querySelector('[data-editor]')),
+            resolvedValue: row.dataset.resolvedValue,
+            resolvedData: row.dataset.resolvedData,
+            speciesGenerated: row.dataset.speciesGenerated
+          }
+        ])
     );
+    const savedPreviews = new Map(rolledSections),
+      resolvedSpeciesId = form.dataset.resolvedSpeciesId;
     const open = new Set(
       [...form.querySelectorAll('[data-override-section][open]')].map(node => node.dataset.overrideSection)
     );
@@ -538,9 +580,17 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       if (!next || selectedHorse(next)?.id !== id) return;
       const restoreDrafts = () => {
         for (const row of next.querySelectorAll('[data-key]'))
-          if (drafts.has(row.dataset.key))
-            restoreInputs(row.querySelector('[data-editor]'), drafts.get(row.dataset.key));
+          if (drafts.has(row.dataset.key)) {
+            const draft = drafts.get(row.dataset.key);
+            restoreInputs(row.querySelector('[data-editor]'), draft.inputs);
+            for (const key of ['resolvedValue', 'resolvedData', 'speciesGenerated'])
+              if (draft[key] !== undefined) row.dataset[key] = draft[key];
+          }
       };
+      if (!section.querySelector('[data-key=species]') && resolvedSpeciesId)
+        next.dataset.resolvedSpeciesId = resolvedSpeciesId;
+      rolledSections = savedPreviews;
+      rolledSections.delete(section.dataset.overrideSection);
       restoreDrafts();
       refreshTraits(next);
       restoreDrafts();
@@ -551,7 +601,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const savedSection = [...next.querySelectorAll('[data-override-section]')].find(
         node => node.dataset.overrideSection === section.dataset.overrideSection
       );
-      if (savedSection) savedSection.querySelector('[role=status]').textContent = changed ? 'Saved.' : 'No changes.';
+      if (savedSection) savedSection.querySelector('[role=status]').textContent = '';
       showNotice(changed ? section.dataset.overrideSection + ' saved.' : 'No changes to save.');
       const frame = root.querySelector('.profile-scroll-frame');
       if (frame) frame.scrollTop = scroll;
@@ -626,7 +676,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
   root.addEventListener('change', event => {
     const form = event.target.closest('#horse-update-form');
     if (!form) return;
-    invalidate();
+    if (!editing) invalidate();
     if (event.target.matches('[name=horse]')) {
       selectHorse(form, event.target.value);
       return;
@@ -644,11 +694,11 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const count = row.querySelector('[data-count-container]');
       if (count) count.hidden = mode !== 'reroll';
     }
-    refreshTraits(form);
+    if (!editing || editing.row.dataset.key.startsWith('trait:')) refreshTraits(form);
   });
   root.addEventListener('input', event => {
     const form = event.target.closest('#horse-update-form');
-    if (!form) return;
+    if (!form || editing) return;
     invalidate();
   });
   root.addEventListener('click', async event => {
@@ -675,6 +725,8 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     if (form && (roll || remove)) {
       const row = (roll || remove).closest('[data-key]');
       if (row.dataset.locked === 'true' || (roll || remove).disabled) return;
+      const previous = snapshot(row.querySelector('[data-editor]')),
+        previousPreview = rolledSections.get(row.closest('[data-override-section]').dataset.overrideSection);
       const field = horseUpdateFields.find(field => field.key === row.dataset.key);
       row.querySelector('[data-mode]').value = roll
         ? field.modes.includes('reroll')
@@ -686,7 +738,17 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       invalidate();
       refreshTraits(form);
       updateRow(row, form);
-      await resolveRerolls(form, row.closest('[data-override-section]'));
+      const resolved = await resolveRerolls(
+        form,
+        row.closest('[data-override-section]'),
+        roll ? row.dataset.key : undefined
+      );
+      if (resolved === false && roll) {
+        restoreInputs(row.querySelector('[data-editor]'), previous);
+        if (previousPreview)
+          rolledSections.set(row.closest('[data-override-section]').dataset.overrideSection, previousPreview);
+        invalidate();
+      }
       return;
     }
     const edit = event.target.closest('[data-edit-override]');
@@ -816,6 +878,8 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
   return {
     initialize() {
       editing = null;
+      clearTimeout(noticeTimer);
+      clearTimeout(noticeHideTimer);
       rolledSections.clear();
       invalidate();
       const form = root.querySelector('#horse-update-form');

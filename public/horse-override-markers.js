@@ -40,6 +40,20 @@ export function captureHorseOverride(horse, key) {
 export function restoreHorseOverride(horse, key) {
   const saved = horse.overrideOriginals?.[key];
   if (!saved) throw new Error('The original value was not recorded for this older override.');
+  applyHorseFieldSnapshot(horse, key, saved);
+  delete horse.overrideOriginals[key];
+  horse.overriddenFields = (horse.overriddenFields || []).filter(field => field !== key);
+}
+export function copyHorseOverrideField(source, target, key) {
+  applyHorseFieldSnapshot(target, key, captureHorseOverride(source, key));
+  if (source.overrideOriginals?.[key]) {
+    target.overrideOriginals ??= {};
+    target.overrideOriginals[key] = structuredClone(source.overrideOriginals[key]);
+  } else if (target.overrideOriginals) delete target.overrideOriginals[key];
+  target.overriddenFields = (target.overriddenFields || []).filter(field => field !== key);
+  if (source.overriddenFields?.includes(key)) target.overriddenFields.push(key);
+}
+function applyHorseFieldSnapshot(horse, key, saved) {
   const [kind, name] = key.split(':');
   if (kind === 'trait') {
     horse.traits ??= {};
@@ -56,6 +70,4 @@ export function restoreHorseOverride(horse, key) {
     Object.assign(horse, structuredClone(saved.fields));
     for (const field of saved.missing) delete horse[field];
   }
-  delete horse.overrideOriginals[key];
-  horse.overriddenFields = (horse.overriddenFields || []).filter(field => field !== key);
 }
