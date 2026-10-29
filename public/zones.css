@@ -415,7 +415,7 @@ main {
 }
 .zone-spawn-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
   gap: 10px;
   max-height: 420px;
@@ -425,7 +425,7 @@ main {
 }
 .zone-spawn-list .zone-creature-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 74px 54px;
+  grid-template-columns: minmax(0, 1fr) 66px;
   gap: 8px;
   padding: 10px;
   border: 1px solid var(--border);
@@ -444,13 +444,16 @@ main {
   color: var(--muted);
   margin-top: 4px;
 }
+.zone-species-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .zone-spawn-list input[type='number'] {
   width: 100%;
-}
-.zone-spawn-list output {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-size: 13px;
+  height: 30px;
+  min-height: 30px;
+  padding: 3px 6px;
+  line-height: 1.2;
 }
 .zone-editor-section .zone-options {
   max-height: 300px;
@@ -471,6 +474,11 @@ main {
   text-align: center;
   margin: 24px 0;
 }
+@media (max-width: 800px) {
+  .zone-spawn-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 600px) {
   .zone-editor-dialog #zone-form {
     padding: 16px;
@@ -482,9 +490,11 @@ main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .zone-spawn-list .zone-creature-row {
-    grid-template-columns: minmax(0, 1fr) 80px 60px;
+    grid-template-columns: minmax(0, 1fr) 66px;
     gap: 8px;
   }
+}
+@media (max-width: 480px) {
   .zone-spawn-list {
     grid-template-columns: 1fr;
   }

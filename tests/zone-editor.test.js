@@ -1,12 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  zoneSpawnChances,
-  filterZoneSpecies,
-  zoneEditorForm,
-  zoneEditorPage,
-  zonePreview
-} from '../public/zone-editor.js';
+import { filterZoneSpecies, zoneEditorForm, zoneEditorPage, zonePreview } from '../public/zone-editor.js';
 import { normalizeCatalog, baseAtmospheres, catalogFor } from '../public/definitions.js';
 import { newZoneDraft, validateZone, zoneAtmosphere, zoneArtwork, atmosphereStyle } from '../public/zones.js';
 import { readFile } from 'node:fs/promises';
@@ -38,19 +32,6 @@ test('older artwork libraries gain new presets while customizations and deletion
   const deleted = catalogFor(catalog, { library, deletedBuiltinAtmospheres: ['meadow'] });
   assert.ok(!deleted.atmospheres.some(a => a.id === 'meadow'));
   assert.ok(deleted.atmospheres.some(a => a.id === 'coast'));
-});
-
-test('zone percentages match encounter tickets including signed, zero and empty weights', () => {
-  const chances = zoneSpawnChances([
-    { speciesId: 'one', weight: -10 },
-    { speciesId: 'two', weight: 30 },
-    { speciesId: 'disabled', weight: 0 }
-  ]);
-  assert.equal(chances.get('one'), 25);
-  assert.equal(chances.get('two'), 75);
-  assert.equal(chances.get('disabled'), 0);
-  assert.equal(zoneSpawnChances([{ speciesId: 'zero', weight: 0 }]).get('zero'), 0);
-  assert.equal(zoneSpawnChances([]).size, 0);
 });
 
 test('zone species filters combine names and all rarity tiers without changing the catalog', () => {

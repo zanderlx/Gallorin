@@ -22,11 +22,6 @@ export function zonePreview(draft, catalog, saved = false) {
   );
 }
 
-export function zoneSpawnChances(creatures) {
-  const total = creatures.reduce((sum, c) => sum + Math.abs(c.weight), 0);
-  return new Map(creatures.map(c => [c.speciesId, total ? (Math.abs(c.weight) / total) * 100 : 0]));
-}
-
 export function filterZoneSpecies(species, query = '', tier = '', sort = 'rarity', direction = 'asc') {
   const search = query.trim().toLowerCase();
   return species
@@ -55,9 +50,6 @@ export function updateZoneSpecies(form, catalog) {
 }
 
 export function syncZoneEditor(form, catalog, draft) {
-  const chances = zoneSpawnChances(draft.creatures);
-  for (const output of form.querySelectorAll('[data-zone-chance]'))
-    output.textContent = `${(chances.get(output.dataset.zoneChance) || 0).toFixed(2)}%`;
   setHTML(form.querySelector('#zone-preview'), raw(zonePreview(draft, catalog)));
   form.querySelector('[data-zone-palette-count]').textContent = `${draft.palettePool.length} selected`;
   form.querySelector('[data-zone-species-count]').textContent = `${draft.speciesPool.length} selected`;
@@ -83,14 +75,14 @@ export function zoneEditorForm(catalog, draft) {
   const speciesColor = species =>
     rarityColors[rarityNames[rarityTier(species)].toLowerCase().replaceAll(' ', '-')] || 'var(--text)';
   const weights = new Map(zoneCreatures(draft, catalog, settings).map(c => [c.speciesId, c.weight]));
-  const chances = zoneSpawnChances(zoneCreatures(draft, catalog, settings));
+
   const appearance = zoneAtmosphere(draft, catalog);
   return html`<div class="dialog-top"><h2 id="zone-editor-title">${draft.id ? `Edit ${draft.name}` : 'Create zone'}</h2><button type="button" class="icon-button" data-zone-close aria-label="Close zone editor">${raw(icon('close'))}</button></div>
   <form id="zone-form" data-id="${draft.id || ''}"><div class="zone-editor-identity"><label class="zone-field">Zone Name<input name="name" maxlength="60" required value="${draft.name}"></label><label class="setting-row"><input type="checkbox" class="toggle" name="enabled" ${raw(draft.enabled ? 'checked' : '')}><span>Show this zone in the Wilds navigation.</span></label></div>
 
   <details class="zone-editor-section"><summary>${raw(icon('spark'))} Appearance${disclosureArrow}</summary><div class="zone-disclosure-body"><div id="zone-preview">${raw(zonePreview(draft, catalog))}</div><label class="zone-field">Artwork<select name="atmosphere">${availableAtmospheres(catalog).map(a => html`<option value="${a.id}" ${raw(draft.atmosphere === a.id ? 'selected' : '')}>${a.name.replace(/\b[a-z]/g, letter => letter.toUpperCase())}</option>`)}</select></label><div class="color-control"><span>Tint</span><span class="color-inputs"><input type="color" data-color-picker="zone-tint" value="${appearance.tint}" aria-label="Zone tint picker"><input name="color:zone-tint" data-color-hex="zone-tint" value="${appearance.tint}" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="Zone tint hex value"></span></div><label class="zone-field">Encounter heading<input name="encounterTitle" maxlength="100" required value="${appearance.encounterTitle}"></label><label class="zone-field">Description<textarea name="description" maxlength="600" rows="5">${draft.description}</textarea></label><label class="zone-field">Tags<textarea name="tags" data-zone-tags spellcheck="false" wrap="off" rows="6" maxlength="2020">${zoneTags(draft, catalog).join('\n')}</textarea><small>One per line. Up to 20 tags.</small></label></div></details>
   <details class="zone-editor-section"><summary>${raw(icon('wing'))} Species <span class="badge" data-zone-species-count>${catalog.species.filter(sp => draft.speciesPool.includes(sp.name)).length} selected</span>${disclosureArrow}</summary><div class="zone-disclosure-body"><p class="preview-note">Weights determine spawn chances. Zero disables a species.</p><div class="zone-species-controls"><label class="zone-field">Find species<input type="search" id="zone-species-search" placeholder="Search species…"></label><label class="zone-field">Rarity<select id="zone-species-rarity"><option value="">All rarities</option>${[4, 3, 2, 1].map(t => html`<option value="${t}">${rarityNames[t]}</option>`)}</select></label><label class="zone-field">Sort by<select id="zone-species-sort"><option value="rarity">Rarity</option><option value="name">Name</option></select></label><label class="zone-field">Order<select id="zone-species-direction"><option value="asc">Ascending</option><option value="desc">Descending</option></select></label></div>
-  <div class="zone-spawn-list">${filterZoneSpecies(catalog.species).map(sp => html`<div class="zone-creature-row" data-zone-species="${sp.id}"><label class="zone-choice"><input type="checkbox" name="speciesPool" value="${sp.name}" ${raw(draft.speciesPool.includes(sp.name) ? 'checked' : '')}><span class="zone-species-name">${sp.name}<small style="color:${speciesColor(sp)}">${rarityNames[rarityTier(sp)]}</small></span></label><label>Weight<input type="number" name="weight:${sp.id}" min="-1000000" max="1000000" step="any" required value="${weights.get(sp.id) ?? settings.tierWeights[rarityTier(sp)]}" aria-label="${sp.name} spawn weight"></label><output data-zone-chance="${sp.id}" aria-label="${sp.name} spawn chance">${(chances.get(sp.id) || 0).toFixed(2)}%</output></div>`)}</div><p id="zone-species-empty" role="status" hidden>No species match your filters.</p></div></details>
+  <div class="zone-spawn-list">${filterZoneSpecies(catalog.species).map(sp => html`<div class="zone-creature-row" data-zone-species="${sp.id}"><label class="zone-choice"><input type="checkbox" name="speciesPool" value="${sp.name}" ${raw(draft.speciesPool.includes(sp.name) ? 'checked' : '')}><span class="zone-species-name">${sp.name}<small style="color:${speciesColor(sp)}">${rarityNames[rarityTier(sp)]}</small></span></label><label>Weight<input type="number" name="weight:${sp.id}" min="-1000000" max="1000000" step="any" required value="${weights.get(sp.id) ?? settings.tierWeights[rarityTier(sp)]}" aria-label="${sp.name} spawn weight"></label></div>`)}</div><p id="zone-species-empty" role="status" hidden>No species match your filters.</p></div></details>
 
   <details class="zone-editor-section"><summary>${raw(icon('palette'))} Palettes <span class="badge" data-zone-palette-count>${draft.palettePool.length} selected</span>${disclosureArrow}</summary><div class="zone-disclosure-body">${zonePalettePicker(catalog, draft.palettePool)}</div></details>
   <p id="zone-status" class="form-status" role="status"></p><div class="form-actions zone-editor-actions"><button class="button primary" type="submit">${raw(icon('check'))} ${draft.id ? 'Save zone changes' : 'Create zone'}</button><button class="button secondary" type="reset">Reset changes</button>${draft.id ? html`<button type="button" class="text-button zone-delete" data-action="delete-zone" data-id="${draft.id}" aria-label="Delete ${draft.name}">${raw(icon('trash'))} Delete zone</button>` : ''}${!draft.id ? html`<button type="button" class="text-button" data-action="random-zone">Generate random zone</button>` : ''}</div></form>`;
