@@ -28,13 +28,14 @@ function skills(horse, editable) {
 }
 export function profileLayout(
   horse,
-  { header, info, notes, colors, traits, mutations, actions, importPreview, editableSkills = false }
+  { header, info, notes, colors, traits, mutations, actions, importPreview, editableSkills = false, overrideContent }
 ) {
-  const prefix = importPreview ? 'import-horse' : 'horse-profile';
+  const prefix = overrideContent ? 'override-horse' : importPreview ? 'import-horse' : 'horse-profile';
   return `<div class="horse-profile-book">
     <div class="profile-tab-rail" role="tablist" aria-label="Horse profile pages" aria-orientation="vertical" data-copy-skip>
       <button type="button" role="tab" id="${prefix}-overview-tab" aria-controls="${prefix}-overview" aria-selected="true" data-profile-tab="overview" title="Horse Information">${icon('stable')}<span>Info</span></button>
       <button type="button" role="tab" id="${prefix}-appearance-tab" aria-controls="${prefix}-appearance" aria-selected="false" tabindex="-1" data-profile-tab="appearance" title="Colors, Traits & Mutations">${icon('spark')}<span>Traits</span></button>
+      ${overrideContent ? `<button type="button" role="tab" id="${prefix}-overrides-tab" aria-controls="${prefix}-overrides" aria-selected="false" tabindex="-1" data-profile-tab="overrides" title="Horse Overrides">${icon('edit')}<span>Overrides</span></button>` : ''}
     </div>
     <div class="profile-scroll-frame">${header}<div class="horse-profile-shell"><section class="profile-tab-panel" id="${prefix}-overview" role="tabpanel" aria-labelledby="${prefix}-overview-tab" data-profile-panel="overview">
       <div class="profile-grid profile-overview-top">${portrait(horse, 'overview')}<div class="profile-info">${info}</div></div>
@@ -44,6 +45,7 @@ export function profileLayout(
       <div class="profile-grid profile-appearance-top">${portrait(horse, 'appearance')}<div class="profile-palette">${colors}</div></div>
       <div class="profile-lower"><section class="profile-traits"><h3>Traits</h3>${traits}</section><section class="profile-mutations">${mutations}</section></div>
     </section>
+    ${overrideContent ? `<section class="profile-tab-panel profile-overrides-panel" id="${prefix}-overrides" role="tabpanel" aria-labelledby="${prefix}-overrides-tab" data-profile-panel="overrides" hidden inert>${overrideContent}</section>` : ''}
   </div>${actions}</div></div>`;
 }
 

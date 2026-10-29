@@ -50,6 +50,8 @@
 
 # Efficient testing
 
+- Keep automated app checks silent: mute Electron audio before loading any page (use both `mute-audio` and `webContents.setAudioMuted(true)`). Do not launch audible music or button effects for verification.
+- For local layout or styling corrections, use focused tests and visual inspection. Do not run the full unit suite or a full app walkthrough unless the change affects shared behavior or it is required before merging.
 - Smoke tests skip the splash by default. When the splash/startup reveal changes, explicitly test it with --test-splash (or scripts/desktop-smoke.ps1 -TestSplash); do not remove the player splash.
 - During local iteration, run focused tests for the changed behavior first. Expand coverage for shared systems and cross-cutting changes.
 - Run the inexpensive full unit suite before merging. Do not repeatedly rebuild installers or run the complete desktop walkthrough for each small local edit.

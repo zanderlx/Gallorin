@@ -1,5 +1,7 @@
+import { stablePage } from './pages.js';
+import { profileContent } from './profile.js';
 import { horseAcquisitionDate, horseDaysOwned, localCalendarDate } from './dates.js';
-import { escapeHTML as e, icon, card, html, raw, setHTML } from './ui.js';
+import { escapeHTML as e, icon, html, raw, setHTML } from './ui.js';
 import { horseUpdateFields, horseTraitLimits, traitChoices, traitCountRange } from './horse-update-fields.js';
 import { horseFieldOptions } from './horse-fields.js';
 import { lockedCosmicLabel } from './horse-update-labels.js';
@@ -82,24 +84,23 @@ function fieldRow(field, catalog, state) {
     <p class="muted" data-field-help></p></div></div>`;
 }
 export function horseUpdatesPage(state, catalog) {
-  return String(html`<section id="horse-updates"><div class="page-heading stable-heading"><h1>Horse Overrides</h1></div>
-    <p class="horse-update-intro">Choose a horse to view its details and prepare overrides. Keep existing values, set exact choices, or reroll. Preview before applying; every application creates a save backup. Cosmic-defining mutations stay protected.</p>
-    ${
-      !state.settings.horseUpdatesEnabled
-        ? html`<section class="panel"><p>Enable Horse Overrides to unlock this developer tool.</p><button class="button primary" data-enable-horse-updates="true">Enable Horse Overrides</button></section>`
-        : html`<button type="button" class="button secondary horse-update-disable" data-enable-horse-updates="false">Disable Horse Overrides</button>
-      <form id="horse-update-form" data-copy-ui novalidate><div class="collection-toolbar"><label class="search-field">${raw(icon('search'))}<input data-horse-search type="search" placeholder="Search name, species, or personality…" aria-label="Search horses"></label><label class="sort-field">Sort By<select data-override-sort><option value="recent">Newest first</option><option value="name">Name</option><option value="species">Species</option></select></label><span data-selected-count>Choose a horse</span></div>
-      <div class="horse-grid horse-override-grid">${state.horses.map(h => html`<div class="horse-override-card" data-search="${[h.name, h.species, h.personality?.name].join(' ').toLowerCase()}" data-override-id="${h.id}"><input hidden type="radio" name="horse" value="${h.id}">${raw(card(h, state, 'override', catalog).replace('data-action="inspect"', 'type="button" data-open-override'))}${lockedCosmicLabel(h) ? html`<small class="horse-override-lock">🔒 ${lockedCosmicLabel(h)}</small>` : ''}</div>`)}</div>
-      <p data-empty-horses ${state.horses.length ? raw('hidden') : ''}>${state.horses.length ? 'No horses match your search.' : 'No stable horses yet.'}</p>
-      <section class="panel horse-update-rules" hidden><div class="settings-section-heading"><h2 data-override-title>Horse Details</h2><button type="button" class="button secondary" data-reset-overrides>Reset Overrides</button></div><p>Current saved values appear below. Edit a field to prepare a change; values stay unchanged until you preview and apply. Switching horses clears prepared overrides.</p>
+  return String(
+    html`<section id="horse-updates">${raw(stablePage('all', state, catalog).replace('>My Horses</h1>', '>Horse Overrides</h1>'))}<dialog class="horse-overrides-profile horse-import-preview" aria-labelledby="profile-title"></dialog></section>`
+  );
+}
+export function horseOverrideProfile(horse, state, catalog) {
+  const controls = html`<section class="panel horse-update-rules"><div class="settings-section-heading"><h2 data-override-title>Horse Overrides</h2><button type="button" class="button secondary" data-reset-overrides>Reset Overrides</button></div><p>Current saved values appear below. Edit a field to prepare a change; values stay unchanged until you preview and apply. Closing this profile clears prepared overrides.</p>
       <p>Species changes require compatible traits and palettes. Size rerolls use the final mutations. A new personality keeps the description unless you edit it too.</p>
       ${[...new Set(horseUpdateFields.map(f => f.group))].map(group => html`<section class="horse-override-group"><h3>${group}</h3>${horseUpdateFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state))}</section>`)}
       <label class="horse-update-duplicates"><input type="checkbox" name="allowDuplicates" ${catalog.spawning.ALLOW_DUPLICATE_MUTATIONS ? raw('checked') : ''}> Allow Duplicate Mutations For This Override</label>
       <p>Four mutation slots maximum; Cosmic slots are kept. Choose either all-mutation reroll or individual slots. Acquisition date and age in days control the same date; choose one.</p>
       <div class="form-actions"><button type="submit" class="button primary">${raw(icon('refresh'))} Preview Changes</button></div></section>
       <dialog class="horse-edit-dialog horse-override-dialog" aria-labelledby="horse-override-field-title"><div class="dialog-top"><h2 id="horse-override-field-title"></h2><button type="button" class="icon-button" data-cancel-override aria-label="Cancel field edit">${raw(icon('close'))}</button></div><div data-dialog-editor></div><p role="status"></p><div class="form-actions"><button type="button" class="button primary" data-save-override>Use This Override</button><button type="button" class="button secondary" data-cancel-override>Cancel</button></div></dialog>
-      </form><section id="horse-update-preview" aria-live="polite"></section>`
-    }</section>`);
+      <section id="horse-update-preview" aria-live="polite"></section>`;
+  const content = state.settings.horseUpdatesEnabled
+    ? html`<button type="button" class="button secondary horse-update-disable" data-enable-horse-updates="false">Disable Horse Overrides</button>${controls}`
+    : html`<p>Enable Horse Overrides to keep, set, or reroll this horse’s values. Every application creates a save backup; Cosmic-defining mutations stay protected.</p><button type="button" class="button primary" data-enable-horse-updates="true">Enable Horse Overrides</button>`;
+  return html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>${raw(profileContent(horse, state, { importPreview: true, catalog, overrideContent: String(content) }))}</form>`;
 }
 function formatValue(value) {
   if (value === null || value === undefined) return '—';
@@ -162,7 +163,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
     invalidate();
     form.querySelector('.horse-update-rules').hidden = false;
     form.querySelector('[data-override-title]').textContent = horse.name || horse.species;
-    form.querySelector('[data-selected-count]').textContent = 'Editing ' + (horse.name || horse.species);
+
     for (const row of form.querySelectorAll('[data-key]')) {
       const value = horseOverrideValue(horse, row.dataset.key),
         input = row.querySelector('[data-value]');
@@ -253,18 +254,6 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
       selectHorse(form, event.target.value);
       return;
     }
-    if (event.target.matches('[data-override-sort]')) {
-      const horses = [...getState().horses],
-        sort = event.target.value;
-      horses.sort((a, b) =>
-        sort === 'recent'
-          ? String(b.caughtAt || '').localeCompare(String(a.caughtAt || ''))
-          : String(a[sort] || '').localeCompare(String(b[sort] || ''))
-      );
-      const grid = form.querySelector('.horse-override-grid');
-      for (const horse of horses) grid.append([...grid.children].find(node => node.dataset.overrideId === horse.id));
-      return;
-    }
     const row = event.target.closest('[data-key]');
     if (row && event.target.matches('[data-trait-choice]')) {
       const option = [...row.querySelector('[data-value]').options].find(o => o.value === event.target.value);
@@ -281,19 +270,30 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
   root.addEventListener('input', event => {
     const form = event.target.closest('#horse-update-form');
     if (!form) return;
-    if (event.target.matches('[data-horse-search]')) {
-      const query = event.target.value.toLowerCase();
-      const cards = [...form.querySelectorAll('[data-search]')];
-      for (const row of cards) row.hidden = !row.dataset.search.includes(query);
-      form.querySelector('[data-empty-horses]').hidden = cards.some(row => !row.hidden);
-    } else invalidate();
+    invalidate();
   });
   root.addEventListener('click', async event => {
-    const horseCard = event.target.closest('[data-override-id]');
-    if (horseCard) {
-      if (!horseCard.querySelector('[name=horse]').checked)
-        selectHorse(horseCard.closest('form'), horseCard.dataset.overrideId);
-      root.querySelector('.horse-update-rules').scrollIntoView({ block: 'start', behavior: 'instant' });
+    const page = root.querySelector('#horse-updates');
+    if (!page) return;
+    const close = event.target.closest('[data-close-overrides]');
+    if (close) {
+      event.preventDefault();
+      page.querySelector('.horse-overrides-profile').close();
+      invalidate();
+      return;
+    }
+    const horseCard = event.target.closest('#collection-grid .horse-card');
+    if (horseCard && !event.target.closest('[data-action="favorite"]')) {
+      event.stopPropagation();
+      event.preventDefault();
+      const id = horseCard.querySelector('[data-action="inspect"]').dataset.id;
+      const horse = getState().horses.find(h => h.id === id);
+      const dialog = page.querySelector('.horse-overrides-profile');
+      editing = null;
+      setHTML(dialog, horseOverrideProfile(horse, getState(), getCatalog()));
+      if (getState().settings.horseUpdatesEnabled) selectHorse(dialog.querySelector('form'), id);
+      dialog.oncancel = () => invalidate();
+      dialog.showModal();
       return;
     }
     const form = event.target.closest('#horse-update-form');
@@ -390,10 +390,15 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, e
     if (unlock) {
       if (working) return;
       working = true;
+      const horseId = selectedHorse(unlock.closest('form'))?.id;
       try {
         await enable(unlock.dataset.enableHorseUpdates === 'true');
         invalidate();
         onApplied();
+        [...root.querySelectorAll('#collection-grid [data-action="inspect"]')]
+          .find(button => button.dataset.id === horseId)
+          ?.click();
+        root.querySelector('[data-profile-tab="overrides"]')?.click();
       } catch (error) {
         notify(error.message, true);
       } finally {

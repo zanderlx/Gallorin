@@ -5,6 +5,7 @@ const { join, resolve } = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { tmpdir } = require('node:os');
 app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('mute-audio');
 let backend;
 app
   .whenReady()
@@ -44,6 +45,7 @@ app
       show: false,
       webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false }
     });
+    win.webContents.setAudioMuted(true);
     win.webContents.on('console-message', event => console.log(event.message));
     await win.loadURL(origin + '/#dev/horse-updates');
     async function waitFor(selector) {
@@ -57,14 +59,15 @@ app
       const error = await win.webContents.executeJavaScript('document.body.textContent.slice(-2400)');
       throw Error('Missing ' + selector + ': ' + error);
     }
-    await waitFor('#horse-update-form');
+    await waitFor('#collection-grid .horse-card');
+    await win.webContents.executeJavaScript("document.querySelector('#collection-grid [data-action=inspect]').click()");
     await win.webContents.executeJavaScript(`(()=>{
     const assert=(condition,message)=>{if(!condition)throw Error(message)};
     const form=document.querySelector('#horse-update-form');
     assert(document.querySelector('h1').textContent==='Horse Overrides','Page heading');
-    assert(form.querySelector('.horse-update-rules').hidden,'Details should wait for selection');
-    form.querySelector('[data-open-override]').click();
-    assert(!form.querySelector('.horse-update-rules').hidden,'Horse selection should show details');
+    assert(document.querySelector('.horse-overrides-profile').open,'Horse opens profile modal');
+    assert(form.querySelector('[data-profile-tab=overview]').getAttribute('aria-selected')==='true','Starts on the shared Info page');
+    form.querySelector('[data-profile-tab=overrides]').click();
     const dialog=form.querySelector('dialog');
     const edit=(key,mode)=>{
       form.querySelector('[data-edit-override="'+key+'"]').click();
@@ -111,14 +114,20 @@ app
     const saved = JSON.parse(await readFile(join(directory, 'data/player/save.json'), 'utf8'));
     if (saved.horses[0].notes !== 'Previewed in the real renderer' || !saved.horses[0].lastRegeneratedAt)
       throw Error('Reviewed changes did not persist');
-    await waitFor('#horse-update-form .horse-update-rules[hidden]');
-    await win.webContents.executeJavaScript("document.querySelector('[data-open-override]').click()");
+    await waitFor('.horse-overrides-profile:not([open])');
+    await win.webContents.executeJavaScript("document.querySelector('#collection-grid [data-action=inspect]').click()");
+    await win.webContents.executeJavaScript(
+      'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
+    );
     await writeFile(join(directory, 'page.png'), (await win.webContents.capturePage()).toPNG());
     await win.webContents.executeJavaScript(
-      "document.querySelector('[data-edit-override=\"trait:Pattern\"]').click();document.querySelector('dialog [data-mode]').value='set';document.querySelector('dialog [data-mode]').dispatchEvent(new Event('change',{bubbles:true}))"
+      "document.querySelector('[data-profile-tab=overrides]').click();document.querySelector('[data-edit-override=\"trait:Pattern\"]').click();document.querySelector('.horse-override-dialog [data-mode]').value='set';document.querySelector('.horse-override-dialog [data-mode]').dispatchEvent(new Event('change',{bubbles:true}))"
     );
     await win.webContents.executeJavaScript(
       'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))'
+    );
+    await win.webContents.executeJavaScript(
+      "(()=>{if(!document.querySelector('.horse-override-dialog').open)throw Error('Field modal closed unexpectedly');if(document.querySelector('[data-profile-tab=overrides]').getAttribute('aria-selected')!=='true')throw Error('Overrides tab not selected')})()"
     );
     await writeFile(join(directory, 'field.png'), (await win.webContents.capturePage()).toPNG());
     await win.setContentSize(600, 850);

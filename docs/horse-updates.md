@@ -1,10 +1,10 @@
 # Horse versions and retroactive updates
 
-Open **Developer Settings → Horse Overrides** and enable the tool. This is separate from page-text Edit Mode.
+Open **Developer Settings → Horse Overrides**, click a horse, and select its **Overrides** tab to enable the tool. This is separate from page-text Edit Mode.
 
-1. Choose a horse from the stable-style card grid. Search by name, species, or personality, or sort the cards. Its current saved details appear below. Switching horses clears prepared overrides.
+1. Choose a horse from the stable-style card grid. Search by name, species, or personality, or sort the cards. The page shares the My Horses search, grid-size, sort, and favorite controls. Clicking a card opens the same horse profile book with Info and Traits pages plus an Overrides tab. Closing the profile clears prepared overrides.
 2. Leave everything you want to preserve at **Keep**.
-3. Click **Edit** beside a field to open its modal. Choose **Set** for an exact value, **Reroll** for a generated value, or the available clear/reset option. Trait checkboxes stop accepting choices at the category limit and explain required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits. **Reset Overrides** clears all staged fields.
+3. On the **Overrides** tab, click **Edit** beside a field to open its modal. Choose **Set** for an exact value, **Reroll** for a generated value, or the available clear/reset option. Trait checkboxes stop accepting choices at the category limit and explain required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits. **Reset Overrides** clears all staged fields.
 4. Generate **Preview Changes**. Review each horse's current/proposed values and warnings.
 5. Choose **Apply Reviewed Changes**. A dated standalone player-save backup is created first.
 

@@ -7,16 +7,16 @@ import { horseTraits } from './horse-traits.js';
 import { escapeHTML as e, icon, number } from './ui.js';
 import { displayBirthday, horseAcquisitionDate, horseAgeLabel } from './dates.js';
 
-export function profileContent(horse, state, { importPreview = false, catalog } = {}) {
+export function profileContent(horse, state, { importPreview = false, catalog, overrideContent } = {}) {
   const rank = horseCardRank(horse, catalog);
   const rankColor = raritySettings(catalog).colors[rank.key];
-  const collected = state.horses.some(h => h.id === horse.id);
+  const collected = !overrideContent && state.horses.some(h => h.id === horse.id);
   const editField = field =>
     state.settings.developerEditMode
       ? `<button class="icon-button horse-field-pencil" data-copy-skip data-action="edit-horse-field" data-id="${horse.id}" data-field="${field}" aria-label="Edit ${field}">&#9998;</button>`
       : '';
   const sold = state.sold.some(h => h.id === horse.id);
-  const header = `<div class="dialog-top">${sold ? '<span class="eyebrow">FROM THE ARCHIVES</span>' : ''}<button class="icon-button" data-action="close-profile" aria-label="Close horse profile">${icon('close')}</button></div>`;
+  const header = `<div class="dialog-top">${sold ? '<span class="eyebrow">FROM THE ARCHIVES</span>' : ''}<button class="icon-button" ${overrideContent ? 'data-close-overrides' : 'data-action="close-profile"'} aria-label="Close horse profile">${icon('close')}</button></div>`;
   const info = `<div class="horse-name-row" data-copy-skip><h2 id="profile-title" tabindex="0"><span class="horse-gender ${state.settings.developerEditMode ? 'is-editable' : ''}"><span class="horse-gender-label" role="img" aria-label="${horse.gender === 'Female' ? 'Female' : 'Male'}">${horseGenderIcon(horse.gender)}</span>${editField('gender')}</span>${collected ? `<button class="horse-name-text" data-action="rename-horse" data-id="${horse.id}" aria-label="Rename horse">${e(horse.name || horse.species)}</button>` : e(horse.name || horse.species)}</h2></div><p class="muted horse-species-gender" data-copy-skip><span>${e(horse.species)}</span></p>
   <dl class="horse-facts">${[
     ['Age', horseAgeLabel(horse)],
@@ -70,7 +70,8 @@ export function profileContent(horse, state, { importPreview = false, catalog } 
     colors,
     traits,
     mutations,
-    actions,
+    actions: overrideContent ? '' : actions,
+    overrideContent,
     importPreview,
     editableSkills: collected && !importPreview && state.settings.developerEditMode
   });

@@ -1,6 +1,7 @@
+import { stablePage } from '../public/pages.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { horseUpdatesPage, horseOverrideValue } from '../public/horse-updates.js';
+import { horseUpdatesPage, horseOverrideValue, horseOverrideProfile } from '../public/horse-updates.js';
 import { lockedCosmicLabel } from '../public/horse-update-labels.js';
 test('horse admin UI escapes horse names, exposes granular fields, and gates editing independently', () => {
   const state = {
@@ -14,7 +15,9 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
         schemaVersion: 1,
         specialSpawn: 'Solar',
         palette: { colors: {} },
-        eye: { colors: [] }
+        eye: { colors: [] },
+        personality: { name: 'Calm' },
+        caughtAt: '2026-10-29T00:00:00Z'
       }
     ]
   };
@@ -28,18 +31,22 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   };
   const page = horseUpdatesPage(state, catalog);
   assert.ok(!page.includes('<script>bad'));
-  assert.match(page, /Preview Changes/);
-  assert.match(page, /<h1>Horse Overrides<\/h1>/);
-  assert.match(page, /type="button" data-open-override/);
-  assert.match(page, /horse-grid horse-override-grid/);
-  assert.match(page, /data-edit-override="trait:Pattern"/);
-  assert.match(page, /<dialog/);
+  assert.ok(page.includes(stablePage('all', state, catalog).replace('>My Horses</h1>', '>Horse Overrides</h1>')));
+  assert.match(page, /horse-overrides-profile/);
+  assert.ok(!page.includes('horse-update-intro'));
+  const profile = String(horseOverrideProfile(state.horses[0], { ...state, sold: [] }, catalog));
+  assert.match(profile, /Preview Changes/);
+  assert.match(profile, /data-profile-tab="overview"/);
+  assert.match(profile, /data-profile-tab="appearance"/);
+  assert.match(profile, /data-profile-tab="overrides"/);
   for (const key of ['trait:Mane', 'mutation:0', 'skill:bond', 'color:Coat Top', 'daysOwned'])
-    assert.ok(page.includes('data-key="' + key + '"'));
-  assert.match(page, /🔒 Solar/);
+    assert.ok(profile.includes('data-key="' + key + '"'));
   assert.equal(lockedCosmicLabel({ mutations: [{ name: 'Void' }] }), 'Void');
   state.settings.horseUpdatesEnabled = false;
-  assert.match(horseUpdatesPage(state, catalog), /Enable Horse Overrides/);
+  assert.match(
+    String(horseOverrideProfile(state.horses[0], { ...state, sold: [] }, catalog)),
+    /Enable Horse Overrides/
+  );
   assert.ok(!horseUpdatesPage(state, catalog).includes('id="horse-update-form"'));
 });
 

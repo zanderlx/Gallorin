@@ -120,7 +120,10 @@
   color: var(--gold);
   padding: 8px 0;
 }
-#horse-updates [hidden] {
+#horse-updates [data-editor][hidden],
+#horse-updates [data-value-container][hidden],
+#horse-updates [data-count-container][hidden],
+#horse-updates .profile-overrides-panel[hidden] {
   display: none !important;
 }
 @media (max-width: 720px) {
@@ -147,6 +150,7 @@
   scroll-margin-top: 95px;
 }
 .horse-update-row button {
+  display: block;
   white-space: normal;
   overflow-wrap: anywhere;
   text-transform: none;
@@ -230,5 +234,17 @@
     grid-template-columns: 1fr;
     gap: 8px;
     border-bottom: 1px solid var(--border);
+  }
+}
+
+.horse-overrides-profile .profile-overrides-panel {
+  padding: 24px;
+}
+.horse-overrides-profile .horse-update-row {
+  grid-template-columns: minmax(90px, 1fr) minmax(100px, 1.5fr) minmax(110px, 1fr);
+}
+@media (max-width: 720px) {
+  .horse-overrides-profile .horse-update-row {
+    grid-template-columns: 1fr;
   }
 }
