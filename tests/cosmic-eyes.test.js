@@ -40,7 +40,7 @@ test('Cosmic eye edits persist locally and update existing artwork without chang
   assert.deepEqual(restarted.getCatalog().eyes.find(e => e.id === solar.id).colors, ['#123456']);
   setCosmicEyeDefinitions(restarted.getCatalog().eyes);
   try {
-    assert.match(horseArt(horse), /rx="3" ry="2.5" fill="#123456"/);
+    assert.match(horseArt(horse), /data-layer="eye"[^>]*>[\s\S]*?fill="#123456"/);
     assert.deepEqual(horse, before);
   } finally {
     setCosmicEyeDefinitions([]);

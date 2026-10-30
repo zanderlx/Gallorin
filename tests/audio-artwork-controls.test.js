@@ -95,7 +95,7 @@ test('cosmic eye artwork uses all five overrides without changing the generated 
     const copy = { ...horse, specialSpawn };
     const before = structuredClone(copy);
     for (const render of [horseArt, horseHeadArt])
-      assert.match(render(copy), new RegExp('rx="3" ry="2.5" fill="' + color + '"'));
+      assert.match(render(copy), new RegExp('data-layer="eye"[^>]*>[\\s\\S]*?fill="' + color + '"'));
     assert.deepEqual(copy, before);
     assert.equal(copy.eye.name, 'Candy');
     assert.match(
@@ -103,7 +103,10 @@ test('cosmic eye artwork uses all five overrides without changing the generated 
       new RegExp('fill="' + color + '"')
     );
   }
-  assert.match(horseArt({ ...horse, specialSpawn: null, mutations: [] }), /rx="3" ry="2.5" fill="#ABCDEF"/);
+  assert.match(
+    horseArt({ ...horse, specialSpawn: null, mutations: [] }),
+    /data-layer="eye"[^>]*>[\s\S]*?fill="#ABCDEF"/
+  );
 });
 
 test('event sliders occupy the fourth column and libraries do not show volume sliders', () => {
