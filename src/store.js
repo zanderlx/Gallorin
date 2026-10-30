@@ -10,6 +10,7 @@ import { ConfigurationFiles } from './configuration.js';
 import { readHorseSkills } from '../public/skill-progress.js';
 import { synchronizeCosmicPalettes } from './cosmic-palettes.js';
 import { paletteAdditionsVersion, missingBundledPalettes } from './palette-additions.js';
+import { updatedBundledPalettes } from './palette-updates.js';
 import { traitDefaultsVersion, withTraitDefaults } from './trait-defaults.js';
 import { removeUnusedTraits } from '../public/unused-traits.js';
 import { validateRaritySettings } from '../public/rarity-settings.js';
@@ -189,14 +190,16 @@ export class GameStore {
     this.state = next;
   }
 
-  // One-time additive upgrade: appends known bundled palettes to an existing registry without touching local entries.
+  // One-time upgrade: adds bundled palettes and updates untouched defaults, preserving local customizations.
   async addBundledPalettes() {
     if ((this.state.paletteAdditionsVersion || 0) >= paletteAdditionsVersion) return;
     const configuration = await this.files.read(catalogFor(this.catalog, this.state));
     const additions = missingBundledPalettes(this.catalog, configuration.catalog, this.state);
+    const registry = await this.files.json('palettes.json');
+    const updated = updatedBundledPalettes(this.catalog, registry, this.state);
     const next = this.snapshot();
     next.paletteAdditionsVersion = paletteAdditionsVersion;
-    if (!additions.length) {
+    if (!additions.length && updated.every((palette, i) => palette === registry[i])) {
       await this.persist(next);
       this.state = next;
       return;
@@ -204,8 +207,8 @@ export class GameStore {
     const backup = `pre-palette-additions-${Date.now()}-${randomUUID()}`;
     await copyFile(this.file, join(this.directory, 'backups', `${backup}.json`));
     await copyFile(this.files.path('palettes.json'), join(this.directory, 'backups', `${backup}-palettes.json`));
-    // Only palettes.json is written, so existing entries keep their stored form exactly.
-    const palettes = [...(await this.files.json('palettes.json')), ...additions];
+    // Only palettes.json is written; customized entries retain their stored form.
+    const palettes = [...updated, ...additions];
     try {
       await this.files.commit(
         configuration,

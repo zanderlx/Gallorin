@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 import { GameStore } from '../src/store.js';
 import { normalizeCatalog } from '../public/definitions.js';
+import { previousPaletteDefaults } from '../src/palette-updates.js';
 import {
   bundledPaletteAdditionIds,
   missingBundledPalettes,
@@ -43,17 +44,17 @@ async function legacy(f, edit = palettes => palettes) {
   return { save, palettes };
 }
 
-test('the known additions are exactly the forty-four complete bundled palettes and exclude Template', () => {
-  assert.equal(bundledPaletteAdditionIds.length, 44);
-  assert.equal(new Set(bundledPaletteAdditionIds).size, 44);
+test('the known additions are exactly the forty-seven complete bundled palettes and exclude Template', () => {
+  assert.equal(bundledPaletteAdditionIds.length, 47);
+  assert.equal(new Set(bundledPaletteAdditionIds).size, 47);
   for (const id of bundledPaletteAdditionIds) assert.equal(bundled.find(p => p.id === id)?.complete, true, id);
-  assert.equal(bundled.filter(p => p.complete).length, 77);
+  assert.equal(bundled.filter(p => p.complete).length, 80);
   assert.ok(!bundledPaletteAdditionIds.includes(bundled.find(p => p.name === 'Template').id));
 });
 test('fresh installs seed every complete palette, record the upgrade, and later launches leave files untouched', async t => {
   const f = await fixture(t);
   const palettes = await f.json(f.paths.palettes);
-  assert.equal(palettes.length, 77);
+  assert.equal(palettes.length, 80);
   assert.ok(!palettes.some(p => p.name === 'Template'));
   assert.equal((await f.json(f.paths.save)).paletteAdditionsVersion, paletteAdditionsVersion);
   const [save, registry] = await Promise.all([readFile(f.paths.save, 'utf8'), readFile(f.paths.palettes, 'utf8')]);
@@ -80,11 +81,71 @@ test('version 1 installs receive the four new palettes without restoring earlier
     bundled.filter(p => newIds.includes(p.id))
   );
   assert.ok(!upgraded.some(p => p.id === 'palette-lemon'));
-  assert.equal(store.state.paletteAdditionsVersion, 2);
+  assert.equal(store.state.paletteAdditionsVersion, paletteAdditionsVersion);
   await store.action('delete-definition', { kind: 'palettes', id: 'palette-buddy' });
   const reloaded = await f.load();
   assert.ok(!reloaded.getCatalog().palettes.some(p => p.id === 'palette-buddy'));
 });
+test('version 2 installs add the new batch and revise untouched defaults once with backups', async t => {
+  const f = await fixture(t);
+  const newIds = ['palette-candy-corn', 'palette-flora-4', 'palette-missingno'];
+  const save = await f.json(f.paths.save);
+  save.paletteAdditionsVersion = 2;
+  await f.write(f.paths.save, save);
+  const previous = (await f.json(f.paths.palettes))
+    .filter(p => !newIds.includes(p.id) && p.id !== 'palette-buddy')
+    .map(p => structuredClone(previousPaletteDefaults.find(old => old.id === p.id) || p));
+  await f.write(f.paths.palettes, previous);
+  const pools = (await f.load()).getCatalog().locations.map(zone => zone.palettePool);
+  const upgraded = await f.json(f.paths.palettes);
+  assert.equal(upgraded.length, previous.length + 3);
+  for (const old of previousPaletteDefaults)
+    assert.deepEqual(
+      upgraded.find(p => p.id === old.id),
+      bundled.find(p => p.id === old.id)
+    );
+  for (const id of newIds)
+    assert.deepEqual(
+      upgraded.find(p => p.id === id),
+      bundled.find(p => p.id === id)
+    );
+  assert.ok(!upgraded.some(p => p.id === 'palette-buddy'));
+  const backups = await readdir(join(f.directory, 'backups'));
+  const registryBackup = backups.find(
+    name => name.startsWith('pre-palette-additions-') && name.endsWith('-palettes.json')
+  );
+  assert.deepEqual(await f.json(join(f.directory, 'backups', registryBackup)), previous);
+  const registry = await readFile(f.paths.palettes, 'utf8');
+  const reloaded = await f.load();
+  assert.deepEqual(
+    reloaded.getCatalog().locations.map(zone => zone.palettePool),
+    pools
+  );
+  assert.equal(await readFile(f.paths.palettes, 'utf8'), registry);
+  assert.equal(reloaded.state.paletteAdditionsVersion, paletteAdditionsVersion);
+});
+
+test('palette revisions preserve customized defaults, deleted entries, and custom names', async t => {
+  const f = await fixture(t);
+  const save = await f.json(f.paths.save);
+  save.paletteAdditionsVersion = 2;
+  await f.write(f.paths.save, save);
+  const previous = (await f.json(f.paths.palettes)).map(p => {
+    const old = previousPaletteDefaults.find(old => old.id === p.id);
+    return old ? { ...structuredClone(old), description: 'My custom notes' } : p;
+  });
+  await f.write(f.paths.palettes, previous);
+  await f.load();
+  assert.deepEqual(await f.json(f.paths.palettes), previous);
+  const updatedSave = await f.json(f.paths.save);
+  updatedSave.paletteAdditionsVersion = 2;
+  await f.write(f.paths.save, updatedSave);
+  const deleted = previous.filter(p => !previousPaletteDefaults.some(old => old.id === p.id));
+  await f.write(f.paths.palettes, deleted);
+  await f.load();
+  assert.deepEqual(await f.json(f.paths.palettes), deleted);
+});
+
 test('a 33-palette registry receives the missing additions while every local customization is preserved', async t => {
   const f = await fixture(t);
   const { save, palettes } = await legacy(f, list => {
@@ -117,14 +178,14 @@ test('a 33-palette registry receives the missing additions while every local cus
   const store = await f.load();
   assert.deepEqual(await others(), unchanged);
   const upgraded = await f.json(f.paths.palettes);
-  assert.equal(upgraded.length, 78);
+  assert.equal(upgraded.length, 81);
   assert.deepEqual(upgraded.slice(0, 34), palettes);
   for (const id of bundledPaletteAdditionIds)
     assert.deepEqual(
       upgraded.find(p => p.id === id),
       bundled.find(p => p.id === id)
     );
-  assert.equal(store.getCatalog().palettes.length, 78);
+  assert.equal(store.getCatalog().palettes.length, 81);
   assert.equal(store.state.paletteAdditionsVersion, paletteAdditionsVersion);
   assert.equal(store.state.gold, save.gold);
   const backups = (await readdir(join(f.directory, 'backups'))).filter(n => n.startsWith('pre-palette-additions-'));
@@ -175,7 +236,7 @@ test('palettes deleted after the upgrade stay deleted on later launches', async 
   await f.load();
   const reloaded = await f.load();
   assert.ok(!reloaded.getCatalog().palettes.some(p => p.id === lemon.id || p.name === 'Lemon'));
-  assert.equal((await f.json(f.paths.palettes)).length, 76);
+  assert.equal((await f.json(f.paths.palettes)).length, 79);
 });
 test('recorded deletions and ID, name, system ID or species collisions keep local entries and skip the bundled copy', async t => {
   const f = await fixture(t);
@@ -204,7 +265,7 @@ test('recorded deletions and ID, name, system ID or species collisions keep loca
   const store = await f.load();
   const upgraded = await f.json(f.paths.palettes);
   assert.deepEqual(upgraded.slice(0, palettes.length), palettes);
-  assert.equal(upgraded.length, palettes.length + 40);
+  assert.equal(upgraded.length, palettes.length + 43);
   assert.equal(upgraded.filter(p => p.id === 'palettes-fae-1').length, 1);
   assert.equal(upgraded.filter(p => p.name.toLowerCase() === 'lemon').length, 1);
   for (const id of ['palette-orange', 'palette-lemon', 'palette-vegetable'])
@@ -241,6 +302,6 @@ test('a failed upgrade write restores the registry, leaves the save unmarked, an
   assert.equal(failing.getCatalog().palettes.length, 33);
   await assert.rejects(access(join(f.directory, 'config', 'transaction.json')));
   const retried = await f.load();
-  assert.equal(retried.getCatalog().palettes.length, 77);
+  assert.equal(retried.getCatalog().palettes.length, 80);
   assert.equal(retried.state.paletteAdditionsVersion, paletteAdditionsVersion);
 });
