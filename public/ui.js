@@ -128,10 +128,7 @@ export const groups = [
   }
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
-workbench.items = [
-  ['dev/settings', 'Game Settings'],
-  ['dev/roadmap', 'Remaining Features']
-];
+workbench.items = [['dev/settings', 'Game Settings']];
 groups.push(
   {
     title: 'Compendium',

@@ -52,7 +52,6 @@ import { zoneEditorPage, zoneEditorForm } from '../public/zone-editor.js';
 import { normalizeCatalog, definitionKinds } from '../public/definitions.js';
 import { libraryEditorPage, editorRoutes } from '../public/library-editor.js';
 import { keeperPage, avatarSVG } from '../public/keeper.js';
-import { roadmapPage } from '../public/roadmap.js';
 import { card } from '../public/ui.js';
 import { saleHistory } from '../public/economy.js';
 
@@ -187,13 +186,11 @@ test('every navigation destination renders content without undefined values', ()
                 ? savesPage(state)
                 : route === 'dev/profile'
                   ? keeperPage(state)
-                  : route === 'dev/roadmap'
-                    ? roadmapPage()
-                    : route === 'dev/locations'
-                      ? zoneEditorPage(catalog, state)
-                      : section === 'dev' && Object.hasOwn(editorRoutes, page)
-                        ? libraryEditorPage(editorRoutes[page], catalog, state)
-                        : plannedPage(route, state);
+                  : route === 'dev/locations'
+                    ? zoneEditorPage(catalog, state)
+                    : section === 'dev' && Object.hasOwn(editorRoutes, page)
+                      ? libraryEditorPage(editorRoutes[page], catalog, state)
+                      : plannedPage(route, state);
     assert.match(html, /<h1/, route);
     assert.doesNotMatch(html, /undefined|NaN/, route);
   }
@@ -260,7 +257,7 @@ test('Game Settings contains gameplay and a separate Economy section without gui
   assert.match(saves, /Create backup/);
   assert.match(saves, /Export all data/);
 });
-test('dev settings omit Edit Mode and economy exposes the actual gold balance', () => {
+test('dev settings omit retired pages and economy exposes the actual gold balance', () => {
   assert.doesNotMatch(settingsPage(state), /toggle-copy-mode/);
   assert.doesNotMatch(settingsPage(state, true), /toggle-copy-mode/);
   assert.doesNotMatch(
@@ -270,7 +267,7 @@ test('dev settings omit Edit Mode and economy exposes the actual gold balance', 
       new Set(),
       catalog
     ),
-    /Edit Mode|dev\/edit-mode/
+    /Edit Mode|Remaining Features|dev\/(?:edit-mode|roadmap)/
   );
   assert.match(settingsPage({ ...state, gold: 12345 }, true), /name="gold"[^>]+value="12345"/);
 });

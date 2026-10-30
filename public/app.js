@@ -61,7 +61,6 @@ import {
   applyWebsiteTheme
 } from './library-editor.js';
 import { keeperPage, avatarSVG } from './keeper.js';
-import { roadmapPage } from './roadmap.js';
 import { trackForms, updateFormState, formSignature, formBaseline, restoreBaseline } from './form-state.js';
 
 let state,
@@ -256,7 +255,6 @@ function pageContent(pageRoute, pageState = state) {
   else if (section === 'stable') return stablePage(page, state, catalog);
   else if (route === 'dev/settings' || route === 'dev/economy') return settingsPage(state, catalog);
   else if (route === 'dev/saves') return savesPage(state);
-  else if (route === 'dev/roadmap') return roadmapPage();
   else if (route === 'dev/music') return musicPlayer.page();
   else if (route === 'dev/profile') return keeperPage(state);
   else if (route === 'dev/locations' || route === 'dev/atmospheres') return zoneEditorPage(catalog, state);
@@ -317,11 +315,12 @@ async function navigate({ initializeNavigation = false } = {}) {
   const movedRoutes = {
     'dev/horse-updates': 'stable/all',
     'dev/traits': 'dev/species',
-    'dev/editor': 'dev/roadmap',
-    'dev/generator': 'dev/roadmap',
-    'dev/spawn': 'dev/roadmap',
+    'dev/editor': 'dev/settings',
+    'dev/generator': 'dev/settings',
+    'dev/spawn': 'dev/settings',
     'dev/economy': 'dev/settings',
     'dev/edit-mode': 'dev/settings',
+    'dev/roadmap': 'dev/settings',
     'stable/favorites': 'stable/all',
     'breeding/stable': 'stable/breeding',
     'breeding/history': 'stable/all',

@@ -74,8 +74,7 @@ const sectionDefinitions = [
     'developer',
     [
       ['dev/settings', 'Game Settings'],
-      ['dev/horse-updates', 'Horse Overrides'],
-      ['dev/roadmap', 'Remaining Features']
+      ['dev/horse-updates', 'Horse Overrides']
     ]
   ]
 ];

@@ -51,7 +51,6 @@ test(
       '/spawn-config.js',
       '/library-editor.js',
       '/dates.js',
-      '/roadmap.js',
       '/mutated-palettes.js',
       '/keeper.js',
       '/form-state.js',

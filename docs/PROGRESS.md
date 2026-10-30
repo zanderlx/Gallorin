@@ -15,7 +15,6 @@
 - Cached/debounced site search, avoiding unnecessary horse-art rendering and repeat visit saves.
 - Automatic/dated backups, data export, confirmation before deletions, reference cleanup, and preservation of collected horse snapshots.
 - Version-1 README with local banner, prerequisite/download links, startup/troubleshooting steps, feature list, and roadmap.
-- In-app **Developer Settings → Remaining Features** page.
 
 ## Remaining systems
 
