@@ -70,7 +70,7 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
     ? 1
     : design.short
       ? tail
-        ? 0.22
+        ? 0.38
         : 0.35
       : /long|full/.test(recipe.text)
         ? 1.05
@@ -78,6 +78,19 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
   const breadth = standard ? 1 : design.sparse ? 0.58 : 0.88 + sample(seed, 29) * 0.22;
   const paths = sourceHairPaths[recipe.category].map((source, pathIndex) => {
     if (standard) return source;
+    if (tail && design.short) {
+      // Keep the original dock and first curve, then cut a hanging lock rather
+      // than vertically crushing the source's broad, swept upper silhouette.
+      const end = n(310 + design.length);
+      const outer = n(793 + sample(seed, 29) * 13);
+      const tips =
+        design.texture === 'fur'
+          ? `L${outer - 5} ${end - 12}L${outer - 9} ${end + 3}L${outer - 14} ${end - 8}`
+          : design.texture === 'curly'
+            ? `Q${outer + 7} ${end + 5} ${outer - 8} ${end + 6}Q${outer - 20} ${end} ${outer - 10} ${end - 9}`
+            : `Q${outer - 4} ${end + 2} ${outer - 12} ${end + 5}`;
+      return `M721.5 237C712 249 715 259.5 717 265.5C724.734 268.183 729.5 270 737 273.5C765 285 774 309 ${outer - 15} ${end - 18}${tips}Q${outer + 12} ${end - 30} ${outer} 300C780 275 759 252 739 244Q730 238 721.5 237Z`;
+    }
     let pair = [];
     return source
       .replace(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi, value => {
@@ -92,8 +105,16 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
           const t = tail ? Math.max(0, (y - 250) / 322) : Math.max(0, (x - 290) / 190);
           if (tail) {
             const weight = tailAttachmentWeight(x, y);
-            const targetX = 715 + (x - 715) * breadth * (design.short ? 0.55 : 1);
-            const targetY = design.raised && y > 265 ? 250 - (y - 250) * 0.42 : y < 250 ? y : 250 + (y - 250) * stretch;
+            // Thin the hair around its own outward sweep, never toward the rump.
+            const center = 800 + Math.max(0, y - 320) * 0.16;
+            const targetX = design.short ? 737 + (x - 737) * 0.52 : center + (x - center) * breadth;
+            const targetY = design.short
+              ? 260 + Math.max(-12, y - 260) * stretch
+              : design.raised && y > 265
+                ? 250 - (y - 250) * 0.42
+                : y < 250
+                  ? y
+                  : 250 + (y - 250) * stretch;
             px = x + (targetX - x) * weight;
             py = y + (targetY - y) * weight;
           } else {
@@ -113,12 +134,12 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
   });
   const clip = `${prefix}-source-hair-${recipe.category}-${seed}`;
   const painted = paths.map(d => shape(d, color));
-  const joinX = n(715 + (820 - 715) * breadth * (design.short ? 0.55 : 1));
+  const joinX = n(design.short ? 737 + (820 - 737) * 0.52 : 810 + 10 * breadth);
   const joinY = n(design.raised ? 250 - (380 - 250) * 0.42 : 250 + (380 - 250) * stretch);
   // A tapered filled root joins the source silhouette to its reshaped body,
   // including raised tails whose curved lobes can otherwise leave a hairline gap.
   const attachment =
-    tail && !standard
+    tail && !standard && !design.short
       ? html`<g data-tail-attachment="fixed"><path d="M730 258Q754 253 ${joinX} ${joinY - 8}L${joinX + 8} ${joinY + 7}Q754 270 735 275Z" fill="${color}"/></g>`
       : '';
   const detail = Array.from({ length: design.strands }, (_, i) => {

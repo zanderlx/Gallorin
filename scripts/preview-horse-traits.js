@@ -69,7 +69,7 @@ const examples = tailsOnly
       'Wavy Short Tail',
       'Long Wavy Tail',
       'Braided Tail',
-      'Elegant Braided Tail',
+      'Wispy Tail',
       'Short Tuft Tail',
       'Long Blunt Tail',
       'Sparse Tail',

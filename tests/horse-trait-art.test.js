@@ -101,7 +101,7 @@ test('hair names control length and texture independently, without braid-like fu
     assert.ok(design.length < 70, name);
     assert.notEqual(design.texture, 'braid');
     const art = String(traitArtwork('Tail', name, { colors }));
-    assert.match(art, /data-tail-attachment="fixed"/);
+    assert.match(art, /M721.5 237C712 249 715 259.5 717 265.5/);
     assert.match(art, /data-hair-length="short"/);
   }
   assert.equal(hairDesign(traitArtDefinition('Tail', 'Short Fur Tail')).texture, 'fur');
@@ -131,7 +131,7 @@ test('standard hair retains original SVG coordinates and Keratin is behind both 
 test('tail redesigns preserve all source root control points', () => {
   const coords = d => [...d.matchAll(/-?\d*\.?\d+/g)].map(m => Number(m[0]));
   const original = coords(sourceHairPaths.Tail[0]);
-  for (const name of ['Short Fur Tail', 'Upturned Tail', 'Sparse Tail', 'Long Wavy Tail', 'Braided Tail']) {
+  for (const name of ['Upturned Tail', 'Sparse Tail', 'Long Wavy Tail', 'Braided Tail']) {
     const art = String(traitArtwork('Tail', name, { colors }));
     const actual = coords(art.match(/<path d="([^"]+)"/)[1]);
     for (let i = 0; i < original.length; i += 2)
@@ -182,4 +182,14 @@ test('Keratin stays behind mane and fixed ears; Paint/Pattern colors cannot alte
   }
   assert.match(String(traitArtwork('Keratin', 'Forward Horns', { colors })), /data-keratin-direction="-1"/);
   assert.match(String(traitArtwork('Keratin', 'Reversed Horn', { colors })), /data-keratin-direction="1"/);
+});
+
+// Short tails deliberately replace the large swept upper lobe, but retain the
+// original dock and first control points exactly.
+test('short tails hang from the source dock instead of compressing the whole tail', () => {
+  for (const name of ['Short Fur Tail', 'Short Curly Tail', 'Wavy Short Tail', 'Short Tuft Tail']) {
+    const art = String(traitArtwork('Tail', name, { colors }));
+    assert.match(art, /M721.5 237C712 249 715 259.5 717 265.5C724.734 268.183 729.5 270 737 273.5/);
+    assert.doesNotMatch(art, /data-tail-attachment/);
+  }
 });

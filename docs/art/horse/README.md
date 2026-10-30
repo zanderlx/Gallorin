@@ -118,3 +118,5 @@ background selection. Small crease shadows and soft highlights describe the
 shoulder and hindquarter joins. Hair volume follows the exact variant paths.
 All gradients are individually scoped for cards, profiles and cloned viewers;
 no blur filters, animations or changes to saved horse anatomy are required.
+
+Far legs reuse the original coat-top, coat-bottom, sock, and hoof SVG layers, cropped to the limbs and translated together behind the barrel. Their palette boundaries and joint contours stay aligned with the near legs. Short tails retain the source dock but use a hanging cut silhouette instead of compressing the swept upper lobe. Sparse/wispy tails narrow around their outward centerline. The foreground ear overlay includes the full source ear base so keratin roots remain behind it and the mane.

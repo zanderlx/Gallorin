@@ -50,7 +50,7 @@ export function horseModel(horse, eye, prefix) {
         return html`${render(layer)}${horseTraitCategoryArt(horse, 'Paint', prefix)}${horseTraitCategoryArt(horse, 'Pattern', prefix)}`;
       if (layer.name === 'hoof') return html`${render(layer)}${coatDepthArt(prefix)}`;
       if (layer.name === 'eye')
-        return html`<g data-layer="base-ears"><path d="M278 170C275.5 163.5 277.234 151.188 280 147.5C283 143.5 283 136.5 283.5 135.5C284 134.5 286 136 288.5 142C288.753 142.607 288.965 143.251 289.138 143.925C290.133 147.255 291.325 152.803 291 158C291.783 159.567 293.165 162.571 294.496 166Z" fill="${horse.palette.colors['Coat Top']}"/></g>${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
+        return html`<g data-layer="base-ears"><path d="M278 170C275.5 163.5 277.234 151.188 280 147.5C283 143.5 283 136.5 283.5 135.5C284 134.5 286 136 288.5 142C288.753 142.607 288.965 143.251 289.138 143.925C290.133 147.255 291.325 152.803 291 158C291.783 159.567 293.165 162.571 294.496 166C295.427 168.4 296.344 171 297 173.5C299 181 294.5 184 295 189C295.5 194 295 198 293 196.5C287.5 185.5 280.5 178.5 278 170Z" fill="${horse.palette.colors['Coat Top']}"/></g>${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
       return render(layer);
     });
   // Mirror the entire model (including masks and markings) to face right. Feet sit at y=274.

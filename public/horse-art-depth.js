@@ -1,4 +1,5 @@
-import { html } from './ui.js';
+import { html, raw } from './ui.js';
+import { horseArtLayers } from './horse-art-layers.js';
 
 // Directional light stays in model coordinates; the shared mirror makes it
 // upper-left light on screen. Transparent stops preserve every palette pigment.
@@ -10,11 +11,19 @@ export function horseDepthDefinitions(prefix) {
 }
 
 export function farLegArt(colors, prefix) {
-  const front =
-    'M403 357Q424 369 421 405L397 466Q387 485 390 515L388 559 383 596 369 617 350 622 344 617 362 598 367 556 366 514Q366 485 373 463L383 412 381 378Z';
-  const hind =
-    'M684 355Q714 362 724 403L716 452 730 505Q734 524 725 553L720 594 705 616 686 620 678 615 696 595 697 550 701 515 681 470Q666 440 665 409Z';
-  return html`<g data-depth="far-legs"><g fill="#0A120E" opacity=".2"><ellipse cx="360" cy="635" rx="27" ry="4"/><ellipse cx="697" cy="635" rx="26" ry="4"/></g>${[front, hind].map((d, i) => html`<g data-far-leg="${i === 0 ? 'front' : 'hind'}"><path d="${d}" fill="${colors['Coat Bottom']}" stroke="#242B20" stroke-opacity=".22" stroke-width="1.5"/><path d="${i === 0 ? 'M367 550L388 555 383 596 369 617 350 622 344 617 362 598Z' : 'M698 550L725 551 720 594 705 616 686 620 678 615 696 595Z'}" fill="${colors.Sock}"/><path d="${i === 0 ? 'M350 615Q360 611 371 619L367 630H338Q336 625 350 615Z' : 'M687 614Q700 612 707 621L701 631H675Q673 625 687 614Z'}" fill="${colors.Hoof}"/><path d="${d}" fill="url(#${prefix}-far-leg-volume)"/></g>`)}</g>`;
+  // Duplicate the supplied leg contours and their pigment boundaries together.
+  // The upper crop sits inside the barrel, which occludes the attachment seam.
+  return html`<g data-depth="far-legs">${[
+    { name: 'front', x: 400, y: 390, width: 76, shift: 43 },
+    { name: 'hind', x: 674, y: 380, width: 120, shift: -46 }
+  ].map(({ name, x, y, width, shift }) => {
+    const id = `${prefix}-far-${name}`;
+    const layers = horseArtLayers.filter(layer => ['coat top', 'coat bottom', 'sock', 'hoof'].includes(layer.name));
+    const silhouettes = layers.map(layer =>
+      raw(layer.markup.split('<mask')[0].replaceAll('__PREFIX__', `${id}-`).replaceAll('__COLOR__', '#FFFFFF'))
+    );
+    return html`<g data-far-leg="${name}" data-leg-source="original-svg" transform="translate(${shift} -5)"><defs><clipPath id="${id}-crop"><rect x="${x}" y="${y}" width="${width}" height="260"/></clipPath><clipPath id="${id}-shape">${silhouettes}</clipPath></defs><g clip-path="url(#${id}-crop)">${layers.map(layer => html`<g data-leg-channel="${layer.channel}" fill="none">${raw(layer.markup.replaceAll('__PREFIX__', `${id}-`).replaceAll('__COLOR__', colors[layer.channel]))}</g>`)}<rect x="${x}" y="${y}" width="${width}" height="260" fill="url(#${prefix}-far-leg-volume)" clip-path="url(#${id}-shape)"/></g></g>`;
+  })}</g>`;
 }
 
 export function coatDepthArt(prefix) {

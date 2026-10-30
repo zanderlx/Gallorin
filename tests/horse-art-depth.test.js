@@ -19,6 +19,10 @@ test('four-leg depth is layered behind the coat with palette-safe lighting in bo
       assert.equal([...svg.matchAll(/data-far-leg=/g)].length, 2);
       assert.ok(svg.indexOf('data-depth="far-legs"') < svg.indexOf('data-layer="coat bottom"'));
       assert.match(svg, /data-depth="coat-volume"/);
+      assert.equal([...svg.matchAll(/data-leg-source="original-svg"/g)].length, 2);
+      for (const channel of ['Coat Top', 'Coat Bottom', 'Sock', 'Hoof']) {
+        assert.equal([...svg.matchAll(new RegExp(`data-leg-channel="${channel}"`, 'g'))].length, 2);
+      }
       assert.equal([...svg.matchAll(/data-depth="hair-volume"/g)].length, 2);
       const ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
       assert.equal(ids.length, new Set(ids).size);
