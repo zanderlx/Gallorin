@@ -1,5 +1,6 @@
 import { horseArtLayers } from './horse-art-layers.js';
 import { html } from './ui.js';
+import { hairDepthArt } from './horse-art-depth.js';
 
 const shape = (d, color) =>
   html`<path d="${d}" fill="${color}" stroke="#172019" stroke-width="1.4" stroke-opacity=".25" stroke-linejoin="round"/>`;
@@ -132,5 +133,5 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
       1.2
     );
   });
-  return html`<g data-hair-source="original-svg" data-hair-texture="${design.texture}" data-hair-length="${design.short ? 'short' : 'long'}"><defs><clipPath id="${clip}">${paths.map(d => shape(d, '#FFFFFF'))}</clipPath></defs>${attachment}${painted}<g clip-path="url(#${clip})">${standard ? '' : detail}</g></g>`;
+  return html`<g data-hair-source="original-svg" data-hair-texture="${design.texture}" data-hair-length="${design.short ? 'short' : 'long'}"><defs><clipPath id="${clip}">${paths.map(d => shape(d, '#FFFFFF'))}</clipPath></defs>${attachment}${painted}${hairDepthArt(paths, `${prefix}-${recipe.category}-${seed}`)}<g clip-path="url(#${clip})">${standard ? '' : detail}</g></g>`;
 }

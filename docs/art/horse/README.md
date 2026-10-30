@@ -106,3 +106,15 @@ Forward and reversed horns have explicit directions; paired horn roots stay
 on the forehead ahead of the ears. Paint/Pattern opacity is moderately raised
 while facial marks remain quieter. Hair highlights derive only from Hair color,
 so Paint/Pattern palette changes cannot recolor mane or tail details.
+
+## Lighting and four-leg depth
+
+`public/horse-art-depth.js` adds two offset far-side limbs behind the original
+coat/near legs, using the horse’s Coat Bottom, Sock and Hoof colors with darker
+perspective shading. Their upper roots are occluded by the torso; ground contact
+shadows sit beneath the feet. Clipped transparent gradients provide upper-left
+light, barrel volume and neck/belly shade while preserving palette data and
+background selection. Small crease shadows and soft highlights describe the
+shoulder and hindquarter joins. Hair volume follows the exact variant paths.
+All gradients are individually scoped for cards, profiles and cloned viewers;
+no blur filters, animations or changes to saved horse anatomy are required.
