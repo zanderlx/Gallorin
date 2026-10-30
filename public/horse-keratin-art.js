@@ -18,11 +18,11 @@ export function keratinArt({ family, text, seed }, c, accent) {
       branches = /double|reindeer|four|bifurcat/.test(text) ? 5 : 3;
     return html`${[0, 1].map(
       side =>
-        html`<g transform="translate(${side * 24} ${side * 7})">${moose ? shape('M274 180L246 147 212 119 217 92 232 112 238 81 249 105 260 74 269 108 278 98 278 135Z', c) : line(`M273 180Q239 140 251 ${180 - length - 32}`, c, small ? 4 : 7)}${Array.from(
+        html`<g transform="translate(${side * 8 - 10} ${-side * 4})">${moose ? shape('M274 180L275 147 278 119 283 92 292 112 298 81 307 105 314 74 321 108 330 98 318 135Z', c) : line(`M273 180Q283 140 310 ${180 - length - 32}`, c, small ? 4 : 7)}${Array.from(
           { length: branches },
           (_, i) => {
             const y = 147 - i * 16,
-              x = 245 + (i % 2) * 5;
+              x = 273 + (180 - y) * 0.25;
             return line(`M${x} ${y}l${i % 2 ? 24 : -25} -17l${i % 2 ? 5 : -4} -17`, c, 4);
           }
         )}</g>`
@@ -54,16 +54,17 @@ export function keratinArt({ family, text, seed }, c, accent) {
   const nose = /rhino|nose/.test(text),
     rootX = nose ? 220 : 263,
     rootY = nose ? 239 : 184;
-  const curved = /curv|scythe|hook|revers|crook/.test(text),
+  const direction = /forward/.test(text) ? -1 : /revers|back|swept|ibex/.test(text) ? 1 : 0;
+  const curved = /curv|scythe|hook|crook/.test(text),
     broken = /broken|shatter|splinter/.test(text);
   const horn = shape(
     broken
       ? `M${rootX - 7} ${rootY}L${rootX - 22} ${rootY - 42}l9 5 1-14 12 6 15 40Z`
       : curved
         ? `M${rootX - 7} ${rootY}Q${rootX - 61} ${rootY - length} ${rootX + 9} ${rootY - length}Q${rootX - 24} ${rootY - length + 20} ${rootX + 10} ${rootY - 4}Z`
-        : `M${rootX - 8} ${rootY}Q${rootX - 27} ${rootY - 31} ${rootX - 45} ${rootY - length}Q${rootX - 9} ${rootY - 39} ${rootX + 10} ${rootY - 5}Z`,
+        : `M${rootX - 8} ${rootY}Q${rootX + direction * 17} ${rootY - 31} ${rootX + direction * 45 - 5} ${rootY - length}Q${rootX + direction * 9 + 5} ${rootY - 39} ${rootX + 10} ${rootY - 5}Z`,
     c
   );
   const count = /triple|trike/.test(text) ? 3 : /horns|double/.test(text) ? 2 : 1;
-  return html`${Array.from({ length: count }, (_, i) => html`<g transform="translate(${i * 23} ${i * 3})">${horn}${/twist|narwhal|serrat|candy|crack/.test(text) ? line(`M${rootX - 23} ${rootY - 40}l15-4m-10 15l15-4`, accent, 2) : ''}</g>`)}${/flame|fire|candle/.test(text) ? shape(`M${rootX - 44} ${rootY - length + 5}q-18-15 0-33q18 20 0 33Z`, accent) : ''}`;
+  return html`<g data-keratin-direction="${direction}">${Array.from({ length: count }, (_, i) => html`<g transform="translate(${i * 8} ${-i * 4})">${horn}${/twist|narwhal|serrat|candy|crack/.test(text) ? line(`M${rootX - 5} ${rootY - 40}l8-2m-5 14l8-2`, accent, 2) : ''}</g>`)}${/flame|fire|candle/.test(text) ? shape(`M${rootX + direction * 45 - 5} ${rootY - length + 5}q-10-12 0-23q10 15 0 23Z`, accent) : ''}</g>`;
 }

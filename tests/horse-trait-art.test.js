@@ -153,11 +153,33 @@ test('markings share placement reservations and facial designs stay small and fa
     const plan = [...markingPlacements({ ...horse, traits }).values()];
     assert.equal(new Set(plan.map(p => `${p.x},${p.y}`)).size, 6);
     for (const p of plan) {
-      assert.ok(p.opacity <= 0.43);
+      assert.ok(p.opacity <= 0.62);
       if (p.y < 280) {
-        assert.ok(p.width <= 11);
-        assert.ok(p.opacity <= 0.25);
+        assert.ok(p.width <= 14);
+        assert.ok(p.opacity <= 0.36);
       }
     }
   }
+});
+
+test('Keratin stays behind mane and fixed ears; Paint/Pattern colors cannot alter hair', () => {
+  const record = {
+    ...horse,
+    traits: { Keratin: ['Reversed Horn'], Mane: ['Braided Mane'], Ears: ['Jackrabbit Ears'] }
+  };
+  for (const render of [horseArt, horseHeadArt]) {
+    const art = render(record);
+    assert.ok(art.indexOf('data-trait-category="Keratin"') < art.indexOf('data-trait-category="Mane"'));
+    assert.ok(art.indexOf('data-trait-category="Mane"') < art.indexOf('data-layer="base-ears"'));
+    assert.match(art, /data-ear-anchor="284,166"/);
+  }
+  for (const category of ['Mane', 'Tail']) {
+    const name = `Braided ${category}`;
+    assert.equal(
+      String(traitArtwork(category, name, { colors })),
+      String(traitArtwork(category, name, { colors: { ...colors, Paint: '#FF00FF', Pattern: '#00FF00' } }))
+    );
+  }
+  assert.match(String(traitArtwork('Keratin', 'Forward Horns', { colors })), /data-keratin-direction="-1"/);
+  assert.match(String(traitArtwork('Keratin', 'Reversed Horn', { colors })), /data-keratin-direction="1"/);
 });

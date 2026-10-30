@@ -249,9 +249,9 @@ export function markingPlacements(horse) {
       placements.set(`${category}:${name}`, {
         x: point[0],
         y: point[1],
-        width: region === 'head' ? 11 : pool === legs ? 22 : 70,
+        width: region === 'head' ? 14 : pool === legs ? 26 : 80,
         height: region === 'head' ? 12 : pool === legs ? 35 : 38,
-        opacity: region === 'head' ? 0.25 : /light|subtle|faded/.test(text) ? 0.27 : 0.43
+        opacity: region === 'head' ? 0.36 : /light|subtle|faded/.test(text) ? 0.4 : 0.62
       });
     }
   return placements;
@@ -262,9 +262,9 @@ function markings(recipe, c, placement) {
   const spot = placement || {
     x: region === 'head' ? 241 : 520,
     y: region === 'head' ? 242 : 363,
-    width: region === 'head' ? 11 : 70,
+    width: region === 'head' ? 14 : 80,
     height: region === 'head' ? 12 : 38,
-    opacity: region === 'head' ? 0.25 : 0.43
+    opacity: region === 'head' ? 0.36 : 0.62
   };
   const scatter = /spots|stars|hearts|flowers/.test(family),
     count = scatter ? (/light|sparse/.test(text) ? 3 : 5) : /stripes/.test(family) ? 3 : 1;
@@ -282,7 +282,7 @@ function markings(recipe, c, placement) {
 
 // Vary contour control points and tips, rather than recoloring or scaling a shared
 // symbol. Keep anatomical anchors fixed while changing each name's silhouette.
-function individualContours(art, seed) {
+function individualContours(art, seed, category) {
   let pointIndex = 0;
   return raw(
     String(art).replace(/\bd="([^"]+)"/g, (_, d) => {
@@ -291,6 +291,7 @@ function individualContours(art, seed) {
         const value = Number(number);
         const index = pointIndex++;
         if (coordinate++ < 2 || !value) return number;
+        if (category === 'Keratin' && ((value >= 245 && value <= 310) || (value >= 160 && value <= 200))) return number;
         let mixed = seed ^ Math.imul(index + 1, 0x9e3779b9);
         mixed = Math.imul(mixed ^ (mixed >>> 16), 0x85ebca6b);
         mixed = Math.imul(mixed ^ (mixed >>> 13), 0xc2b2ae35);
@@ -320,13 +321,20 @@ export function traitArtwork(category, name, { colors = {}, description = '', pr
             : 'Keratin',
     '#B7A47A'
   );
-  const accent = color(colors, 'Paint', '#F4E2BD');
+  const accent = category === 'Mane' || category === 'Tail' ? hairHighlight(c) : color(colors, 'Paint', '#F4E2BD');
   let art;
   if (category === 'Mane' || category === 'Tail') art = horseHairArt(recipe, c, accent, prefix);
   else if (category === 'Keratin') art = keratinArt(recipe, c, accent);
   else if (family === 'ears' || family === 'floppy-ears' || family === 'ear-fans') {
-    const long = /long|jackrabbit|skyreacher|fennec|angora/.test(text) ? 80 : 43;
-    art = html`${[0, 1].map(i => group(281 + i * 23, 177 + i * 5, 1, family === 'floppy-ears' ? path(`M-9 0Q-42-54-46 10Q-48 37-29 26L6 0Z`, c) : family === 'ear-fans' ? path('M0 0L-62-22-40-30-55-48-30-36-30-62 8-8Z', c) : path(`M-10 0Q-30-${long} -12-${long}Q10-${long - 10} 9 0Z`, c)))}`;
+    const height = (/long|jackrabbit|skyreacher|fennec|angora/.test(text) ? 65 : 34) + (seed % 19) * 0.3;
+    const width = 7 + (seed % 83) / 30;
+    const d =
+      family === 'floppy-ears'
+        ? `M-7 0C-${width * 3} -${height} -${width * 5} -6 -${width * 3} 14Q-${width} 20 7 0Z`
+        : family === 'ear-fans'
+          ? `M-7 0L-${width * 4} -20 -30 -26 -${width * 3.5} -${height} -23 -32 -20 -${height + 12} 7 0Z`
+          : `M-7 0Q-${width * 2} -${height} -3 -${height}Q${width} -${height - 5} 7 0Z`;
+    art = html`<g data-ear-anchor="284,166">${group(292, 168, 0.85, path(d, c))}${group(284, 166, 1, path(d, c))}</g>`;
   } else if (family === 'whiskers')
     art = html`${line(`M208 264Q150 232 ${/short/.test(text) ? 176 : 124} 267M210 270Q152 282 ${/short/.test(text) ? 178 : 131} 304`, c, /thick|furry/.test(text) ? 5 : 2)}${/curl|twist/.test(text) ? line('M126 267C95 250 112 236 124 247M131 304Q102 320 114 329', c, 2) : ''}`;
   else if (family === 'aura')
@@ -336,7 +344,10 @@ export function traitArtwork(category, name, { colors = {}, description = '', pr
   else if (category === 'Pattern' || category === 'Paint') art = markings(recipe, c, placement);
   else
     art = html`${anchors(region, text).map(([x, y]) => group(x, y, 0.7 + (seed % 8) * 0.12, motif(family, c, text)))}`;
-  let geometry = category === 'Mane' || category === 'Tail' ? art : individualContours(art, seed);
+  let geometry =
+    category === 'Mane' || category === 'Tail' || ['ears', 'ear-fans', 'floppy-ears'].includes(family)
+      ? art
+      : individualContours(art, seed, category);
   if (category === 'Whiskers' && region === 'head')
     geometry = html`<g opacity=".45" transform="translate(245 240) scale(.65) translate(-245 -240)">${geometry}</g>`;
   return html`<g data-trait-category="${category}" data-trait="${name}" data-trait-family="${family}" fill="none">${geometry}</g>`;
@@ -354,4 +365,17 @@ export function horseTraitCategoryArt(horse, category, prefix) {
   return category === 'Pattern' || category === 'Paint'
     ? html`<g clip-path="url(#${prefix}-trait-coat)">${art}</g>`
     : html`${art}`;
+}
+
+function hairHighlight(value) {
+  return (
+    '#' +
+    [1, 3, 5]
+      .map(offset =>
+        Math.round(parseInt(value.slice(offset, offset + 2), 16) * 0.75 + 255 * 0.25)
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('')
+  );
 }

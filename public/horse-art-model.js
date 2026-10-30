@@ -19,7 +19,13 @@ export function horseModel(horse, eye, prefix) {
     .map(layer =>
       raw(layer.markup.split('<mask')[0].replaceAll('__PREFIX__', `${prefix}-`).replaceAll('__COLOR__', '#FFFFFF'))
     );
-  const layers = horseArtLayers
+  const orderedLayers = horseArtLayers.filter(layer => layer.name !== 'keratin');
+  orderedLayers.splice(
+    orderedLayers.findIndex(layer => layer.name === 'mane'),
+    0,
+    horseArtLayers.find(layer => layer.name === 'keratin')
+  );
+  const layers = orderedLayers
     .filter(layer => layer.channel !== 'Keratin' || hasKeratin)
     .map(layer => {
       if (['Paint', 'Pattern'].includes(layer.channel) && horse.traits) return html``;
@@ -33,13 +39,7 @@ export function horseModel(horse, eye, prefix) {
       if (layer.name === 'sock' && horse.traits)
         return html`${render(layer)}${horseTraitCategoryArt(horse, 'Paint', prefix)}${horseTraitCategoryArt(horse, 'Pattern', prefix)}`;
       if (layer.name === 'eye')
-        return html`<g data-layer="base-ears"><defs><clipPath id="${prefix}-ears"><rect x="278" y="125" width="40" height="52"/></clipPath></defs><g clip-path="url(#${prefix}-ears)">${raw(
-          horseArtLayers
-            .find(layer => layer.name === 'coat top')
-            .markup.split('<mask')[0]
-            .replaceAll('__PREFIX__', `${prefix}-`)
-            .replaceAll('__COLOR__', horse.palette.colors['Coat Top'])
-        )}</g></g>${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
+        return html`<g data-layer="base-ears"><path d="M278 170C275.5 163.5 277.234 151.188 280 147.5C283 143.5 283 136.5 283.5 135.5C284 134.5 286 136 288.5 142C288.753 142.607 288.965 143.251 289.138 143.925C290.133 147.255 291.325 152.803 291 158C291.783 159.567 293.165 162.571 294.496 166Z" fill="${horse.palette.colors['Coat Top']}"/></g>${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
       return render(layer);
     });
   // Mirror the entire model (including masks and markings) to face right. Feet sit at y=274.

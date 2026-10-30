@@ -99,3 +99,10 @@ reshaping smoothly outward. Paint/Pattern share regional placement reservations
 to reduce overlap and no longer scatter motifs over the whole body. Face
 markings use very small footprints and lower opacity; facial whisker decorations
 are reduced as well. Use `--markings` to create `marking-studies.svg`.
+
+Keratin is drawn before the mane, with source ears redrawn at their original
+outline (no rectangular coat patch). Ear variants use fixed skull anchors.
+Forward and reversed horns have explicit directions; paired horn roots stay
+on the forehead ahead of the ears. Paint/Pattern opacity is moderately raised
+while facial marks remain quieter. Hair highlights derive only from Hair color,
+so Paint/Pattern palette changes cannot recolor mane or tail details.
