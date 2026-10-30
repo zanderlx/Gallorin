@@ -84,3 +84,12 @@ npx electron scripts/capture-horse-preview.cjs trait-studies 1500 1360
 
 For a same-palette tail comparison, run `node scripts/preview-horse-traits.js --tails`,
 then `npx electron scripts/capture-horse-preview.cjs tail-studies 1500 1360`.
+
+Mane/tail variants derive directly from the supplied SVG path coordinates,
+including their forelock and tail root. Standard Mane/Tail retain the original
+geometry. Other names reshape those paths around their anatomical attachments;
+texture details are clipped to the resulting silhouette. Keratin is composited
+before a clipped redraw of the source ears and before selected ear artwork.
+Keratin recipes distinguish nasal horns, broken/curved horns, ram versus kudu
+curls, moose versus branching antlers, tusks versus saber fangs, and crowns
+versus helmets. Use `--keratins` with the preview script for a contact sheet.

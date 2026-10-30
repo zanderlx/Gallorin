@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { speciesTraitData } from '../public/species-trait-data.js';
 import { traitArtwork, traitArtDefinition, selectedArtTraits } from '../public/horse-trait-art.js';
 import { horseArt, horseHeadArt } from '../public/art.js';
-import { hairDesign } from '../public/horse-hair-art.js';
+import { hairDesign, sourceHairPaths } from '../public/horse-hair-art.js';
 
 const colors = {
   'Coat Top': '#B38E67',
@@ -107,4 +107,22 @@ test('hair names control length and texture independently, without braid-like fu
   assert.equal(hairDesign(traitArtDefinition('Tail', 'Short Curly Tail')).texture, 'curly');
   assert.equal(hairDesign(traitArtDefinition('Tail', 'Braided Tail')).texture, 'braid');
   assert.equal(String(traitArtwork('Cosmetic', 'Side Wings', { colors })), '');
+});
+
+test('standard hair retains original SVG coordinates and Keratin is behind both ear layers', () => {
+  const coordinates = d => [...d.matchAll(/-?\d*\.?\d+/g)].map(match => Number(match[0]));
+  for (const category of ['Mane', 'Tail']) {
+    const art = String(traitArtwork(category, `Standard ${category}`, { colors }));
+    assert.match(art, /data-hair-source="original-svg"/);
+    const paths = [...art.matchAll(/<path d="([^"]+)"/g)].map(match => match[1]);
+    assert.deepEqual(
+      paths.slice(0, sourceHairPaths[category].length).map(coordinates),
+      sourceHairPaths[category].map(coordinates)
+    );
+  }
+  for (const render of [horseArt, horseHeadArt]) {
+    const art = render({ ...horse, traits: { Keratin: ['Ram Horns'], Ears: ['Jackrabbit Ears'] } });
+    assert.ok(art.indexOf('data-trait-category="Keratin"') < art.indexOf('data-layer="base-ears"'));
+    assert.ok(art.indexOf('data-layer="base-ears"') < art.indexOf('data-trait-category="Ears"'));
+  }
 });

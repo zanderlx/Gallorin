@@ -1,3 +1,4 @@
+import { keratinArt } from './horse-keratin-art.js';
 import { horseHairArt } from './horse-hair-art.js';
 import { html, raw } from './ui.js';
 
@@ -224,30 +225,6 @@ function markings(recipe, c) {
   })}</g>`;
 }
 
-function keratin(recipe, c, accent) {
-  const { family, seed, text } = recipe;
-  if (family === 'fangs')
-    return html`${[0, 1].map(i => path(`M${200 + i * 22} 266Q${185 + i * 22} 292 ${202 + i * 22} ${/long|saber|tusk/.test(text) ? 318 : 292}L${210 + i * 22} 268Z`, c))}`;
-  if (family === 'pole')
-    return html`${line('M520 125V528', c, 9)}${/key/.test(text) ? group(530, 331, 1.7, motif('hearts', c, text)) : group(520, 135, 1.3, motif('stars', accent, text))}`;
-  if (family === 'crown')
-    return html`${path('M265 177L247 133 272 146 285 116 298 147 321 132 312 183Z', c)}${[263, 285, 307].map(x => circle(x, 155, 4, accent))}`;
-  if (family === 'crest') return path('M253 191Q230 118 282 127Q322 115 340 167L300 194Z', c);
-  if (family === 'antennae')
-    return html`${line('M275 181Q235 119 250 96M293 183Q333 122 324 100', c, 5)}${[250, 324].map(x => group(x, 97, 0.8, motif('flowers', accent, text)))}`;
-  if (family === 'antlers')
-    return html`${[0, 1].map(i => html`<g transform="translate(${i * 26} ${i * 8})">${line('M270 181Q232 130 251 77M247 129L216 105 214 87M245 110L268 88 275 65M249 87L233 67', c, /thin|tiny/.test(text) ? 5 : 9)}</g>`)}`;
-  if (family === 'curled-horns')
-    return html`${line('M272 182C194 175 216 100 259 118S288 190 249 163Q232 147 249 142', c, /thin|small/.test(text) ? 9 : 17)}${line('M286 177Q326 127 293 115', c, 9)}`;
-  const length = /tiny|small|nub|teeny/.test(text) ? 35 : /tall|long|narwhal/.test(text) ? 110 : 75;
-  const broken = /broken|shatter|splinter|crack/.test(text);
-  const art = path(
-    `M263 184Q${234 - (seed % 14)} 153 ${broken ? '229 135L238 133 229 124' : `${246 - (seed % 29)} ${180 - length}`}Q260 142 281 177Z`,
-    c
-  );
-  return html`${art}${/double|triple|horns/.test(text) ? group(25, 4, 1, art) : ''}${/triple/.test(text) ? group(45, 10, 1, art) : ''}${/spiral|twist|serrat|crack|candy/.test(text) ? line('M250 158L268 165M242 145L260 151M235 130L253 137', accent, 3) : ''}${/flam|fire|candle/.test(text) ? group(231, 107, 0.75, motif('flames', accent, text)) : ''}`;
-}
-
 // Vary contour control points and tips, rather than recoloring or scaling a shared
 // symbol. Keep anatomical anchors fixed while changing each name's silhouette.
 function individualContours(art, seed) {
@@ -268,7 +245,7 @@ function individualContours(art, seed) {
   );
 }
 
-export function traitArtwork(category, name, { colors = {}, description = '' } = {}) {
+export function traitArtwork(category, name, { colors = {}, description = '', prefix = 'trait' } = {}) {
   if (category === 'Cosmetic') return html``;
   const recipe = traitArtDefinition(category, name, description),
     { family, region, seed, text } = recipe;
@@ -287,8 +264,8 @@ export function traitArtwork(category, name, { colors = {}, description = '' } =
   );
   const accent = color(colors, 'Paint', '#F4E2BD');
   let art;
-  if (category === 'Mane' || category === 'Tail') art = horseHairArt(recipe, c, accent);
-  else if (category === 'Keratin') art = keratin(recipe, c, accent);
+  if (category === 'Mane' || category === 'Tail') art = horseHairArt(recipe, c, accent, prefix);
+  else if (category === 'Keratin') art = keratinArt(recipe, c, accent);
   else if (family === 'ears' || family === 'floppy-ears' || family === 'ear-fans') {
     const long = /long|jackrabbit|skyreacher|fennec|angora/.test(text) ? 80 : 43;
     art = html`${[0, 1].map(i => group(281 + i * 23, 177 + i * 5, 1, family === 'floppy-ears' ? path(`M-9 0Q-42-54-46 10Q-48 37-29 26L6 0Z`, c) : family === 'ear-fans' ? path('M0 0L-62-22-40-30-55-48-30-36-30-62 8-8Z', c) : path(`M-10 0Q-30-${long} -12-${long}Q10-${long - 10} 9 0Z`, c)))}`;
@@ -307,7 +284,7 @@ export function traitArtwork(category, name, { colors = {}, description = '' } =
 
 export function horseTraitCategoryArt(horse, category, prefix) {
   const art = selectedArtTraits(horse, category).map(name =>
-    traitArtwork(category, name, { colors: horse.palette.colors })
+    traitArtwork(category, name, { colors: horse.palette.colors, prefix })
   );
   return category === 'Pattern' || category === 'Paint'
     ? html`<g clip-path="url(#${prefix}-trait-coat)">${art}</g>`

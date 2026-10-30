@@ -76,7 +76,24 @@ const examples = tailsOnly
       'Upturned Tail'
     ].map(name => [name, { Mane: ['Standard Mane'], Tail: [name] }])
   : studies;
-const tiles = examples.map(([name, traits], index) => {
+const keratinsOnly = process.argv.includes('--keratins');
+const selected = keratinsOnly
+  ? [
+      'Small Horn',
+      'Tall Horn',
+      'Broken Horn',
+      'Scythe Horn',
+      'Rhino Horn',
+      'Ram Horns',
+      'Kudu Horns',
+      'Reindeer Antlers',
+      'Moose Antlers',
+      'Saber Fangs',
+      'Gemstone Crown',
+      'Corinthian Helm'
+    ].map(name => [name, { Keratin: [name], Mane: ['Standard Mane'], Tail: ['Standard Tail'] }])
+  : examples;
+const tiles = selected.map(([name, traits], index) => {
   const horse = {
     id: `study-${index}`,
     species: 'Horse',
@@ -89,7 +106,7 @@ const tiles = examples.map(([name, traits], index) => {
 const output = new URL('../test-results/horse-art/', import.meta.url);
 await mkdir(output, { recursive: true });
 await writeFile(
-  new URL(tailsOnly ? 'tail-studies.svg' : 'trait-studies.svg', output),
+  new URL(keratinsOnly ? 'keratin-studies.svg' : tailsOnly ? 'tail-studies.svg' : 'trait-studies.svg', output),
   String(
     html`<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1360" viewBox="0 0 1500 1360"><rect width="1500" height="1360" fill="#121C16"/>${tiles}</svg>`
   )

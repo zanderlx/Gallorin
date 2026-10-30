@@ -33,7 +33,13 @@ export function horseModel(horse, eye, prefix) {
       if (layer.name === 'sock' && horse.traits)
         return html`${render(layer)}${horseTraitCategoryArt(horse, 'Paint', prefix)}${horseTraitCategoryArt(horse, 'Pattern', prefix)}`;
       if (layer.name === 'eye')
-        return html`${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
+        return html`<g data-layer="base-ears"><defs><clipPath id="${prefix}-ears"><rect x="278" y="125" width="40" height="52"/></clipPath></defs><g clip-path="url(#${prefix}-ears)">${raw(
+          horseArtLayers
+            .find(layer => layer.name === 'coat top')
+            .markup.split('<mask')[0]
+            .replaceAll('__PREFIX__', `${prefix}-`)
+            .replaceAll('__COLOR__', horse.palette.colors['Coat Top'])
+        )}</g></g>${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
       return render(layer);
     });
   // Mirror the entire model (including masks and markings) to face right. Feet sit at y=274.
