@@ -33,7 +33,7 @@ export function horseModel(horse, eye, prefix) {
       if (layer.name === 'sock' && horse.traits)
         return html`${render(layer)}${horseTraitCategoryArt(horse, 'Paint', prefix)}${horseTraitCategoryArt(horse, 'Pattern', prefix)}`;
       if (layer.name === 'eye')
-        return html`${['Cosmetic', 'Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
+        return html`${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
       return render(layer);
     });
   // Mirror the entire model (including masks and markings) to face right. Feet sit at y=274.

@@ -5,24 +5,17 @@ const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.j
 const palette = catalog.palettes.find(p => p.name === 'Natural Gold');
 const studies = [
   ['Braids & spots', { Mane: ['Braided Mane'], Tail: ['Braided Tail'], Pattern: ['Deer Spots'] }],
-  [
-    'Antlers & winter fur',
-    { Keratin: ['Reindeer Antlers'], Cosmetic: ['Long Beard Fur', 'Fuzzy Socks'], Mane: ['Winter Mane'] }
-  ],
+  ['Antlers & winter mane', { Keratin: ['Reindeer Antlers'], Mane: ['Winter Mane'] }],
   [
     'Flames & dragon horns',
     { Mane: ['Flame Mane'], Tail: ['Flame Tail'], Keratin: ['Dragon Horns'], Pattern: ['Torn Flames'] }
   ],
+  ['Flower mane & tail', { Mane: ['Flowering Mane'], Tail: ['Flower Tail'], Pattern: ['Blooming Marigolds'] }],
   [
-    'Flowers & vines',
-    { Mane: ['Flowering Mane'], Tail: ['Flower Tail'], Pattern: ['Blooming Marigolds'], Cosmetic: ['Flower Vine Legs'] }
-  ],
-  [
-    'Crystals & plates',
+    'Crystal hair & horn',
     {
       Mane: ['Glacier Mane'],
       Tail: ['Glacier Tail'],
-      Cosmetic: ['Draconic Body Plates'],
       Keratin: ['Sharp Crystal Horn']
     }
   ],
@@ -30,20 +23,16 @@ const studies = [
     'Curled hair & ram horns',
     { Mane: ['Short Curly Mane'], Tail: ['Short Curly Tail'], Keratin: ['Ram Horns'], Paint: ['Blaze Paint'] }
   ],
-  [
-    'Feathers & wings',
-    { Mane: ['Long Feather Mane'], Tail: ['Feathered Tail'], Cosmetic: ['Side Wings'], Ears: ['Wing Ears'] }
-  ],
+  ['Feathers & wing ears', { Mane: ['Long Feather Mane'], Tail: ['Feathered Tail'], Ears: ['Wing Ears'] }],
   [
     'Bare mane & short tail',
     { Mane: ['Bald'], Tail: ['Short Tail'], Pattern: ['Zebra Stripes'], Paint: ['Tall Socks'] }
   ],
   [
-    'Halos & eyes',
+    'Halos & stars',
     {
       Mane: ['Flowing Mane'],
       Whiskers: ['Divine Body Halo', 'Radiant Halo Head'],
-      Cosmetic: ['Extra Eyes'],
       Pattern: ['Star Dapple']
     }
   ],
@@ -52,10 +41,9 @@ const studies = [
     { Mane: ['Bone Mane'], Tail: ['Skeleton Tail'], Pattern: ['Spider Web Cage'], Paint: ['Leg Bones'] }
   ],
   [
-    'Crown & ribbons',
+    'Crown & filigree',
     {
       Keratin: ['Gemstone Crown'],
-      Cosmetic: ['Dainty Ribbons', 'Pearl Ankles'],
       Mane: ['Elegant Braided Mane'],
       Pattern: ['Side Filigree']
     }
@@ -71,7 +59,24 @@ const studies = [
     }
   ]
 ];
-const tiles = studies.map(([name, traits], index) => {
+const tailsOnly = process.argv.includes('--tails');
+const examples = tailsOnly
+  ? [
+      'Short Fur Tail',
+      'Short Tail Fur',
+      'Long Fur Tail',
+      'Short Curly Tail',
+      'Wavy Short Tail',
+      'Long Wavy Tail',
+      'Braided Tail',
+      'Elegant Braided Tail',
+      'Short Tuft Tail',
+      'Long Blunt Tail',
+      'Sparse Tail',
+      'Upturned Tail'
+    ].map(name => [name, { Mane: ['Standard Mane'], Tail: [name] }])
+  : studies;
+const tiles = examples.map(([name, traits], index) => {
   const horse = {
     id: `study-${index}`,
     species: 'Horse',
@@ -84,9 +89,9 @@ const tiles = studies.map(([name, traits], index) => {
 const output = new URL('../test-results/horse-art/', import.meta.url);
 await mkdir(output, { recursive: true });
 await writeFile(
-  new URL('trait-studies.svg', output),
+  new URL(tailsOnly ? 'tail-studies.svg' : 'trait-studies.svg', output),
   String(
     html`<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1360" viewBox="0 0 1500 1360"><rect width="1500" height="1360" fill="#121C16"/>${tiles}</svg>`
   )
 );
-console.log('Wrote test-results/horse-art/trait-studies.svg');
+console.log(`Wrote test-results/horse-art/${tailsOnly ? 'tail' : 'trait'}-studies.svg`);

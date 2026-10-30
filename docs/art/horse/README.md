@@ -49,14 +49,21 @@ does not open or write player saves.
 
 ## Trait vector library
 
-All eight supported categories use deterministic SVG recipes. The supplied
+Seven artwork categories use deterministic SVG recipes. Cosmetic overlays are
+disabled, including direct calls to the trait renderer; saved Cosmetic traits
+still appear as profile data. The supplied
 reference has 3,356 species/category/name entries; it contains names rather than
 individual prose descriptions. Designs interpret those names through visual
 families (braids, curls, feathers, botanical hair, antlers, fangs, crowns, plates,
 fur, spots, stripes, flowers, hearts, bones, halos and others), anatomical words,
-length/density qualifiers and stable per-name variations. These are procedural
-interpretations; related names share visual families rather than thousands of
-individually hand-drawn assets. Small charm motifs are stylized symbols.
+length/density qualifiers and stable per-name geometry. Hair length and texture
+are independent: short fur, short curls and short waves stay short. Only named
+braids use interwoven links; fur uses a feathered contour, curls use loops, and
+blunt/tufted/upturned tails use their corresponding tip and posture. These are procedural
+interpretations with shared visual families and individual contours/strand
+layouts rather than thousands of manually drawn assets. The catalog regression
+test compares path geometry after ignoring labels, colors and transforms and
+rejects duplicate designs for distinct supported category/name pairs. Small charm motifs are stylized symbols.
 
 Paint and Pattern clip to the actual coat silhouettes; multiple selected traits
 stack in a stable order. External adornments can overlap and extend outside the
@@ -74,3 +81,6 @@ To regenerate the representative design contact sheet:
 node scripts/preview-horse-traits.js
 npx electron scripts/capture-horse-preview.cjs trait-studies 1500 1360
 ```
+
+For a same-palette tail comparison, run `node scripts/preview-horse-traits.js --tails`,
+then `npx electron scripts/capture-horse-preview.cjs tail-studies 1500 1360`.

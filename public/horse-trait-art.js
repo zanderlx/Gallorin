@@ -1,6 +1,7 @@
-import { html } from './ui.js';
+import { horseHairArt } from './horse-hair-art.js';
+import { html, raw } from './ui.js';
 
-export const traitArtCategories = ['Pattern', 'Paint', 'Tail', 'Mane', 'Cosmetic', 'Ears', 'Keratin', 'Whiskers'];
+export const traitArtCategories = ['Pattern', 'Paint', 'Tail', 'Mane', 'Ears', 'Keratin', 'Whiskers'];
 const clean = value => String(value || '').trim();
 export function selectedArtTraits(horse, category) {
   const values = horse.traits?.[category] ?? horse.traits?.[`${category}s`] ?? [];
@@ -107,8 +108,13 @@ export function traitArtDefinition(category, name, description = '') {
 
 function motif(family, c, text) {
   switch (family) {
-    case 'flowers':
-      return html`${Array.from({ length: 5 }, (_, i) => html`<ellipse cx="0" cy="-9" rx="5" ry="10" fill="${c}" transform="rotate(${i * 72})"/>`)}${circle(0, 0, 4, '#FFE8AB')}`;
+    case 'flowers': {
+      const seed = hash(text),
+        petals = 5 + (seed % 4);
+      const width = 4 + (seed % 719) / 180,
+        reach = 14 + ((seed >>> 8) % 887) / 100;
+      return html`${Array.from({ length: petals }, (_, i) => html`<g transform="rotate(${(i * 360) / petals})">${path(`M0 0C-${width} -6 -${width} -${reach} 0 -${reach}C${width} -${reach} ${width} -6 0 0Z`, c)}</g>`)}${circle(0, 0, 3, '#FFE8AB')}`;
+    }
     case 'hearts':
       return path('M0 14C-28-2-16-23 0-10C16-23 28-2 0 14Z', c);
     case 'stars':
@@ -136,7 +142,7 @@ function motif(family, c, text) {
     case 'fur':
       return path('M-23-8Q-9-13 0-9L23-3 17 19 10 11 3 25-3 13-12 21-13 8-23 13Z', c);
     case 'stripes':
-      return path('M-23-13Q0-6 24-18L10 1 20 14Q-3 4-24 17L-10-1Z', c);
+      return path('M-8-32Q5-14-7 8L-14 31Q6 19 9-4L13-29Z', c);
     case 'swirls':
       return line('M-24 9C-25-25 25-23 23 2S-11 24-11 4S14-8 10 4', c, 4);
     case 'diamonds':
@@ -218,47 +224,6 @@ function markings(recipe, c) {
   })}</g>`;
 }
 
-function hair(recipe, c, accent) {
-  const { category, family, seed, text } = recipe;
-  if (family === 'bare') return html``;
-  const tail = category === 'Tail',
-    short = family === 'short-hair',
-    sparse = /sparse|partial|quarter|half/.test(text);
-  if (family === 'flowing-hair') {
-    const silhouette = tail
-      ? 'M724 240C788 223 811 278 810 325C804 394 861 439 836 507L809 559Q836 501 801 470C765 434 772 387 779 344C781 308 760 283 718 274Z'
-      : 'M280 174Q299 136 332 158C362 162 373 206 400 220Q444 229 463 284L476 322Q441 279 412 279L425 306Q395 290 382 260Q348 245 337 211Q301 199 285 216Z';
-    return html`${path(silhouette, c)}${tail ? line('M746 257Q798 285 789 350T817 478', accent, 2, 0.35) : line('M310 167Q349 181 362 215T439 281', accent, 2, 0.35)}`;
-  }
-  const root = tail ? [729, 253] : [297, 170];
-  const count = sparse ? 3 : short ? 5 : 9;
-  const pieces = Array.from({ length: count }, (_, i) => {
-    const t = i / (count - 1),
-      x = root[0] + (tail ? t * 80 : t * 137),
-      y = root[1] + (tail ? t * (short ? 50 : 230) : t * (sparse ? 64 : 116));
-    const scale = short ? 0.65 : 1;
-    if (family === 'braid')
-      return html`${group(x, y, 1, path('M-8-7Q-30 1-5 18Q20 28 9 4Q-5-15-8-7Z', c))}${line(`M${x - 7} ${y + 1}l15 10`, accent, 2, 0.5)}`;
-    if (family === 'bone') return group(x, y, 0.8, motif('bones', accent, text));
-    if (family === 'flame') return group(x, y, 1.7, motif('flames', c, text));
-    if (family === 'crystal' || family === 'spines')
-      return group(x, y, 1.8, motif(family === 'crystal' ? 'plates' : 'spikes', c, text));
-    if (family === 'botanical')
-      return group(x, y, 1.3, motif(/leaf|cact|lettuce|cabbage/.test(text) ? 'leaves' : 'flowers', c, text));
-    if (family === 'feather') return group(x, y, 1.8, path('M0-16Q-35-8-12 35Q20 17 0-16Z', c));
-    if (family === 'curls')
-      return html`${group(x, y, 1.5, circle(0, 0, 17, c))}${group(x, y, 1, line('M-8 8C-20-15 19-20 13 0S-8 13-3 0', accent, 2, 0.65))}`;
-    const length = short ? 25 : 50 + (seed % 27);
-    return group(
-      x,
-      y,
-      scale,
-      path(`M-14-16Q12-29 25-7Q20 14 ${20 + (seed % 19)} ${length}Q-4 22-21 17Q-38 0-14-16Z`, c)
-    );
-  });
-  return html`<g>${tail ? line(short ? 'M725 248Q753 265 770 303' : 'M725 248Q780 272 807 375T835 548', c, short ? 9 : 18) : line(sparse ? 'M294 168Q322 178 353 204' : 'M294 168Q344 184 392 235L434 283', c, short ? 12 : 27)}${pieces}${/two toned|half paint|streak/.test(text) ? line(tail ? 'M746 265Q790 350 824 510' : 'M305 166Q373 207 423 277', accent, 9) : ''}${/three tails/.test(text) ? html`${group(10, -20, 1, pieces)}${group(28, 12, 1, pieces)}` : ''}</g>`;
-}
-
 function keratin(recipe, c, accent) {
   const { family, seed, text } = recipe;
   if (family === 'fangs')
@@ -283,7 +248,28 @@ function keratin(recipe, c, accent) {
   return html`${art}${/double|triple|horns/.test(text) ? group(25, 4, 1, art) : ''}${/triple/.test(text) ? group(45, 10, 1, art) : ''}${/spiral|twist|serrat|crack|candy/.test(text) ? line('M250 158L268 165M242 145L260 151M235 130L253 137', accent, 3) : ''}${/flam|fire|candle/.test(text) ? group(231, 107, 0.75, motif('flames', accent, text)) : ''}`;
 }
 
+// Vary contour control points and tips, rather than recoloring or scaling a shared
+// symbol. Keep anatomical anchors fixed while changing each name's silhouette.
+function individualContours(art, seed) {
+  let pointIndex = 0;
+  return raw(
+    String(art).replace(/\bd="([^"]+)"/g, (_, d) => {
+      let coordinate = 0;
+      const outline = d.replace(/-?\d*\.?\d+/g, number => {
+        const value = Number(number);
+        const index = pointIndex++;
+        if (coordinate++ < 2 || !value) return number;
+        const fraction = (Math.imul(seed ^ (index + 1), 1597334677) >>> 0) / 4294967296;
+        const change = Math.min(7, Math.abs(value) * 0.18) * (fraction * 2 - 1);
+        return String(Math.round((value + change) * 100) / 100);
+      });
+      return `d="${outline}"`;
+    })
+  );
+}
+
 export function traitArtwork(category, name, { colors = {}, description = '' } = {}) {
+  if (category === 'Cosmetic') return html``;
   const recipe = traitArtDefinition(category, name, description),
     { family, region, seed, text } = recipe;
   const c = color(
@@ -301,7 +287,7 @@ export function traitArtwork(category, name, { colors = {}, description = '' } =
   );
   const accent = color(colors, 'Paint', '#F4E2BD');
   let art;
-  if (category === 'Mane' || category === 'Tail') art = hair(recipe, c, accent);
+  if (category === 'Mane' || category === 'Tail') art = horseHairArt(recipe, c, accent);
   else if (category === 'Keratin') art = keratin(recipe, c, accent);
   else if (family === 'ears' || family === 'floppy-ears' || family === 'ear-fans') {
     const long = /long|jackrabbit|skyreacher|fennec|angora/.test(text) ? 80 : 43;
@@ -315,8 +301,8 @@ export function traitArtwork(category, name, { colors = {}, description = '' } =
   else if (category === 'Pattern' || category === 'Paint') art = markings(recipe, c);
   else
     art = html`${anchors(region, text).map(([x, y]) => group(x, y, 0.7 + (seed % 8) * 0.12, motif(family, c, text)))}`;
-  const variation = 0.98 + (seed % 9) * 0.005;
-  return html`<g data-trait-category="${category}" data-trait="${name}" data-trait-family="${family}" fill="none"><g transform="translate(500 300) scale(${variation}) translate(-500 -300)">${art}</g></g>`;
+  const geometry = category === 'Mane' || category === 'Tail' ? art : individualContours(art, seed);
+  return html`<g data-trait-category="${category}" data-trait="${name}" data-trait-family="${family}" fill="none">${geometry}</g>`;
 }
 
 export function horseTraitCategoryArt(horse, category, prefix) {

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { speciesTraitData } from '../public/species-trait-data.js';
 import { traitArtwork, traitArtDefinition, selectedArtTraits } from '../public/horse-trait-art.js';
 import { horseArt, horseHeadArt } from '../public/art.js';
+import { hairDesign } from '../public/horse-hair-art.js';
 
 const colors = {
   'Coat Top': '#B38E67',
@@ -19,17 +20,33 @@ const horse = { id: 'trait-test', species: 'Horse', palette: { colors }, eye: { 
 
 test('every bundled trait has deterministic vector artwork and a semantic recipe', () => {
   let count = 0;
+  const designs = new Map();
+  const namesSeen = new Set();
   for (const [species, groups] of Object.entries(speciesTraitData))
     for (const [category, names] of Object.entries(groups))
       for (const name of names) {
         const art = String(traitArtwork(category, name, { colors }));
+        if (category === 'Cosmetic') {
+          assert.equal(art, '');
+          continue;
+        }
         assert.equal(art, String(traitArtwork(category, name, { colors })), `${species}: ${name}`);
         assert.match(art, /data-trait-family=/);
         assert.doesNotMatch(art, /undefined|NaN|__COLOR__|<script/);
         if (!/^bald$/i.test(name)) assert.match(art, /<path|<ellipse|<circle/, `${species}: ${name}`);
+        const key = `${category}:${name}`;
+        if (!namesSeen.has(key) && !/^bald$/i.test(name)) {
+          // Compare drawing geometry only: labels, colors and transforms cannot
+          // make identical designs pass this check.
+          const geometry = [...art.matchAll(/<path d="([^"]+)"/g)].map(match => match[1]).join('|');
+          assert.ok(geometry, key);
+          assert.ok(!designs.has(geometry), `${key} duplicates ${designs.get(geometry)}`);
+          designs.set(geometry, key);
+          namesSeen.add(key);
+        }
         count++;
       }
-  assert.ok(count > 3300);
+  assert.ok(count > 2300);
   assert.equal(traitArtDefinition('Keratin', 'Reindeer Antlers').family, 'antlers');
   assert.equal(traitArtDefinition('Mane', 'Braided Mane').family, 'braid');
   assert.equal(traitArtDefinition('Pattern', 'Deer Spots').family, 'spots');
@@ -53,8 +70,11 @@ test('saved traits replace placeholder markings and hair, combine, clip to the c
   const before = structuredClone(record);
   for (const render of [horseArt, horseHeadArt]) {
     const art = render(record);
-    for (const names of Object.values(record.traits))
+    for (const names of Object.entries(record.traits)
+      .filter(([category]) => category !== 'Cosmetic')
+      .map(([, names]) => names))
       for (const name of names) assert.ok(art.includes(`data-trait="${name}"`));
+    assert.doesNotMatch(art, /data-trait-category="Cosmetic"|data-trait="Chin Beard"/);
     assert.doesNotMatch(art, /data-layer="(?:mane|tail|paint|pattern|keratin)"/);
     assert.match(art, /clip-path="url\(#htrait-test-trait-coat\)"/);
     const ids = [...art.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
@@ -68,7 +88,23 @@ test('saved traits replace placeholder markings and hair, combine, clip to the c
     selectedArtTraits({ ...horse, traits: { Patterns: ['None', 'Deer Spots', 'Deer Spots'] } }, 'Pattern'),
     ['Deer Spots']
   );
-  const custom = String(traitArtwork('Cosmetic', '<script>alert(1)</script>', { colors }));
+  const custom = String(traitArtwork('Paint', '<script>alert(1)</script>', { colors }));
   assert.doesNotMatch(custom, /<script>/);
   assert.match(custom, /&lt;script&gt;/);
+});
+
+test('hair names control length and texture independently, without braid-like fur', () => {
+  for (const name of ['Short Fur Tail', 'Short Curly Tail', 'Short Tail', 'Short Tuft Tail']) {
+    const recipe = traitArtDefinition('Tail', name);
+    const design = hairDesign(recipe);
+    assert.ok(design.short, name);
+    assert.ok(design.length < 70, name);
+    assert.notEqual(design.texture, 'braid');
+    const art = String(traitArtwork('Tail', name, { colors }));
+    assert.match(art, /data-hair-length="short"/);
+  }
+  assert.equal(hairDesign(traitArtDefinition('Tail', 'Short Fur Tail')).texture, 'fur');
+  assert.equal(hairDesign(traitArtDefinition('Tail', 'Short Curly Tail')).texture, 'curly');
+  assert.equal(hairDesign(traitArtDefinition('Tail', 'Braided Tail')).texture, 'braid');
+  assert.equal(String(traitArtwork('Cosmetic', 'Side Wings', { colors })), '');
 });
