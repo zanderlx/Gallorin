@@ -29,6 +29,25 @@ test('active artwork faces right, maps every channel, preserves source masks and
   assert.match(horseHeadArt(horse), /viewBox="275 35 135 145"/);
 });
 
+test('Keratin traits show palette-colored artwork on every species in full-body and headshot views', () => {
+  for (const species of ['Arabian', 'Anticorn', 'Hauntmare']) {
+    const record = { ...horse, species, traits: { Keratin: ['Dragon Horns'] } };
+    const before = structuredClone(record);
+    for (const render of [horseArt, horseHeadArt]) {
+      const svg = render(record);
+      const keratin = svg.match(/<g data-layer="keratin"[^>]*>([\s\S]*?)<\/g>/);
+      assert.ok(keratin, species);
+      assert.ok(keratin[1].includes(`fill="${record.palette.colors.Keratin}"`));
+    }
+    assert.deepEqual(record, before);
+  }
+  for (const Keratin of [undefined, [], ['None'], ['Awaiting species data'], ['', null, 'None']]) {
+    for (const render of [horseArt, horseHeadArt])
+      assert.doesNotMatch(render({ ...horse, species: 'Arabian', traits: { Keratin } }), /data-layer="keratin"/);
+  }
+  assert.match(horseArt({ ...horse, traits: { Keratin: [] } }), /data-layer="keratin"/);
+});
+
 test('legacy full-body and headshot renderers remain callable with their original geometry', () => {
   assert.match(legacyHorseArt(horse), /viewBox="0 0 460 310"/);
   assert.match(legacyHorseArt(horse), /placeholder artwork/);

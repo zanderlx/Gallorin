@@ -30,7 +30,8 @@ All supplied markings and the horn are shown in the original assembly study.
 including its Coat Top tint. Wilds uses the full body; stable cards and both
 profile tabs use a headshot. Clicking a profile portrait opens the full body.
 Mane and tail share Hair; eyes retain the normal trait and Cosmic override
-logic. The horn follows the existing Unicorn species rule.
+logic. The Keratin layer appears for Unicorns and for any horse with an active
+Keratin trait; empty, None, and awaiting-data traits do not add it.
 
 The old renderer remains available as `legacyHorseArt` and `legacyHorseHeadArt`
 from `public/art.js` (implemented in `public/legacy-art.js`).

@@ -1,9 +1,11 @@
 import { horseArtLayers } from './horse-art-layers.js';
+import { traitChoices } from './horse-update-fields.js';
 import { html, raw } from './ui.js';
 
 export function horseModel(horse, eye, prefix) {
+  const hasKeratin = horse.species === 'Unicorn' || traitChoices(horse.traits?.Keratin).length > 0;
   const layers = horseArtLayers
-    .filter(layer => layer.channel !== 'Keratin' || horse.species === 'Unicorn')
+    .filter(layer => layer.channel !== 'Keratin' || hasKeratin)
     .map(layer => {
       const value = layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel];
       const color = /^#[0-9a-f]{6}$/i.test(value || '') ? value : layer.defaultColor;
