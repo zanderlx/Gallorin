@@ -145,9 +145,9 @@ test('each profile renders its own skill progress and maxed skills use MAX', () 
   assert.equal((other.match(/>Lv\. 0<\/span>/g) || []).length, 5);
 });
 
-test('skill XP controls are limited to owned horses in Edit Mode', () => {
+test('legacy edit mode never exposes skill XP controls', () => {
   const editing = { ...state, horses: [horse], settings: { ...state.settings, developerEditMode: true } };
-  assert.equal((profileContent(horse, editing, { catalog }).match(/data-action="add-skill-xp"/g) || []).length, 5);
+  assert.doesNotMatch(profileContent(horse, editing, { catalog }), /data-action="add-skill-xp"/);
   assert.doesNotMatch(profileContent(horse, state, { catalog }), /data-action="add-skill-xp"/);
   assert.doesNotMatch(profileContent(horse, editing, { catalog, importPreview: true }), /data-action="add-skill-xp"/);
 });

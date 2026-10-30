@@ -96,9 +96,9 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   assert.equal(horseOverrideBadge(marked, 'species', false), '');
   assert.equal(horseOverrideBadge(marked, 'gender', true), '');
   assert.match(horseOverrideBadge(marked, 'species', true), /OVERRIDE/);
-  state.settings.developerEditMode = true;
+  state.settings.horseUpdatesEnabled = true;
   assert.match(profileContent(marked, state, { catalog }), /OVERRIDE/);
-  state.settings.developerEditMode = false;
+  state.settings.horseUpdatesEnabled = false;
   assert.ok(!profileContent(marked, state, { catalog }).includes('OVERRIDE'));
 });
 

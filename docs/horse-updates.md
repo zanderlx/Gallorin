@@ -10,7 +10,7 @@ Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then
 
 Names, descriptions, notes, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. Trash appears only when a field has a saved or pending override: it cancels a pending override or stages restoration of the recorded original. Save that section to confirm restoration.
 
-Applied fields that actually changed receive a saved **OVERRIDE** marker. Badges appear only while Edit Mode is enabled, including on the corresponding horse profile values. Original values are recorded before the first tracked override and retained across later edits. Older badge-only overrides show **Not recorded** for their original and cannot be restored automatically; their trash action is disabled.
+Applied fields that actually changed receive a saved **OVERRIDE** marker. Badges appear in the override editor and on owned horse profiles while Override Horse Data is enabled. Original values are recorded before the first tracked override and retained across later edits. Older badge-only overrides show **Not recorded** for their original and cannot be restored automatically; their trash action is disabled.
 
 Each section save validates and applies its changes together. A stale horse or changed configuration prevents the save; unsaved edits remain available to correct or cancel.
 

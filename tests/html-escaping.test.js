@@ -6,7 +6,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GameStore } from '../src/store.js';
-import { wildPage, stablePage, collectionCards, settingsPage, savesPage, editModePage } from '../public/pages.js';
+import { wildPage, stablePage, collectionCards, settingsPage, savesPage } from '../public/pages.js';
 import { profileContent } from '../public/profile.js';
 import { sidebar, card } from '../public/ui.js';
 import { libraryEditorPage } from '../public/library-editor.js';
@@ -55,7 +55,6 @@ const state = store.snapshot();
 const catalog = store.getCatalog();
 await rm(directory, { recursive: true, force: true });
 
-state.settings.developerEditMode = true;
 for (const list of [state.horses, state.sold, ...Object.values(state.encounters)]) poison(list);
 state.keeper = { name: payload, title: payload, bio: payload };
 for (const transaction of state.transactions) transaction.horseName = payload;
@@ -82,7 +81,6 @@ const views = {
   'collection cards': () => collectionCards('all', state, '', 'name', catalog, 'asc'),
   'settings page': () => settingsPage(state),
   'saves page': () => savesPage(state),
-  'edit mode page': () => editModePage(state),
   'keeper page': () => keeperPage(state),
   'sale history': () => saleHistoryTable(state),
   'game settings': () => gameSettingsPage(state, hostileCatalog),

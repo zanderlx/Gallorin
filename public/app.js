@@ -39,20 +39,10 @@ import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
 import { icon, sidebar, navigationSection, escapeHTML as e, number, setHTML, appendHTML, raw } from './ui.js';
-import {
-  wildPage,
-  stablePage,
-  collectionCards,
-  settingsPage,
-  editModePage,
-  savesPage,
-  plannedPage,
-  routeTitle
-} from './pages.js';
+import { wildPage, stablePage, collectionCards, settingsPage, savesPage, plannedPage, routeTitle } from './pages.js';
 import { profileContent } from './profile.js';
 import { bindProfileTabs, selectProfileTab } from './profile-layout.js';
 import { bindHorseArtViewer } from './horse-art-viewer.js';
-import { displayBirthday, horseAcquisitionDate } from './dates.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from './zones.js';
 import {
   zoneEditorPage,
@@ -70,7 +60,6 @@ import {
   colorControl,
   applyWebsiteTheme
 } from './library-editor.js';
-import { createCopyEditor } from './copy-editor.js';
 import { keeperPage, avatarSVG } from './keeper.js';
 import { roadmapPage } from './roadmap.js';
 import { trackForms, updateFormState, formSignature, formBaseline, restoreBaseline } from './form-state.js';
@@ -144,7 +133,6 @@ const paletteTransfers = createPaletteTransfers({
 const paletteEditor = createPaletteEditor(draft => libraryEditorPage('palettes', catalog, state, draft));
 const mutationEditor = createMutationEditor(draft => libraryEditorPage('mutations', catalog, state, draft));
 const zoneEditor = createZoneEditor(draft => zoneEditorForm(catalog, draft));
-const copyEditor = createCopyEditor({ getState: () => state, getRoute: () => route, save: action, notify });
 
 const horseUpdates = bindHorseUpdates({
   root: profile,
@@ -158,30 +146,8 @@ const horseUpdates = bindHorseUpdates({
   }
 });
 
-const profileCopyEditor = createCopyEditor({
-  getState: () => state,
-  getRoute: () => 'horse/profile',
-  save: action,
-  notify,
-  includeChrome: false,
-  getValues: () => {
-    const horse = findHorse(profile.dataset.horseId);
-    return horse
-      ? {
-          horseName: horse.name || horse.species,
-          species: horse.species,
-          gender: horse.gender,
-          birthday: horseAcquisitionDate(horse) ? displayBirthday(horseAcquisitionDate(horse)) : 'Not caught yet',
-          personality: horse.personality.name,
-          personalityDescription: horse.personality.description,
-          specialSpawn: horse.specialSpawn || 'No special spawn'
-        }
-      : {};
-  }
-});
 const horseDialogs = createHorseDialogs({
   getState: () => state,
-  getCatalog: () => catalog,
   findHorse,
   save: action,
   notify,
@@ -266,7 +232,7 @@ function renderChrome() {
   // The nav element is replaced above; keep the player's place in the sidebar.
   $('#sidebar nav').scrollTop = navigationScroll;
   const section = navigationSection(route);
-  const sectionName = state.pageCopy?.site?.[`group-${section.title.toLowerCase()}`] ?? section.title;
+  const sectionName = section.title;
   const definitionKind =
     route === 'dev/rarities' ? 'rarities' : route === 'dev/traits' ? 'species' : editorRoutes[route.split('/')[1]];
   const definitionPath = section.title === 'Compendium' && definitionKind ? `data/config/${definitionKind}.json` : '';
@@ -293,7 +259,6 @@ function pageContent(pageRoute, pageState = state) {
   else if (route === 'dev/roadmap') return roadmapPage();
   else if (route === 'dev/music') return musicPlayer.page();
   else if (route === 'dev/profile') return keeperPage(state);
-  else if (route === 'dev/edit-mode') return editModePage(state);
   else if (route === 'dev/locations' || route === 'dev/atmospheres') return zoneEditorPage(catalog, state);
   else if (section === 'dev' && page === 'rarities') return raritiesManagerPage(catalog);
   else if (section === 'dev' && page === 'eyes') return eyesManagerPage(catalog);
@@ -335,7 +300,6 @@ function render() {
     $('#collection-grid').style.setProperty('--stable-grid-columns', stableGridColumns);
   }
   document.title = `Gallorin v${appVersion} · ${routeTitle(route, locationsFor(catalog, state))}`;
-  copyEditor.attach(main);
   attachSettingsNumbers(main);
   trackForms(main);
 }
@@ -357,6 +321,7 @@ async function navigate({ initializeNavigation = false } = {}) {
     'dev/generator': 'dev/roadmap',
     'dev/spawn': 'dev/roadmap',
     'dev/economy': 'dev/settings',
+    'dev/edit-mode': 'dev/settings',
     'stable/favorites': 'stable/all',
     'breeding/stable': 'stable/breeding',
     'breeding/history': 'stable/all',
@@ -377,8 +342,6 @@ async function navigate({ initializeNavigation = false } = {}) {
   closeMenu();
   if (profile.open) profile.close();
   if (confirmation.open) confirmation.close();
-  copyEditor.close();
-  profileCopyEditor.close();
   horseDialogs.close();
   horseArtViewer.close();
   eyeEditor.dialog.close();
@@ -467,7 +430,6 @@ function showDefinition(kind, draft) {
   }
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = libraryEditorPage(kind, catalog, state, draft);
-  copyEditor.attach(main);
   trackForms(main);
   if (!draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-duplicate-draft');
   $('#definition-form input[name="name"]')?.focus({ preventScroll: true });
@@ -477,7 +439,6 @@ function showSpecies(draft, tab = speciesTab) {
   selectedSpeciesId = draft?.id;
   speciesTab = tab;
   setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, speciesSort, speciesSortDirection)));
-  copyEditor.attach(main);
   trackForms(main);
   if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
   syncSpeciesControls(main);
@@ -503,7 +464,6 @@ function inspect(id) {
   });
   horseUpdates.initialize();
   selectProfileTab(profile, currentTab || 'overview');
-  profileCopyEditor.attach(profile);
   trackForms(profile);
   if (!profile.open) profile.showModal();
 }
@@ -747,8 +707,6 @@ document.addEventListener('click', async event => {
   }
   if (intent === 'rename-horse')
     return startHorseRename(button, { horse: findHorse(id), save: action, onSaved: render, notify });
-  if (intent === 'add-skill-xp') return horseDialogs.open(id, 'skill', button.dataset.skill);
-  if (intent === 'edit-horse-field') return horseDialogs.open(id, 'field', button.dataset.field);
   if (intent === 'inspect') return inspect(id);
   if (intent === 'close-profile') return profile.close();
   if (intent === 'cancel-sell') return confirmation.close();
@@ -875,15 +833,6 @@ document.addEventListener('click', async event => {
       profile.close();
       render();
       notify('Removed and saved.');
-    } else if (intent === 'toggle-copy-mode') {
-      await action('developer-edit-mode', { enabled: !state.settings.developerEditMode });
-      render();
-      if (profile.open) inspect(profile.dataset.horseId);
-      notify(
-        state.settings.developerEditMode
-          ? 'Edit mode enabled. Use the pencils beside page text.'
-          : 'Edit mode closed. Unsaved drafts remain available until you reload.'
-      );
     } else if (intent === 'apply-theme' || intent === 'theme-mode') {
       await action('website-theme', {
         id: intent === 'theme-mode' ? state.settings.websiteTheme || 'default' : id,

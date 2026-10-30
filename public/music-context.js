@@ -73,7 +73,6 @@ const sectionDefinitions = [
     'Developer Settings',
     'developer',
     [
-      ['dev/edit-mode', 'Edit Mode'],
       ['dev/settings', 'Game Settings'],
       ['dev/horse-updates', 'Horse Overrides'],
       ['dev/roadmap', 'Remaining Features']

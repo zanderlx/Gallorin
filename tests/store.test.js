@@ -6,7 +6,6 @@ import { join, dirname, resolve, basename } from 'node:path';
 import { GameStore } from '../src/store.js';
 import { newZoneDraft } from '../public/zones.js';
 import { locationsFor } from '../public/zones.js';
-import { horseFieldOptions } from '../public/horse-fields.js';
 import { createHorseDocument, readHorseDocument } from '../public/horse-transfer.js';
 import { horseSalePrice } from '../public/sale-pricing.js';
 
@@ -21,6 +20,30 @@ async function fixture(t) {
   });
   return { directory, store: await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init() };
 }
+test('retired edit actions reject legacy saves without changing player data', async t => {
+  const { directory, store } = await fixture(t);
+  await store.action('visit', { locationId: 'aetherion' });
+  const id = store.state.encounters.aetherion[0].id;
+  await store.action('catch', { id });
+  store.state.settings.developerEditMode = true;
+  store.state.pageCopy = { site: { 'brand-title': 'Legacy title' } };
+  await store.persist(store.state);
+  const reopened = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
+  const before = reopened.snapshot();
+  for (const [type, payload] of [
+    ['developer-edit-mode', { enabled: true }],
+    ['save-copy', { scope: 'site', entries: { 'brand-title': 'Changed' } }],
+    ['horse-field', { id, field: 'size', value: 'Teacup' }],
+    ['horse-skill-xp', { id, skill: 'agility', xp: 600 }]
+  ]) {
+    await assert.rejects(reopened.action(type, payload), /Unknown action/);
+    assert.deepEqual(reopened.snapshot(), before);
+  }
+  assert.equal(before.settings.developerEditMode, true);
+  assert.deepEqual(before.pageCopy, store.state.pageCopy);
+  assert.deepEqual(before.horses, store.state.horses);
+});
+
 test('owned personality descriptions default on catch, persist, and reject invalid edits', async t => {
   const { directory, store } = await fixture(t);
   await store.action('visit', { locationId: 'aetherion' });
@@ -163,46 +186,6 @@ test('horse notes survive catching and reload; invalid notes leave the save unch
   assert.equal(restored.state.horses[0].notes, notes);
   await store.action('horse-notes', { id, notes: '' });
   assert.equal(store.state.horses[0].notes, '');
-});
-test('edit mode updates only the selected horse with validated choices and dates', async t => {
-  const { directory, store } = await fixture(t);
-  await store.action('visit', { locationId: 'aetherion' });
-  const id = store.state.encounters.aetherion[0].id;
-  const other = structuredClone(store.state.encounters.aetherion[1]);
-  await assert.rejects(store.action('horse-field', { id, field: 'age', value: 'Elder' }));
-  await store.action('developer-edit-mode', { enabled: true });
-  const options = horseFieldOptions('personality', store.getCatalog(), store.state);
-  assert.deepEqual(
-    options.map(o => o.label),
-    options.map(o => o.label).sort((a, b) => a.localeCompare(b))
-  );
-  for (const [field, value] of Object.entries({
-    age: 'Elder',
-    origin: 'Wild',
-    size: 'Teacup',
-    birthday: '2024-02-29',
-    personality: options[0].value
-  })) {
-    await store.action('horse-field', { id, field, value });
-  }
-  const saved = structuredClone(store.state.encounters.aetherion[0]);
-  for (const [field, value] of [
-    ['birthday', '2023-02-29'],
-    ['birthday', '9999-01-01'],
-    ['age', 'Unknown'],
-    ['origin', 'Unknown'],
-    ['size', 'Unknown'],
-    ['personality', 'Unknown'],
-    ['gold', '100']
-  ]) {
-    await assert.rejects(store.action('horse-field', { id, field, value }));
-  }
-  assert.deepEqual(store.state.encounters.aetherion[0], saved);
-  assert.deepEqual(store.state.encounters.aetherion[1], other);
-  assert.equal(saved.sizePercent, 75);
-  assert.equal(saved.personality.name, options[0].label);
-  const restored = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
-  assert.deepEqual(restored.state.encounters.aetherion[0], saved);
 });
 test('zone and horse deletion persist without awarding gold or removing unrelated records', async t => {
   const { directory, store } = await fixture(t);
@@ -561,24 +544,6 @@ test('legacy horses receive separate persisted skills without overwriting existi
   assert.ok((await readdir(join(directory, 'backups'))).some(n => n.startsWith('pre-horse-skills-')));
 });
 
-test('skill XP awards are validated, isolated per horse and persisted', async t => {
-  const { directory, store } = await fixture(t);
-  await store.action('visit', { locationId: 'aetherion' });
-  const first = store.state.encounters.aetherion[0];
-  await store.action('catch', { id: first.id });
-  const second = store.state.encounters.aetherion[0];
-  await store.action('catch', { id: second.id });
-  await assert.rejects(store.action('horse-skill-xp', { id: first.id, skill: 'agility', xp: 600 }));
-  await store.action('developer-edit-mode', { enabled: true });
-  await store.action('horse-skill-xp', { id: first.id, skill: 'agility', xp: 600 });
-  assert.deepEqual(store.state.horses.find(h => h.id === first.id).skills.agility, { level: 2, xp: 75 });
-  assert.deepEqual(store.state.horses.find(h => h.id === second.id).skills.agility, { level: 0, xp: 0 });
-  for (const xp of [-1, 1.5, '10'])
-    await assert.rejects(store.action('horse-skill-xp', { id: first.id, skill: 'wing', xp }));
-  const loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
-  assert.deepEqual(loaded.state.horses.find(h => h.id === first.id).skills.agility, { level: 2, xp: 75 });
-});
-
 test('selling directly from a wild encounter credits its quote without adding it to the stable', async t => {
   const { store } = await fixture(t);
   await store.action('visit', { locationId: 'aetherion' });
@@ -682,7 +647,6 @@ test('developer settings detect the secret within About Me, persist, and preserv
   assert.equal(reopened.state.settings.developerSettingsVisible, true);
   await reopened.action('disable-developer-settings');
   assert.equal(reopened.state.settings.developerSettingsVisible, false);
-  assert.equal(reopened.state.settings.developerEditMode, false);
   const cleaned = 'My favorite horses live here. More about me.';
   assert.equal(reopened.state.keeper.about, cleaned);
   await reopened.action('save-profile', { ...profile, about: cleaned });

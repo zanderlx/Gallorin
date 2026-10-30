@@ -101,7 +101,7 @@ function fieldRow(field, catalog, state, horse) {
   const lockedMutation =
     field.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [horseOverrideValue(horse, field.key)] });
   return html`<div class="horse-update-row" data-key="${field.key}">
-    <strong>${field.label}${raw(horseOverrideBadge(horse, field.key, state.settings.developerEditMode))}</strong>
+    <strong>${field.label}${raw(horseOverrideBadge(horse, field.key, true))}</strong>
     <span class="horse-override-current" data-current-value>—</span>
     <span class="horse-override-proposed" data-override-value>—</span>
     <div class="horse-override-actions">
@@ -121,7 +121,7 @@ export const editableHorseFields = horseUpdateFields
 export function horseOverrideControls(horse, state, catalog) {
   if (!state.settings.horseUpdatesEnabled || !state.horses.some(h => h.id === horse.id)) return '';
   const arrow = html`<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>`;
-  return String(html`<form id="horse-update-form" data-copy-ui novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>
+  return String(html`<form id="horse-update-form" novalidate><input hidden type="radio" name="horse" value="${horse.id}" checked>
     <div class="horse-update-rules"><div class="horse-edit-heading"><h2>Horse Overrides</h2></div>
     ${[...new Set(editableHorseFields.map(f => f.group))].map(group => html`<details class="zone-editor-section horse-edit-section" data-override-section="${group}"><summary>${raw(icon(group === 'Species Traits' ? 'spark' : group === 'Mutations' ? 'wing' : group === 'Skills' ? 'agility' : group === 'Appearance' ? 'palette' : 'edit'))}<span>${group}</span>${arrow}</summary><div class="zone-disclosure-body"><div class="horse-edit-columns"><span>Field</span><span>Original</span><span>Override</span><span>Change</span></div>${editableHorseFields.filter(f => f.group === group).map(field => fieldRow(field, catalog, state, horse))}<div class="form-actions horse-section-actions" hidden><button type="button" class="button primary" data-save-section disabled>Save</button><button type="button" class="button secondary" data-cancel-section disabled>Cancel</button></div></div></details>`)}
     </div>

@@ -10,7 +10,6 @@
 - Five supplied **Mutated Horse** palettes: Solar, Lunar, Astral, Heavenly, Void. All nine colors are preserved; old editable libraries receive missing entries without replacing custom data.
 - Nine website themes, dark/light variants, custom theme colors, and a crest that follows theme tokens.
 - Game Settings groups gameplay controls and a separate Economy section with balance, prices, and sale history.
-- Dedicated text Edit Mode with section/page saves, drafts, resets, and shared website labels.
 - Profiles with display name, About Me, and twelve named avatar color choices. Random avatar generation has been removed; previously saved colors are preserved.
 - Alphabetized navigation grouped by setting type, scroll retention, uppercase option labels, horizontal Wilds tabs, and change-only Save/Cancel controls.
 - Cached/debounced site search, avoiding unnecessary horse-art rendering and repeat visit saves.
@@ -49,20 +48,18 @@ Browser observation was blocked by the browser tool's localhost policy. No alter
 5. Add/edit/delete definitions and zones; check confirmation text and reference updates.
 6. Catch, inspect, rename, favorite, sell, and delete a horse; verify balances and history.
 7. Search via the header or Ctrl+K; follow page, definition, zone, and horse results.
-8. Enable Edit Mode; preview/save/discard/reset wording and verify after refresh.
-9. Check keyboard navigation, Escape, dialog focus, mobile drawer focus, and reduced motion.
-10. Create a dated backup and export; verify saved data and restart retention.
+8. Check keyboard navigation, Escape, dialog focus, mobile drawer focus, and reduced motion.
+9. Create a dated backup and export; verify saved data and restart retention.
 
 ## Horse view refinements
 
-Implemented editable profile wording and encounter counter, reversible text deletion, nine-color previews without palette names, simplified Wilds/profile labels, larger fonts, and saved random adult birthdays displayed as MM-DD-YYYY. Existing birthdays remain unchanged. Changes are committed separately and remain unpushed per the current workflow preference. Browser visual checks remain unverified.
+Implemented nine-color previews without palette names, simplified Wilds/profile labels, larger fonts, and saved random adult birthdays displayed as MM-DD-YYYY. Existing birthdays remain unchanged. Changes are committed separately and remain unpushed per the current workflow preference. Browser visual checks remain unverified.
 
 
 ### Latest horse profile update
 
 - Catch-time name prompt and owned-name pencil.
 - Saved, scrollable horse notes with change-only Save/Cancel.
-- Edit Mode birthday picker and alphabetized age/origin/size/personality/eye choices, persisted per horse.
 - Stables fixed order: My Horses, Favorites, Breeding; old management/history navigation removed.
 - New controls verified with template and isolated store tests; browser interaction QA remains pending.
 

@@ -44,15 +44,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createEncounters } from '../src/encounters.js';
-import {
-  wildPage,
-  stablePage,
-  collectionCards,
-  settingsPage,
-  editModePage,
-  savesPage,
-  plannedPage
-} from '../public/pages.js';
+import { wildPage, stablePage, collectionCards, settingsPage, savesPage, plannedPage } from '../public/pages.js';
 import { profileContent } from '../public/profile.js';
 import { groups, sidebar, navigationSection } from '../public/ui.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from '../public/zones.js';
@@ -136,20 +128,17 @@ test('wild horses have no export control; owned profiles export without release'
   assert.match(profileContent(horses[0], state), /horse-wild-description/);
   assert.doesNotMatch(owned, />Personality Description<\/h3>/);
   assert.ok(owned.indexOf('horse-notes-form') < owned.indexOf('profile-lower'));
-  assert.ok(owned.indexOf('trait.eye-color') < owned.indexOf('trait.' + 'text-'));
+  assert.ok(owned.indexOf('Eye Color') < owned.indexOf('>Mane</dt>'));
   assert.doesNotMatch(owned, /personality-note|Horse notes|Horse ID/);
   assert.doesNotMatch(profileContent(horses[0], state), /horse-notes-form|data-action="sell"/);
   assert.match(owned, /data-action="sell"/);
   assert.doesNotMatch(owned, /rename-form|Give your companion a name/);
   assert.doesNotMatch(profileContent(horses[0], state), /data-action="rename-horse"/);
 });
-test('horse fields have individual edit controls only in edit mode and notes are escaped', () => {
+test('horse profiles ignore legacy edit mode and keep notes escaped', () => {
   const horse = { ...horses[0], caughtAt: new Date().toISOString(), notes: '</textarea><script>bad</script>' };
   const html = profileContent(horse, { ...state, horses: [horse], settings: { ...settings, developerEditMode: true } });
-  for (const field of ['origin', 'size', 'birthday', 'personality', 'eye', 'gender'])
-    assert.ok(html.includes(`data-field="${field}"`));
-  assert.doesNotMatch(profileContent(horse, state), /data-action="edit-horse-field"/);
-  assert.doesNotMatch(html, /data-copy-key="horse.subtitle"|data-field="species"|data-field="age"/);
+  assert.doesNotMatch(html, /data-action="(?:edit-horse-field|add-skill-xp)"/);
   assert.match(html, /&lt;\/textarea&gt;&lt;script&gt;/);
 });
 test('horse previews and details expose edit targets and the simplified nine-color layout', () => {
@@ -196,17 +185,15 @@ test('every navigation destination renders content without undefined values', ()
               ? settingsPage(state)
               : route === 'dev/saves'
                 ? savesPage(state)
-                : route === 'dev/edit-mode'
-                  ? editModePage(state)
-                  : route === 'dev/profile'
-                    ? keeperPage(state)
-                    : route === 'dev/roadmap'
-                      ? roadmapPage()
-                      : route === 'dev/locations'
-                        ? zoneEditorPage(catalog, state)
-                        : section === 'dev' && Object.hasOwn(editorRoutes, page)
-                          ? libraryEditorPage(editorRoutes[page], catalog, state)
-                          : plannedPage(route, state);
+                : route === 'dev/profile'
+                  ? keeperPage(state)
+                  : route === 'dev/roadmap'
+                    ? roadmapPage()
+                    : route === 'dev/locations'
+                      ? zoneEditorPage(catalog, state)
+                      : section === 'dev' && Object.hasOwn(editorRoutes, page)
+                        ? libraryEditorPage(editorRoutes[page], catalog, state)
+                        : plannedPage(route, state);
     assert.match(html, /<h1/, route);
     assert.doesNotMatch(html, /undefined|NaN/, route);
   }
@@ -273,10 +260,18 @@ test('Game Settings contains gameplay and a separate Economy section without gui
   assert.match(saves, /Create backup/);
   assert.match(saves, /Export all data/);
 });
-test('edit mode has one dedicated page and economy exposes the actual gold balance', () => {
+test('dev settings omit Edit Mode and economy exposes the actual gold balance', () => {
   assert.doesNotMatch(settingsPage(state), /toggle-copy-mode/);
   assert.doesNotMatch(settingsPage(state, true), /toggle-copy-mode/);
-  assert.match(editModePage(state), /data-action="toggle-copy-mode"/);
+  assert.doesNotMatch(
+    sidebar(
+      'dev/settings',
+      { ...state, settings: { ...settings, developerSettingsVisible: true } },
+      new Set(),
+      catalog
+    ),
+    /Edit Mode|dev\/edit-mode/
+  );
   assert.match(settingsPage({ ...state, gold: 12345 }, true), /name="gold"[^>]+value="12345"/);
 });
 test('wild view has three inspectable illustrations without preview captions', () => {
@@ -470,7 +465,7 @@ test('Horse Definitions dashboard exposes five managers and the spawning configu
   assert.match(eyes, /name="layers"/);
   const mutations = libraryEditorPage('mutations', catalog, state);
   assert.doesNotMatch(mutations, /name="ALLOW_DUPLICATE_MUTATIONS"/);
-  assert.match(settingsPage(state, catalog), /name="ALLOW_DUPLICATE_MUTATIONS"/);
+  assert.doesNotMatch(settingsPage(state, catalog), /name="ALLOW_DUPLICATE_MUTATIONS"/);
   assert.match(mutations, /name="thresholds"/);
 
   assert.match(libraryEditorPage('personalities', catalog, state, catalog.personalities[0]), /name="behaviorTags"/);
@@ -578,7 +573,7 @@ test('Horse import preview offers only confirmation and cancellation actions', (
   const horse = { ...horses[0], notes: 'Imported notes' };
   const html = profileContent(
     horse,
-    { ...state, horses: [], sold: [], settings: { ...state.settings, developerEditMode: false } },
+    { ...state, horses: [], sold: [], settings: { ...state.settings } },
     { importPreview: true }
   );
   assert.match(html, /data-action="confirm-import"/);

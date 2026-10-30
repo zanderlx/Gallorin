@@ -7,7 +7,7 @@ import { withLocalDefaults } from '../public/local-defaults.js';
 import { regenerateHorse, horseFingerprint, validateHorseRules } from './horse-regeneration.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
 import { ConfigurationFiles } from './configuration.js';
-import { readHorseSkills, awardHorseSkillXP } from '../public/skill-progress.js';
+import { readHorseSkills } from '../public/skill-progress.js';
 import { synchronizeCosmicPalettes } from './cosmic-palettes.js';
 import { paletteAdditionsVersion, missingBundledPalettes } from './palette-additions.js';
 import { traitDefaultsVersion, withTraitDefaults } from './trait-defaults.js';
@@ -23,7 +23,7 @@ import {
 } from '../public/spawn-config.js';
 import { localCalendarDate } from '../public/dates.js';
 import { readHorseDocument } from '../public/horse-transfer.js';
-import { validateHorseName, horseRecords, updateHorseField } from '../public/horse-fields.js';
+import { validateHorseName, horseRecords } from '../public/horse-fields.js';
 import { mkdir, readFile, copyFile } from 'node:fs/promises';
 import { replaceDurable, writeDurable, copyDurable, pruneBackups } from './durable-file.js';
 import { join } from 'node:path';
@@ -33,7 +33,6 @@ import { createEncounters } from './encounters.js';
 import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
 import { validateKeeper } from '../public/keeper.js';
-import { validateCopyPatch } from '../public/page-copy.js';
 
 const snapshotIntervalMs = 60 * 60 * 1000;
 const backupsPerKind = 20;
@@ -549,16 +548,6 @@ export class GameStore {
         if (type === 'rename') {
           horse.name = validateHorseName(payload.name);
         } else horse.favorite = !horse.favorite;
-      } else if (type === 'horse-skill-xp') {
-        if (!next.settings.developerEditMode) throw new Error('Enable Edit Mode to add skill XP.');
-        const horse = next.horses.find(h => h.id === payload.id);
-        if (!horse) throw new Error('Horse not found in your stable.');
-        horse.skills = awardHorseSkillXP(horse.skills, payload.skill, payload.xp);
-      } else if (type === 'horse-field') {
-        if (!next.settings.developerEditMode) throw new Error('Enable Edit Mode to change horse details.');
-        const horse = horseRecords(next).find(h => h.id === payload.id);
-        if (!horse) throw new Error('Horse not found.');
-        updateHorseField(horse, payload.field, payload.value, catalog, next);
       } else if (type === 'horse-description') {
         const horse = next.horses.find(h => h.id === payload.id);
         if (!horse) throw new Error('Horse not found in your stable.');
@@ -581,7 +570,6 @@ export class GameStore {
         }
       } else if (type === 'disable-developer-settings') {
         next.settings.developerSettingsVisible = false;
-        next.settings.developerEditMode = false;
       } else if (type === 'delete-profile') {
         delete next.keeper;
       } else if (type === 'delete-horse') {
@@ -599,8 +587,6 @@ export class GameStore {
         next.deletedLocationIds = [...new Set([...(next.deletedLocationIds || []), payload.id])];
         delete next.encounters[payload.id];
         delete next.searches[payload.id];
-        if (next.pageCopy) delete next.pageCopy[`wilds/${payload.id}`];
-        if (next.pageCopy?.site) delete next.pageCopy.site[`nav-wilds-${payload.id}`];
       } else if (type === 'delete-definition') {
         const { kind, id } = payload;
         if (!Object.hasOwn(definitionKinds, kind)) throw new Error('Unknown definition type.');
@@ -851,19 +837,6 @@ export class GameStore {
           throw new Error('Choose dark or light mode.');
         next.settings.websiteTheme = payload.id;
         next.settings.websiteThemeMode = payload.mode || 'dark';
-      } else if (type === 'developer-edit-mode') {
-        if (typeof payload.enabled !== 'boolean') throw new Error('Choose whether edit mode is enabled.');
-        next.settings.developerEditMode = payload.enabled;
-      } else if (type === 'save-copy') {
-        const entries = validateCopyPatch(payload);
-        next.pageCopy ??= {};
-        const page = { ...(next.pageCopy[payload.scope] || {}) };
-        for (const [key, text] of Object.entries(entries)) {
-          if (text === null) delete page[key];
-          else page[key] = text;
-        }
-        if (Object.keys(page).length) next.pageCopy[payload.scope] = page;
-        else delete next.pageCopy[payload.scope];
       } else if (type === 'backup') {
         await writeDurable(
           join(this.directory, 'backups', `save-${Date.now()}-${randomUUID().slice(0, 8)}.json`),

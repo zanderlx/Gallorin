@@ -129,7 +129,6 @@ export const groups = [
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
 workbench.items = [
-  ['dev/edit-mode', 'Edit Mode'],
   ['dev/settings', 'Game Settings'],
   ['dev/roadmap', 'Remaining Features']
 ];
@@ -181,14 +180,7 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     )
     .map(group => ({
       ...group,
-      items:
-        group.title === 'Stables'
-          ? group.items
-          : [...group.items].sort((a, b) =>
-              (state.pageCopy?.site?.[`nav-${a[0].replaceAll('/', '-')}`] || a[1]).localeCompare(
-                state.pageCopy?.site?.[`nav-${b[0].replaceAll('/', '-')}`] || b[1]
-              )
-            )
+      items: group.title === 'Stables' ? group.items : [...group.items].sort((a, b) => a[1].localeCompare(b[1]))
     }));
   return `<a href="#wilds/aetherion" class="brand">${brandLogo()}<span><span class="brand-title">GALLORIN</span><small>A HORSEKEEPER’S CHRONICLE</small></span></a>
     <nav>${navigation
@@ -199,7 +191,7 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     </details>`
       )
       .join('')}</nav>
-    <div class="sidebar-foot" data-copy-skip><span>Gallorin${appVersion ? ` v${escapeHTML(appVersion)}` : ''}</span><span aria-hidden="true">|</span><button type="button" id="sidebar-changelog" aria-haspopup="dialog">Changelog</button></div>`;
+    <div class="sidebar-foot"><span>Gallorin${appVersion ? ` v${escapeHTML(appVersion)}` : ''}</span><span aria-hidden="true">|</span><button type="button" id="sidebar-changelog" aria-haspopup="dialog">Changelog</button></div>`;
 }
 export function card(horse, state, mode = 'wild', catalog) {
   const title = horse.name || horse.species;
@@ -220,5 +212,5 @@ export function emptyState(title, description, link, linkLabel, symbol = 'stable
   return `<div class="empty-state"><div class="empty-symbol">${icon(symbol)}</div><h2>${title}</h2>${description ? `<p>${description}</p>` : ''}${link ? `<a class="button primary" href="#${link}">${linkLabel} ${icon('arrow')}</a>` : ''}</div>`;
 }
 export function heading(kicker, title, description, extra = '') {
-  return `<div class="page-heading"><div>${kicker ? `<span class="eyebrow" data-copy-key="page.kicker" data-copy-label="Page eyebrow">${kicker}</span>` : ''}<h1 data-copy-key="page.title" data-copy-label="Page title">${title}</h1><p data-copy-key="page.description" data-copy-label="Page introduction">${description}</p></div>${extra}</div>`;
+  return `<div class="page-heading"><div>${kicker ? `<span class="eyebrow">${kicker}</span>` : ''}<h1>${title}</h1><p>${description}</p></div>${extra}</div>`;
 }

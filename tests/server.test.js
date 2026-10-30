@@ -57,9 +57,6 @@ test(
       '/form-state.js',
       '/site-search.js',
       '/theme-modes.js',
-      '/page-copy.js',
-      '/copy-editor.js',
-      '/copy-editor.css',
       '/typography.css',
       '/app.js',
       '/ui.js',
@@ -136,11 +133,8 @@ test(
     assert.equal(definitionResponse.status, 200);
     assert.equal((await definitionResponse.json()).catalog.personalities.at(-1).name, 'Daydreamer');
     assert.equal((await post('website-theme', { id: 'pastel-mint' })).status, 200);
-    assert.equal((await post('developer-edit-mode', { enabled: true })).status, 200);
-    assert.equal(
-      (await post('save-copy', { scope: 'stable/all', entries: { 'page.title': 'My own sanctuary' } })).status,
-      200
-    );
+    assert.equal((await post('developer-edit-mode', { enabled: true })).status, 400);
+    assert.equal((await post('save-copy', { scope: 'stable/all', entries: { 'page.title': 'Ignored' } })).status, 400);
     assert.equal((await post('current-gold', { gold: 4321 })).status, 200);
     assert.equal((await post('save-profile', { name: 'HTTP Keeper', about: 'Hello', avatarSeed: 42 })).status, 200);
     const finalExport = await (await fetch(url + '/api/export')).json();
@@ -148,7 +142,6 @@ test(
     assert.equal(finalExport.state.keeper.name, 'HTTP Keeper');
     assert.equal(finalExport.state.settings.websiteTheme, 'pastel-mint');
     assert.equal(finalExport.state.settings.websiteThemeMode, 'dark');
-    assert.equal(finalExport.state.pageCopy['stable/all']['page.title'], 'My own sanctuary');
     assert.equal(finalExport.catalog.personalities.at(-1).description, 'Always watching the clouds.');
   }
 );

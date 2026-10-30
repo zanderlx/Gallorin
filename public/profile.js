@@ -9,17 +9,15 @@ import { escapeHTML as e, icon, number } from './ui.js';
 import { displayBirthday, horseAcquisitionDate, horseAgeLabel } from './dates.js';
 
 export function profileContent(horse, state, { importPreview = false, catalog, overrideContent } = {}) {
-  const badge = key => horseOverrideBadge(horse, key, state.settings.developerEditMode);
+  const showOverrideBadges =
+    !importPreview && state.settings.horseUpdatesEnabled && state.horses.some(h => h.id === horse.id);
+  const badge = key => horseOverrideBadge(horse, key, showOverrideBadges);
   const rank = horseCardRank(horse, catalog);
   const rankColor = raritySettings(catalog).colors[rank.key];
   const collected = state.horses.some(h => h.id === horse.id);
-  const editField = field =>
-    state.settings.developerEditMode
-      ? `<button class="icon-button horse-field-pencil" data-copy-skip data-action="edit-horse-field" data-id="${horse.id}" data-field="${field}" aria-label="Edit ${field}">&#9998;</button>`
-      : '';
   const sold = state.sold.some(h => h.id === horse.id);
   const header = `<div class="dialog-top">${sold ? '<span class="eyebrow">FROM THE ARCHIVES</span>' : ''}<button class="icon-button" data-action="close-profile" aria-label="Close horse profile">${icon('close')}</button></div>`;
-  const info = `<div class="horse-name-row" data-copy-skip><h2 id="profile-title" tabindex="0"><span class="horse-gender ${state.settings.developerEditMode ? 'is-editable' : ''}"><span class="horse-gender-label" role="img" aria-label="${horse.gender === 'Female' ? 'Female' : 'Male'}">${horseGenderIcon(horse.gender)}</span>${badge('gender')}${editField('gender')}</span>${collected ? `<button class="horse-name-text" data-action="rename-horse" data-id="${horse.id}" aria-label="Rename horse">${e(horse.name || horse.species)}</button>` : e(horse.name || horse.species)}</h2></div><p class="muted horse-species-gender" data-copy-skip><span>${e(horse.species)}${badge('species')}</span></p>
+  const info = `<div class="horse-name-row"><h2 id="profile-title" tabindex="0"><span class="horse-gender"><span class="horse-gender-label" role="img" aria-label="${horse.gender === 'Female' ? 'Female' : 'Male'}">${horseGenderIcon(horse.gender)}</span>${badge('gender')}</span>${collected ? `<button class="horse-name-text" data-action="rename-horse" data-id="${horse.id}" aria-label="Rename horse">${e(horse.name || horse.species)}</button>` : e(horse.name || horse.species)}</h2></div><p class="muted horse-species-gender"><span>${e(horse.species)}${badge('species')}</span></p>
   <dl class="horse-facts">${[
     ['Age', horseAgeLabel(horse)],
     ['Origin', horse.origin],
@@ -30,11 +28,11 @@ export function profileContent(horse, state, { importPreview = false, catalog, o
   ]
     .map(
       ([label, value]) =>
-        `<div><dt data-copy-key="fact.${label.toLowerCase().replaceAll(' ', '-')}">${label}</dt><dd><span${label === 'Rarity' && rankColor ? ` style="color:${rankColor}"` : ''}>${e(value)}${badge(label === 'Birthday' || label === 'Age' ? 'birthday' : label.toLowerCase())}</span>${label === 'Rarity' || label === 'Age' || (label === 'Birthday' && !horse.caughtAt) ? '' : editField(label.toLowerCase())}</dd></div>`
+        `<div><dt>${label}</dt><dd><span${label === 'Rarity' && rankColor ? ` style="color:${rankColor}"` : ''}>${e(value)}${badge(label === 'Birthday' || label === 'Age' ? 'birthday' : label.toLowerCase())}</span></dd></div>`
     )
     .join('')}</dl>`;
-  const notes = `${importPreview ? `<section class="horse-notes"><h3>Notes</h3><div class="horse-text-display">${e(horse.notes || '')}</div></section>` : collected ? `<section class="horse-notes"><h3 data-copy-key="notes.heading">Notes${badge('notes')}</h3><button type="button" class="horse-text-display" data-copy-skip data-action="edit-horse-text" data-form="horse-notes-form" aria-label="Edit notes">${e(horse.notes || '') || '<span class="muted empty-horse-notes">Click to add notes</span>'}</button><form hidden id="horse-notes-form" data-id="${horse.id}" data-copy-skip><textarea aria-label="Notes" id="horse-notes" name="notes" rows="5" maxlength="4000" placeholder="Write notes about this horse...">${e(horse.notes || '')}</textarea></form></section>` : `<section class="horse-notes horse-wild-description"><h3 data-copy-key="personality.heading">Description${badge('description')}</h3><p class="horse-text-display" data-copy-skip>${e(horse.personalityDescription ?? horse.personality.description ?? '')}</p></section>`}`;
-  const colors = `<h3 class="profile-palette-heading" data-copy-key="colors.heading">Palette${badge('palette')}</h3><div class="color-regions">${Object.entries(
+  const notes = `${importPreview ? `<section class="horse-notes"><h3>Notes</h3><div class="horse-text-display">${e(horse.notes || '')}</div></section>` : collected ? `<section class="horse-notes"><h3>Notes${badge('notes')}</h3><button type="button" class="horse-text-display" data-action="edit-horse-text" data-form="horse-notes-form" aria-label="Edit notes">${e(horse.notes || '') || '<span class="muted empty-horse-notes">Click to add notes</span>'}</button><form hidden id="horse-notes-form" data-id="${horse.id}"><textarea aria-label="Notes" id="horse-notes" name="notes" rows="5" maxlength="4000" placeholder="Write notes about this horse...">${e(horse.notes || '')}</textarea></form></section>` : `<section class="horse-notes horse-wild-description"><h3>Description${badge('description')}</h3><p class="horse-text-display">${e(horse.personalityDescription ?? horse.personality.description ?? '')}</p></section>`}`;
+  const colors = `<h3 class="profile-palette-heading">Palette${badge('palette')}</h3><div class="color-regions">${Object.entries(
     horse.palette.colors
   )
     .map(
@@ -42,8 +40,8 @@ export function profileContent(horse, state, { importPreview = false, catalog, o
         `<div><span style="background:${color}" title="${color}"></span><small>${e(name)}</small><code>${color}</code></div>`
     )
     .join('')}</div>`;
-  const traits = `${horseTraits(horse, editField, state.settings.developerEditMode)}`;
-  const mutations = `<div class="horse-mutations-heading"><h3>Mutations</h3></div>${`<ol class="horse-mutations mutation-slots" data-copy-skip>${Array.from(
+  const traits = `${horseTraits(horse, showOverrideBadges)}`;
+  const mutations = `<div class="horse-mutations-heading"><h3>Mutations</h3></div>${`<ol class="horse-mutations mutation-slots">${Array.from(
     { length: 4 },
     (_, index) => {
       const saved = horse.mutations?.[index];
@@ -74,8 +72,7 @@ export function profileContent(horse, state, { importPreview = false, catalog, o
     mutations,
     actions,
     overrideContent,
-    showOverrideBadges: state.settings.developerEditMode,
-    importPreview,
-    editableSkills: collected && !importPreview && state.settings.developerEditMode
+    showOverrideBadges,
+    importPreview
   });
 }

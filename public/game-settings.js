@@ -34,9 +34,9 @@ export function validateSettingsNumbers(form) {
 }
 
 export function gameSettingsPage(state, catalog) {
-  return `<div class="settings-section-heading"><h1 data-copy-key="page.title">Encounter & Stable Settings</h1></div>
+  return `<div class="settings-section-heading"><h1>Encounter & Stable Settings</h1></div>
   ${settingForm(state, false, catalog)}
-  <section class="economy-settings" aria-labelledby="economy-heading"><h2 id="economy-heading" data-copy-key="economy.heading">Economy Settings</h2>
+  <section class="economy-settings" aria-labelledby="economy-heading"><h2 id="economy-heading">Economy Settings</h2>
   ${settingForm(state, true)}</section>${saleHistoryTable(state)}`;
 }
 
