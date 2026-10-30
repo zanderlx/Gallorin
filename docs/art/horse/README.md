@@ -93,3 +93,9 @@ before a clipped redraw of the source ears and before selected ear artwork.
 Keratin recipes distinguish nasal horns, broken/curved horns, ram versus kudu
 curls, moose versus branching antlers, tusks versus saber fangs, and crowns
 versus helmets. Use `--keratins` with the preview script for a contact sheet.
+
+Tail variation leaves the original attachment control points untouched and blends
+reshaping smoothly outward. Paint/Pattern share regional placement reservations
+to reduce overlap and no longer scatter motifs over the whole body. Face
+markings use very small footprints and lower opacity; facial whisker decorations
+are reduced as well. Use `--markings` to create `marking-studies.svg`.

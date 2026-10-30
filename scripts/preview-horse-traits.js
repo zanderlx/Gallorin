@@ -93,7 +93,33 @@ const selected = keratinsOnly
       'Corinthian Helm'
     ].map(name => [name, { Keratin: [name], Mane: ['Standard Mane'], Tail: ['Standard Tail'] }])
   : examples;
-const tiles = selected.map(([name, traits], index) => {
+const markingsOnly = process.argv.includes('--markings');
+const displayed = markingsOnly
+  ? [
+      ['Deer Spots', { Pattern: ['Deer Spots'] }],
+      ['Light Dapple', { Pattern: ['Light Dapple'] }],
+      ['Side Swirls', { Pattern: ['Side Swirls'] }],
+      ['Blaze Paint', { Paint: ['Blaze Paint'] }],
+      ['Nose Heart', { Paint: ['Nose Heart'] }],
+      ['Face Freckles', { Pattern: ['Face Freckles'] }],
+      ['Paint + Pattern', { Paint: ['Piebald'], Pattern: ['Deer Spots'] }],
+      [
+        'Multiple body traits',
+        { Paint: ['Tobiano', 'Piebald'], Pattern: ['Deer Spots', 'Star Dapple', 'Side Swirls', 'Leopard Appaloosa'] }
+      ],
+      [
+        'Multiple face traits',
+        {
+          Paint: ['Face Paint', 'Nose Heart'],
+          Pattern: ['Face Freckles', 'Head Spots', 'Eye Filigree', 'Light Face Paint']
+        }
+      ],
+      ['Short Fur Tail', { Tail: ['Short Fur Tail'] }],
+      ['Upturned Tail', { Tail: ['Upturned Tail'] }],
+      ['Sparse Tail', { Tail: ['Sparse Tail'] }]
+    ]
+  : selected;
+const tiles = displayed.map(([name, traits], index) => {
   const horse = {
     id: `study-${index}`,
     species: 'Horse',
@@ -106,7 +132,16 @@ const tiles = selected.map(([name, traits], index) => {
 const output = new URL('../test-results/horse-art/', import.meta.url);
 await mkdir(output, { recursive: true });
 await writeFile(
-  new URL(keratinsOnly ? 'keratin-studies.svg' : tailsOnly ? 'tail-studies.svg' : 'trait-studies.svg', output),
+  new URL(
+    markingsOnly
+      ? 'marking-studies.svg'
+      : keratinsOnly
+        ? 'keratin-studies.svg'
+        : tailsOnly
+          ? 'tail-studies.svg'
+          : 'trait-studies.svg',
+    output
+  ),
   String(
     html`<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1360" viewBox="0 0 1500 1360"><rect width="1500" height="1360" fill="#121C16"/>${tiles}</svg>`
   )

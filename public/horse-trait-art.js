@@ -93,7 +93,7 @@ export function traitArtDefinition(category, name, description = '') {
   else family = 'patches';
   const region = has(/front (left|right)/)
     ? 'front-leg'
-    : has(/face|head|mask|cheek|jaw|chin|nose|eye|brow|lash|maw|skull/)
+    : has(/face|head|mask|cheek|jaw|chin|nose|eye|brow|lash|maw|skull|blaze/)
       ? 'head'
       : has(/ankle|hoof|sock|feet|leg|limb|paw/)
         ? 'legs'
@@ -200,29 +200,84 @@ function anchors(region, text = '') {
   }[region];
 }
 
-function markings(recipe, c) {
-  const { family, region, seed, text } = recipe;
-  const random = index => ((Math.imul(seed ^ (index + 13), 1664525) + 1013904223) >>> 0) / 4294967296;
-  const opacity = /light|subtle|faded|ghost|whisp/.test(text)
-    ? 0.35
-    : /heavy|thick|fullbody|large/.test(text)
-      ? 0.95
-      : 0.75;
-  const scatter = /spots|stars|hearts|flowers/.test(family);
-  const centers = anchors(region, text);
-  const count = scatter ? (/sparse|light/.test(text) ? 6 : 18) : centers.length;
-  if (/blaze|bald face|skull|face splash/.test(text))
-    return path('M250 177L266 196 225 270 199 266 229 218Z', c, 0, opacity);
-  if (/sock|lower leg/.test(text) && /Paint|Pattern/.test(recipe.category))
-    return html`${[406, 744].map(x => path(`M${x - 15} ${/tall/.test(text) ? 475 : 565}Q${x} ${/tall/.test(text) ? 460 : 550} ${x + 18} ${/tall/.test(text) ? 478 : 570}L${x + 23} 640H${x - 23}Z`, c, 0, opacity))}`;
-  if (/stripe/.test(family))
-    return html`<g opacity="${opacity}">${Array.from({ length: 9 }, (_, i) => group(centers[i % centers.length][0] + ((i * 37) % 90) - 40, centers[i % centers.length][1] + ((i * 23) % 70) - 35, 0.9 + (seed % 4) * 0.1, motif(family, c, text)))}</g>`;
-  return html`<g opacity="${opacity}">${Array.from({ length: count }, (_, i) => {
-    const [x, y] = centers[i % centers.length];
-    const dx = scatter ? random(i * 2) * 100 - 50 : 0,
-      dy = scatter ? random(i * 2 + 1) * 90 - 45 : 0;
-    return group(x + dx, y + dy, scatter ? 0.2 + random(i + 30) * 0.6 : 1 + (seed % 7) * 0.08, motif(family, c, text));
-  })}</g>`;
+export function markingPlacements(horse) {
+  const used = new Set(),
+    placements = new Map();
+  const body = [
+    [423, 343],
+    [515, 345],
+    [605, 345],
+    [687, 353],
+    [451, 397],
+    [548, 397],
+    [645, 400]
+  ];
+  const head = [
+    [244, 228],
+    [229, 246],
+    [216, 262],
+    [261, 223],
+    [241, 257],
+    [254, 243]
+  ];
+  const legs = [
+    [409, 521],
+    [747, 521],
+    [408, 574],
+    [744, 574]
+  ];
+  for (const category of ['Paint', 'Pattern'])
+    for (const name of selectedArtTraits(horse, category)) {
+      const recipe = traitArtDefinition(category, name),
+        { region, text } = recipe;
+      const pool = region === 'head' ? head : region === 'legs' || region === 'front-leg' ? legs : body;
+      const preferred = pool.slice().sort((a, b) => {
+        const desired =
+          region === 'hind'
+            ? 680
+            : region === 'front'
+              ? 400
+              : region === 'belly'
+                ? 550
+                : region === 'head' && /nose/.test(text)
+                  ? 215
+                  : 500;
+        return Math.abs(a[0] - desired) - Math.abs(b[0] - desired);
+      });
+      const point = preferred.find(([x, y]) => !used.has(`${x},${y}`)) || preferred.at(-1);
+      used.add(point.join(','));
+      placements.set(`${category}:${name}`, {
+        x: point[0],
+        y: point[1],
+        width: region === 'head' ? 11 : pool === legs ? 22 : 70,
+        height: region === 'head' ? 12 : pool === legs ? 35 : 38,
+        opacity: region === 'head' ? 0.25 : /light|subtle|faded/.test(text) ? 0.27 : 0.43
+      });
+    }
+  return placements;
+}
+
+function markings(recipe, c, placement) {
+  const { family, seed, text, region } = recipe;
+  const spot = placement || {
+    x: region === 'head' ? 241 : 520,
+    y: region === 'head' ? 242 : 363,
+    width: region === 'head' ? 11 : 70,
+    height: region === 'head' ? 12 : 38,
+    opacity: region === 'head' ? 0.25 : 0.43
+  };
+  const scatter = /spots|stars|hearts|flowers/.test(family),
+    count = scatter ? (/light|sparse/.test(text) ? 3 : 5) : /stripes/.test(family) ? 3 : 1;
+  let art;
+  if (/blaze|bald face|face splash|skull/.test(text)) art = path('M-2-18Q4-9 1 18L-3 16Q0 0-2-18Z', c, 0);
+  else if (/sock|lower leg/.test(text)) art = path('M-9-20Q0-25 9-20L11 23H-11Z', c, 0);
+  else
+    art = html`${Array.from({ length: count }, (_, i) => {
+      const x = count === 1 ? 0 : ((i % 3) - 1) * 18,
+        y = count === 1 ? 0 : (Math.floor(i / 3) - 0.5) * 18;
+      return group(x, y, count === 1 ? 0.72 : 0.3 + (seed % 13) * 0.008, motif(family, c, text));
+    })}`;
+  return html`<g data-marking-region="${region}" data-marking-center="${spot.x},${spot.y}" opacity="${spot.opacity}" transform="translate(${spot.x} ${spot.y}) scale(${spot.width / 70} ${spot.height / 38})">${art}</g>`;
 }
 
 // Vary contour control points and tips, rather than recoloring or scaling a shared
@@ -236,7 +291,10 @@ function individualContours(art, seed) {
         const value = Number(number);
         const index = pointIndex++;
         if (coordinate++ < 2 || !value) return number;
-        const fraction = (Math.imul(seed ^ (index + 1), 1597334677) >>> 0) / 4294967296;
+        let mixed = seed ^ Math.imul(index + 1, 0x9e3779b9);
+        mixed = Math.imul(mixed ^ (mixed >>> 16), 0x85ebca6b);
+        mixed = Math.imul(mixed ^ (mixed >>> 13), 0xc2b2ae35);
+        const fraction = ((mixed ^ (mixed >>> 16)) >>> 0) / 4294967296;
         const change = Math.min(7, Math.abs(value) * 0.18) * (fraction * 2 - 1);
         return String(Math.round((value + change) * 100) / 100);
       });
@@ -245,7 +303,7 @@ function individualContours(art, seed) {
   );
 }
 
-export function traitArtwork(category, name, { colors = {}, description = '', prefix = 'trait' } = {}) {
+export function traitArtwork(category, name, { colors = {}, description = '', prefix = 'trait', placement } = {}) {
   if (category === 'Cosmetic') return html``;
   const recipe = traitArtDefinition(category, name, description),
     { family, region, seed, text } = recipe;
@@ -275,16 +333,23 @@ export function traitArtwork(category, name, { colors = {}, description = '', pr
     art = html`<g opacity=".65">${html`<ellipse cx="${/body/.test(text) ? 520 : /neck/.test(text) ? 335 : 257}" cy="${/body/.test(text) ? 345 : /neck/.test(text) ? 255 : 176}" rx="${/body/.test(text) ? 156 : 66}" ry="${/body/.test(text) ? 100 : 26}" fill="none" stroke="${c}" stroke-width="4"/>`}${group(270, 130, 0.5, motif('stars', accent, text))}</g>`;
   else if (family === 'wings')
     art = html`${group(region === 'legs' ? 409 : 480, region === 'legs' ? 510 : 315, region === 'legs' ? 0.8 : 2.4, path('M0 0Q-7-67 30-102L25-60 49-85 39-39 62-58Q53-5 0 0Z', c))}`;
-  else if (category === 'Pattern' || category === 'Paint') art = markings(recipe, c);
+  else if (category === 'Pattern' || category === 'Paint') art = markings(recipe, c, placement);
   else
     art = html`${anchors(region, text).map(([x, y]) => group(x, y, 0.7 + (seed % 8) * 0.12, motif(family, c, text)))}`;
-  const geometry = category === 'Mane' || category === 'Tail' ? art : individualContours(art, seed);
+  let geometry = category === 'Mane' || category === 'Tail' ? art : individualContours(art, seed);
+  if (category === 'Whiskers' && region === 'head')
+    geometry = html`<g opacity=".45" transform="translate(245 240) scale(.65) translate(-245 -240)">${geometry}</g>`;
   return html`<g data-trait-category="${category}" data-trait="${name}" data-trait-family="${family}" fill="none">${geometry}</g>`;
 }
 
 export function horseTraitCategoryArt(horse, category, prefix) {
+  const placements = markingPlacements(horse);
   const art = selectedArtTraits(horse, category).map(name =>
-    traitArtwork(category, name, { colors: horse.palette.colors, prefix })
+    traitArtwork(category, name, {
+      colors: horse.palette.colors,
+      prefix,
+      placement: placements.get(`${category}:${name}`)
+    })
   );
   return category === 'Pattern' || category === 'Paint'
     ? html`<g clip-path="url(#${prefix}-trait-coat)">${art}</g>`

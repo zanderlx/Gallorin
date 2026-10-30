@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { speciesTraitData } from '../public/species-trait-data.js';
-import { traitArtwork, traitArtDefinition, selectedArtTraits } from '../public/horse-trait-art.js';
+import { traitArtwork, traitArtDefinition, selectedArtTraits, markingPlacements } from '../public/horse-trait-art.js';
 import { horseArt, horseHeadArt } from '../public/art.js';
-import { hairDesign, sourceHairPaths } from '../public/horse-hair-art.js';
+import { hairDesign, sourceHairPaths, tailAttachmentWeight } from '../public/horse-hair-art.js';
 
 const colors = {
   'Coat Top': '#B38E67',
@@ -101,6 +101,7 @@ test('hair names control length and texture independently, without braid-like fu
     assert.ok(design.length < 70, name);
     assert.notEqual(design.texture, 'braid');
     const art = String(traitArtwork('Tail', name, { colors }));
+    assert.match(art, /data-tail-attachment="fixed"/);
     assert.match(art, /data-hair-length="short"/);
   }
   assert.equal(hairDesign(traitArtDefinition('Tail', 'Short Fur Tail')).texture, 'fur');
@@ -124,5 +125,39 @@ test('standard hair retains original SVG coordinates and Keratin is behind both 
     const art = render({ ...horse, traits: { Keratin: ['Ram Horns'], Ears: ['Jackrabbit Ears'] } });
     assert.ok(art.indexOf('data-trait-category="Keratin"') < art.indexOf('data-layer="base-ears"'));
     assert.ok(art.indexOf('data-layer="base-ears"') < art.indexOf('data-trait-category="Ears"'));
+  }
+});
+
+test('tail redesigns preserve all source root control points', () => {
+  const coords = d => [...d.matchAll(/-?\d*\.?\d+/g)].map(m => Number(m[0]));
+  const original = coords(sourceHairPaths.Tail[0]);
+  for (const name of ['Short Fur Tail', 'Upturned Tail', 'Sparse Tail', 'Long Wavy Tail', 'Braided Tail']) {
+    const art = String(traitArtwork('Tail', name, { colors }));
+    const actual = coords(art.match(/<path d="([^"]+)"/)[1]);
+    for (let i = 0; i < original.length; i += 2)
+      if (tailAttachmentWeight(original[i], original[i + 1]) === 0) {
+        assert.equal(actual[i], original[i], name);
+        assert.equal(actual[i + 1], original[i + 1], name);
+      }
+  }
+});
+
+test('markings share placement reservations and facial designs stay small and faint', () => {
+  for (const traits of [
+    { Paint: ['Piebald', 'Tobiano'], Pattern: ['Deer Spots', 'Star Dapple', 'Side Swirls', 'Leopard Appaloosa'] },
+    {
+      Paint: ['Face Paint', 'Nose Heart'],
+      Pattern: ['Face Freckles', 'Head Spots', 'Eye Filigree', 'Light Face Paint']
+    }
+  ]) {
+    const plan = [...markingPlacements({ ...horse, traits }).values()];
+    assert.equal(new Set(plan.map(p => `${p.x},${p.y}`)).size, 6);
+    for (const p of plan) {
+      assert.ok(p.opacity <= 0.43);
+      if (p.y < 280) {
+        assert.ok(p.width <= 11);
+        assert.ok(p.opacity <= 0.25);
+      }
+    }
   }
 });

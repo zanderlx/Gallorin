@@ -52,6 +52,13 @@ export const sourceHairPaths = Object.fromEntries(
   })
 );
 
+export function tailAttachmentWeight(x, y) {
+  // Preserve every source control point at the rump; blend changes farther out.
+  const distance = Math.hypot(x - 737, y - 260);
+  const t = Math.max(0, Math.min(1, (distance - 43) / 100));
+  return t * t * (3 - 2 * t);
+}
+
 export function horseHairArt(recipe, color, accent, prefix = 'trait') {
   if (recipe.family === 'bare') return html``;
   const design = hairDesign(recipe),
@@ -77,14 +84,17 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
         if (pair.length === 1) return '__X__';
         const [x, y] = pair;
         pair = [];
+        if (tail && tailAttachmentWeight(x, y) === 0) return `${x},${y}`;
         let px = x,
           py = y;
         if (!standard && !(recipe.category === 'Mane' && pathIndex === 0)) {
           const t = tail ? Math.max(0, (y - 250) / 322) : Math.max(0, (x - 290) / 190);
           if (tail) {
-            px = 715 + (x - 715) * breadth * (design.short ? 0.55 : 1);
-            py = y < 250 ? y : 250 + (y - 250) * stretch;
-            if (design.raised && y > 265) py = 250 - (y - 250) * 0.42;
+            const weight = tailAttachmentWeight(x, y);
+            const targetX = 715 + (x - 715) * breadth * (design.short ? 0.55 : 1);
+            const targetY = design.raised && y > 265 ? 250 - (y - 250) * 0.42 : y < 250 ? y : 250 + (y - 250) * stretch;
+            px = x + (targetX - x) * weight;
+            py = y + (targetY - y) * weight;
           } else {
             const seam = 160 + (x - 290) * 0.78;
             py = y < seam ? y : seam + (y - seam) * stretch;
@@ -92,8 +102,9 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
           }
           const wave =
             design.texture === 'wavy' ? Math.sin(t * 8) * 7 : design.texture === 'curly' ? Math.sin(t * 16) * 10 : 0;
-          px += wave;
-          if (design.texture === 'fur') px += Math.sin(t * 35) * 3;
+          const weight = tail ? tailAttachmentWeight(x, y) : 1;
+          px += wave * weight;
+          if (design.texture === 'fur') px += Math.sin(t * 35) * 3 * weight;
         }
         return `${n(px)},${n(py)}`;
       })
@@ -101,6 +112,14 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
   });
   const clip = `${prefix}-source-hair-${recipe.category}-${seed}`;
   const painted = paths.map(d => shape(d, color));
+  const joinX = n(715 + (820 - 715) * breadth * (design.short ? 0.55 : 1));
+  const joinY = n(design.raised ? 250 - (380 - 250) * 0.42 : 250 + (380 - 250) * stretch);
+  // A tapered filled root joins the source silhouette to its reshaped body,
+  // including raised tails whose curved lobes can otherwise leave a hairline gap.
+  const attachment =
+    tail && !standard
+      ? html`<g data-tail-attachment="fixed"><path d="M730 258Q754 253 ${joinX} ${joinY - 8}L${joinX + 8} ${joinY + 7}Q754 270 735 275Z" fill="${color}"/></g>`
+      : '';
   const detail = Array.from({ length: design.strands }, (_, i) => {
     const t = (i + 1) / (design.strands + 1),
       x = tail ? 735 + t * 95 * breadth : 310 + t * 125,
@@ -113,5 +132,5 @@ export function horseHairArt(recipe, color, accent, prefix = 'trait') {
       1.2
     );
   });
-  return html`<g data-hair-source="original-svg" data-hair-texture="${design.texture}" data-hair-length="${design.short ? 'short' : 'long'}"><defs><clipPath id="${clip}">${paths.map(d => shape(d, '#FFFFFF'))}</clipPath></defs>${painted}<g clip-path="url(#${clip})">${standard ? '' : detail}</g></g>`;
+  return html`<g data-hair-source="original-svg" data-hair-texture="${design.texture}" data-hair-length="${design.short ? 'short' : 'long'}"><defs><clipPath id="${clip}">${paths.map(d => shape(d, '#FFFFFF'))}</clipPath></defs>${attachment}${painted}<g clip-path="url(#${clip})">${standard ? '' : detail}</g></g>`;
 }
