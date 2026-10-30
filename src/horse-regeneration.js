@@ -208,7 +208,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     } else {
       if (!values.length) {
         if (explicitRerolls.has(key) && !active('species') && !restored.includes('species'))
-          throw new Error('No different ' + category + ' traits are available.');
+          throw new Error('No different ' + category + ' traits are available for ' + species.name + '.');
         if (active('species') || restored.includes('species')) {
           horse.traits[category] = ['Mane', 'Tail'].includes(category) ? ['None'] : [];
           warnings.push(species.name + ' has no ' + category + ' definitions; incompatible traits were cleared.');
@@ -231,7 +231,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
           other = values.find(value => !chosen.includes(value));
         if (other && chosen.length) chosen[chosen.length - 1] = other;
         else if (other && !chosen.length && rule(key).count === undefined && range.max > 0) chosen.push(other);
-        else throw new Error('No different ' + category + ' traits are available.');
+        else throw new Error('No different ' + category + ' traits are available for ' + species.name + '.');
       }
     }
   }

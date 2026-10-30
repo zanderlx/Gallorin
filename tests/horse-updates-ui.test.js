@@ -45,6 +45,7 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   const controls = horseOverrideControls(state.horses[0], state, catalog);
   assert.ok(!controls.includes('Preview Changes'));
   assert.ok(!controls.includes('Reset Pending Changes'));
+  assert.ok(!controls.includes('horse-section-status'));
   assert.ok(!controls.includes('Review Changes'));
   assert.equal((controls.match(/data-save-section/g) || []).length, 5);
   assert.equal((controls.match(/class="form-actions horse-section-actions" hidden/g) || []).length, 5);

@@ -537,3 +537,22 @@ test('preview reuse keeps generated values after an unrelated section is saved',
   assert.equal(saved.notes, 'Unrelated saved value');
   assert.equal(saved.personality.id, chosen.id);
 });
+
+test('unavailable Keratin, Ears and Whiskers rerolls identify the species', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog(),
+    species = c.species.find(entry => entry.id === horse.speciesId);
+  for (const category of ['Keratin', 'Ears', 'Whiskers']) {
+    species.traits[category] = [];
+    assert.throws(
+      () => regenerateHorse(horse, { ['trait:' + category]: { mode: 'reroll' } }, c, store.snapshot()),
+      error => error.message.includes(category) && error.message.includes(species.name)
+    );
+    species.traits[category] = ['Only Choice'];
+    const original = { ...horse, traits: { ...horse.traits, [category]: ['Only Choice'] } };
+    assert.throws(
+      () => regenerateHorse(original, { ['trait:' + category]: { mode: 'reroll', count: 1 } }, c, store.snapshot()),
+      error => error.message.includes(category) && error.message.includes(species.name)
+    );
+  }
+});

@@ -217,15 +217,6 @@
   gap: 10px;
   margin-top: 20px;
 }
-.horse-section-status {
-  margin: 14px 0 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-.horse-section-status:empty {
-  display: none;
-}
-
 #profile .horse-section-actions[hidden] {
   display: none !important;
 }
