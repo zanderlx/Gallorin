@@ -7,6 +7,9 @@ import { GameStore } from '../src/store.js';
 import { regenerateHorse, lockedCosmicMutations } from '../src/horse-regeneration.js';
 import { createHorseDocument, readHorseDocument } from '../public/horse-transfer.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
+import { horseArt, horseHeadArt } from '../public/art.js';
+import { card } from '../public/ui.js';
+import { profileContent } from '../public/profile.js';
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const defaults = JSON.parse(await readFile(new URL('../data/defaults/settings.json', import.meta.url), 'utf8'));
@@ -20,6 +23,34 @@ async function fixture(t, rng = () => 0.5) {
 }
 const preview = (store, ids, rules, allowDuplicates = false) =>
   store.previewHorseUpdates({ ids, rules, allowDuplicates });
+
+test('applying and restoring trait overrides immediately updates all artwork renderers', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const currentCatalog = store.getCatalog();
+  const species = currentCatalog.species.find(entry => entry.id === horse.speciesId);
+  const replacement = species.traits.Mane.find(name => !horse.traits.Mane.includes(name) && name !== 'None');
+  assert.ok(replacement, 'Species has an alternate mane');
+  const originalArtwork = horseArt(horse);
+  const change = await preview(store, [horse.id], { 'trait:Mane': { mode: 'set', value: [replacement] } });
+  const state = await store.action('apply-horse-updates', { token: change.preview.token });
+  const updated = state.horses.find(entry => entry.id === horse.id);
+  assert.deepEqual(updated.traits.Mane, [replacement]);
+  assert.notEqual(horseArt(updated), originalArtwork);
+  const marker = `data-trait="${replacement}"`;
+  for (const markup of [
+    horseArt(updated),
+    horseHeadArt(updated),
+    card(updated, state, 'wild', currentCatalog),
+    card(updated, state, 'stable', currentCatalog),
+    profileContent(updated, state, { catalog: currentCatalog })
+  ]) {
+    assert.ok(markup.includes(marker), 'Latest saved trait appears without a reload or art cache reset');
+  }
+  const restore = await preview(store, [horse.id], { 'trait:Mane': { mode: 'restore' } });
+  const restored = await store.action('apply-horse-updates', { token: restore.preview.token });
+  assert.equal(horseArt(restored.horses.find(entry => entry.id === horse.id)), originalArtwork);
+});
 
 test('legacy horse metadata upgrades once with a backup and survives JSON transfer', async t => {
   const { directory, store, horse } = await fixture(t);
