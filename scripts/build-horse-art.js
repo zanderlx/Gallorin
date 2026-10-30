@@ -7,7 +7,7 @@ const layers = (await readHorseLayers()).map(({ name, channel, svg }) => ({
   name,
   channel,
   defaultColor: svg.match(/fill="(#[0-9a-f]{6})"/i)[1],
-  markup: svg
+  markup: (name === 'coat top' ? svg.replace(/M665 310\.5[\s\S]*?(?=M278 170L)/, '') : svg)
     .replace(/^\s*<svg\b[^>]*>/, '')
     .replace(/<\/svg>\s*$/, '')
     .replace(/\bid="([^"]+)"/g, 'id="__PREFIX__$1"')

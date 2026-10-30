@@ -44,7 +44,7 @@ export function farLegArt(colors, prefix) {
 export function coatDepthArt(prefix) {
   return html`<g data-depth="coat-volume" clip-path="url(#${prefix}-trait-coat)"><rect x="190" y="130" width="610" height="510" fill="url(#${prefix}-coat-volume)"/><ellipse cx="542" cy="346" rx="205" ry="104" fill="url(#${prefix}-barrel-light)"/>
   <g fill="#18251C" opacity=".10"><path d="M302 233Q326 282 379 333Q371 347 378 362Q344 322 322 282Z"/><path d="M470 355Q463 397 482 416Q532 448 606 420Q548 449 482 430Q453 410 470 355Z"/><path d="M666 347Q670 392 704 421L724 462Q689 424 676 404Q660 376 666 347Z"/></g>
-  <g fill="none" stroke-linecap="round"><path d="M386 320Q415 299 444 325M680 307Q715 303 739 336" stroke="#FFF6E1" stroke-opacity=".15" stroke-width="7"/><path data-anatomy="shoulder-join" d="M376.466 356.5C385 338 392 318 402.5 311.5C416 303 424 301 432.5 303C445 306 461 312 464.5 325.5C467.5 338 468.5 361 469.664 376.5C472 397 468 415 461.5 428C456 439 453 451 451 464" stroke="#263124" stroke-opacity=".16" stroke-width="1.6"/><path data-anatomy="haunch-join" d="M778.5 341C779 328 775 315 771.5 309.5C765 299 754 293 742 289.5C723 284 709 286 687 289.5C670 292 665 304 665 310.5C664.5 335 665 353 670 373.5C673 391 678 403 685.5 410.5C699 421 708 440 713 447.5" stroke="#263124" stroke-opacity=".16" stroke-width="1.6"/><path d="M252 217Q271 215 278 226" stroke="#FFF8EA" stroke-opacity=".12" stroke-width="4"/></g></g>`;
+  <g fill="none" stroke-linecap="round"><path d="M386 320Q415 299 444 325M680 307Q715 303 739 336" stroke="#FFF6E1" stroke-opacity=".06" stroke-width="7"/><path d="M252 217Q271 215 278 226" stroke="#FFF8EA" stroke-opacity=".12" stroke-width="4"/></g></g>`;
 }
 
 export function hairDepthArt(paths, prefix) {
