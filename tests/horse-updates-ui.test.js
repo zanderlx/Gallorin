@@ -92,12 +92,40 @@ test('horse admin UI escapes horse names, exposes granular fields, and gates edi
   state.settings.horseUpdatesEnabled = false;
   assert.equal(horseOverrideControls(state.horses[0], state, catalog), '');
   assert.ok(!profileContent(state.horses[0], state, { catalog }).includes('Edit Horse Data'));
-  const marked = { ...state.horses[0], overriddenFields: ['species', 'trait:Mane'] };
+  const marked = {
+    ...state.horses[0],
+    overriddenFields: [
+      'species',
+      'gender',
+      'birthday',
+      'origin',
+      'size',
+      'personality',
+      'notes',
+      'description',
+      'palette',
+      'eye',
+      'trait:Mane',
+      'trait:Keratin',
+      'mutation:0',
+      'mutations',
+      'skill:bond'
+    ]
+  };
   assert.equal(horseOverrideBadge(marked, 'species', false), '');
-  assert.equal(horseOverrideBadge(marked, 'gender', true), '');
+  assert.equal(horseOverrideBadge(marked, 'name', true), '');
   assert.match(horseOverrideBadge(marked, 'species', true), /OVERRIDE/);
   state.settings.horseUpdatesEnabled = true;
-  assert.match(profileContent(marked, state, { catalog }), /OVERRIDE/);
+  assert.doesNotMatch(profileContent(marked, state, { catalog }), /horse-override-badge|OVERRIDE/);
+  assert.doesNotMatch(profileContent(marked, state, { catalog, importPreview: true }), /horse-override-badge|OVERRIDE/);
+  const markedEditor = horseOverrideControls(marked, state, catalog);
+  assert.match(markedEditor, /horse-override-badge/);
+  assert.match(markedEditor, /OVERRIDE/);
+  const profileWithEditor = profileContent(marked, state, { catalog, overrideContent: markedEditor });
+  assert.equal(
+    (profileWithEditor.match(/horse-override-badge/g) || []).length,
+    (markedEditor.match(/horse-override-badge/g) || []).length
+  );
   state.settings.horseUpdatesEnabled = false;
   assert.ok(!profileContent(marked, state, { catalog }).includes('OVERRIDE'));
 });
