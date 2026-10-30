@@ -669,6 +669,13 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const unknown = speciesRow.querySelector('[data-mode]').value === 'reroll' && !form.dataset.resolvedSpeciesId;
       row.querySelector('[data-mode] option[value="set"]').disabled = unknown || !choices.length;
       row.querySelector('[data-edit-override]').disabled = unknown || !choices.length;
+      const reroll = row.querySelector('[data-roll-override]');
+      reroll.disabled = unknown || !choices.length;
+      reroll.title = unknown
+        ? 'Choose a species before rerolling traits.'
+        : !choices.length
+          ? `No ${category} traits are available for ${species[0]?.name || 'this species'}.`
+          : `Reroll ${category}`;
       row.querySelector('[data-mode] option[value="clear"]').disabled = range.min > 0;
       row.querySelector('[data-field-help]').textContent = unknown
         ? 'Rerolling species: use Keep or Reroll here, or set a species first to choose exact traits.'
