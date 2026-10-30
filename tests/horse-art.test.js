@@ -26,7 +26,7 @@ test('active artwork faces right, maps every channel, preserves source masks and
   }
   assert.deepEqual(horse, before);
   assert.doesNotMatch(horseArt({ ...horse, species: 'Arabian' }), /data-layer="keratin"/);
-  assert.match(horseHeadArt(horse), /viewBox="275 35 135 145"/);
+  assert.match(horseHeadArt(horse), /viewBox="270 10 145 170"/);
 });
 
 test('Keratin traits show palette-colored artwork on every species in full-body and headshot views', () => {
@@ -35,7 +35,7 @@ test('Keratin traits show palette-colored artwork on every species in full-body 
     const before = structuredClone(record);
     for (const render of [horseArt, horseHeadArt]) {
       const svg = render(record);
-      const keratin = svg.match(/<g data-layer="keratin"[^>]*>([\s\S]*?)<\/g>/);
+      const keratin = svg.match(/<g data-trait-category="Keratin"[^>]*>([\s\S]*?)<\/g>/);
       assert.ok(keratin, species);
       assert.ok(keratin[1].includes(`fill="${record.palette.colors.Keratin}"`));
     }
@@ -45,7 +45,10 @@ test('Keratin traits show palette-colored artwork on every species in full-body 
     for (const render of [horseArt, horseHeadArt])
       assert.doesNotMatch(render({ ...horse, species: 'Arabian', traits: { Keratin } }), /data-layer="keratin"/);
   }
-  assert.match(horseArt({ ...horse, traits: { Keratin: [] } }), /data-layer="keratin"/);
+  assert.doesNotMatch(
+    horseArt({ ...horse, traits: { Keratin: [] } }),
+    /data-layer="keratin"|data-trait-category="Keratin"/
+  );
 });
 
 test('legacy full-body and headshot renderers remain callable with their original geometry', () => {

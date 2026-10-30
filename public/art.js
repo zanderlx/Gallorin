@@ -7,7 +7,7 @@ import { horseArtBackground, horseArtAccents } from './horse-art-background.js';
 export { legacyHorseArt, legacyHorseHeadArt } from './legacy-art.js';
 
 export const horseFullViewBox = '0 0 460 310';
-export const horseHeadViewBox = '275 35 135 145';
+export const horseHeadViewBox = '270 10 145 170';
 
 export function horseHeadArt(horse, large = false) {
   return horseArt(horse, large).replace(`viewBox="${horseFullViewBox}"`, `viewBox="${horseHeadViewBox}"`);

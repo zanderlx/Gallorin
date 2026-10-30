@@ -68,7 +68,7 @@ test('horse profile separates overview from appearance and keeps unique portrait
   assert.match(appearance, />Traits<\/h3>/);
   assert.match(appearance, />Mutations<\/h3>/);
   assert.match(appearance, />Palette<\/h3>/);
-  assert.equal((html.match(/viewBox="275 35 135 145"/g) || []).length, 2);
+  assert.equal((html.match(/viewBox="270 10 145 170"/g) || []).length, 2);
   assert.equal((html.match(/data-full-horse title="View Full Horse"/g) || []).length, 2);
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
   assert.equal(new Set(ids).size, ids.length);
@@ -92,9 +92,9 @@ test('preview headshots and full artwork share the same horse colors', () => {
   const full = horseArt(horse);
   const head = horseHeadArt(horse);
   assert.match(full, /viewBox="0 0 460 310"/);
-  assert.equal(head, full.replace('viewBox="0 0 460 310"', 'viewBox="275 35 135 145"'));
+  assert.equal(head, full.replace('viewBox="0 0 460 310"', 'viewBox="270 10 145 170"'));
   assert.match(card(horse, state, 'wild', catalog), /viewBox="0 0 460 310"/);
-  assert.match(card(horse, { ...state, horses: [horse] }, 'stable', catalog), /viewBox="275 35 135 145"/);
+  assert.match(card(horse, { ...state, horses: [horse] }, 'stable', catalog), /viewBox="270 10 145 170"/);
 });
 
 test('switching profile tabs hides inactive content and supports focus without replacing forms', () => {

@@ -108,13 +108,13 @@ app
 
 function verifyArtwork() {
   if (!window.artReady) throw Error('Artwork viewer did not load');
-  const expected = ['0 0 460 310', '275 35 135 145', '275 35 135 145', '275 35 135 145'];
+  const expected = ['0 0 460 310', '270 10 145 170', '270 10 145 170', '270 10 145 170'];
   const art = [...document.querySelectorAll('.horse-art')];
   if (art.length !== expected.length) throw Error('Missing card/profile portraits');
   for (const [index, svg] of art.entries()) {
     if (svg.getAttribute('viewBox') !== expected[index]) throw Error('Wrong full-body/headshot crop');
     if (!svg.querySelector('[data-horse-model=layered]')) throw Error('Legacy artwork still active');
-    if (!svg.querySelector('[data-layer=keratin]')) throw Error('Unicorn horn missing');
+    if (!svg.querySelector('[data-layer=keratin], [data-trait-category=Keratin]')) throw Error('Unicorn horn missing');
     for (const node of svg.querySelectorAll('[href]')) {
       if (!svg.querySelector('[id="' + node.getAttribute('href').slice(1) + '"]')) throw Error('Missing source shape');
     }
@@ -128,7 +128,7 @@ function verifyViewer() {
   const dialog = document.querySelector('#horse-art-viewer');
   if (!dialog?.open) throw Error('Full-art viewer did not open');
   const art = dialog.querySelector('.horse-art');
-  if (art.getAttribute('viewBox') !== '0 32 460 258') throw Error('Full-art viewer did not restore body crop');
+  if (art.getAttribute('viewBox') !== '0 0 460 310') throw Error('Full-art viewer did not restore body crop');
   const originals = new Set([...document.querySelectorAll('#profile [id]')].map(node => node.id));
   for (const node of art.querySelectorAll('[id]'))
     if (originals.has(node.id)) throw Error('Cloned ID collides with source');

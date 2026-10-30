@@ -30,8 +30,12 @@ All supplied markings and the horn are shown in the original assembly study.
 including its Coat Top tint. Wilds uses the full body; stable cards and both
 profile tabs use a headshot. Clicking a profile portrait opens the full body.
 Mane and tail share Hair; eyes retain the normal trait and Cosmic override
-logic. The Keratin layer appears for Unicorns and for any horse with an active
-Keratin trait; empty, None, and awaiting-data traits do not add it.
+logic. Saved traits now select artwork through `public/horse-trait-art.js`.
+Mane, Tail and Keratin replace their base layers when the category is recorded;
+None/empty categories show no replacement. Older records without those fields
+keep the base hair and Unicorn horn fallback. Recorded traits replace the
+generic diamond Paint/Pattern samples. The source coat, nose, socks and hooves
+retain their palette colors.
 
 The old renderer remains available as `legacyHorseArt` and `legacyHorseHeadArt`
 from `public/art.js` (implemented in `public/legacy-art.js`).
@@ -42,3 +46,31 @@ desktop installers. Run `npx electron scripts/check-horse-art.cjs` to check the
 actual card/profile renderers and cloned viewer references and save screenshots
 in `test-results/horse-art/`. This check uses a temporary browser profile and
 does not open or write player saves.
+
+## Trait vector library
+
+All eight supported categories use deterministic SVG recipes. The supplied
+reference has 3,356 species/category/name entries; it contains names rather than
+individual prose descriptions. Designs interpret those names through visual
+families (braids, curls, feathers, botanical hair, antlers, fangs, crowns, plates,
+fur, spots, stripes, flowers, hearts, bones, halos and others), anatomical words,
+length/density qualifiers and stable per-name variations. These are procedural
+interpretations; related names share visual families rather than thousands of
+individually hand-drawn assets. Small charm motifs are stylized symbols.
+
+Paint and Pattern clip to the actual coat silhouettes; multiple selected traits
+stack in a stable order. External adornments can overlap and extend outside the
+coat. Full body, headshots, import previews and the full-art viewer all use the
+same assembly. Saved records and trait eligibility are unchanged.
+
+`traitArtDefinition(category, name, description)` resolves a visual recipe;
+`traitArtwork(category, name, {colors, description})` renders it independently
+of species. Optional prose can refine future custom definitions. This API is
+available for a later gallery; no gallery page or controls have been added.
+
+To regenerate the representative design contact sheet:
+
+```powershell
+node scripts/preview-horse-traits.js
+npx electron scripts/capture-horse-preview.cjs trait-studies 1500 1360
+```

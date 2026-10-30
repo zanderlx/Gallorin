@@ -54,8 +54,10 @@ export function bindHorseArtViewer() {
     // Trim empty artwork above the ears and below the hooves without enlarging the horse.
     const bounds = art.getBoundingClientRect();
     const scale = Math.min(bounds.width / 460, bounds.height / 310);
-    const imageHeight = 258 * scale;
-    art.setAttribute('viewBox', '0 32 460 258');
+    // Adornments such as antlers and wings can extend into the old empty margins.
+    const hasTraits = !!art.querySelector('[data-trait-category]');
+    const imageHeight = (hasTraits ? 310 : 258) * scale;
+    art.setAttribute('viewBox', hasTraits ? '0 0 460 310' : '0 32 460 258');
     art.style.width = `${460 * scale}px`;
     art.style.height = `${imageHeight}px`;
     art.style.maxWidth = '100%';
