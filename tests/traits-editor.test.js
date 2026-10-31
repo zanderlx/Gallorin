@@ -37,7 +37,7 @@ const row = (category, values) => ({
 });
 const form = rows => ({ dataset: { id: 'horse' }, querySelectorAll: () => rows });
 
-test('supplied reference preserves used CSV traits and omits the unused Wings category', async () => {
+test('supplied reference preserves CSV traits plus promoted Ghoulsteed ears and omits unused Wings', async () => {
   const csv = await readFile(new URL('../docs/references/species-traits.csv', import.meta.url), 'utf8');
   const aliases = { Cosmetics: 'Cosmetic', Manes: 'Mane', Paints: 'Paint', Patterns: 'Pattern', Tails: 'Tail' };
   const rows = csv
@@ -49,7 +49,9 @@ test('supplied reference preserves used CSV traits and omits the unused Wings ca
   assert.equal(rows.length, 3356);
   for (const [species, name, category] of rows)
     assert.ok(speciesTraitData[species][aliases[category] || category].includes(name));
-  assert.equal(Object.values(speciesTraitData).flatMap(Object.values).flat().length, rows.length);
+  const promotedEars = ['Lupine Ears', 'Bat Ears'];
+  assert.deepEqual(speciesTraitData.Ghoulsteed.Ears, promotedEars);
+  assert.equal(Object.values(speciesTraitData).flatMap(Object.values).flat().length, rows.length + promotedEars.length);
   assert.equal(catalog.species.length, 46);
   assert.ok(!catalog.species.some(s => s.name === 'LEGO® Horse'));
   for (const species of catalog.species) {
