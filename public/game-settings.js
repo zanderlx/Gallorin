@@ -19,7 +19,8 @@ function settingForm(state, economy = false, catalog) {
   <label class="setting-row"><span><strong>Search Cooldown (Seconds)</strong><small>Delay between searches across all zones (1–86400 seconds).</small></span><input name="searchCooldownSeconds" type="number" min="1" max="86400" step="1" value="${s.searchCooldownSeconds ?? 90}" required></label>
   <label class="setting-row"><span><strong>Stable Capacity</strong><small>Maximum companions when the limit is enabled.</small></span><input name="stableCapacity" type="number" min="1" max="10000" value="${s.stableCapacity}" required></label>
   <label class="setting-row"><span><strong>Ignore Stable Capacity</strong><small>Allow new horses beyond the stable limit.</small></span><input class="toggle" name="ignoreStableLimit" type="checkbox" ${s.ignoreStableLimit ? 'checked' : ''}></label>
-  <label class="setting-row"><span><strong>Override Horse Data</strong><small>Enable the Edit tab on horses in My Horses.</small></span><input class="toggle" name="horseUpdatesEnabled" type="checkbox" ${s.horseUpdatesEnabled ? 'checked' : ''}></label>`
+  <label class="setting-row"><span><strong>Override Horse Data</strong><small>Enable the Edit tab on horses in My Horses.</small></span><input class="toggle" name="horseUpdatesEnabled" type="checkbox" ${s.horseUpdatesEnabled ? 'checked' : ''}></label>
+  ${artworkSetting(state)}`
   }
   <div id="${id}-status" role="status" class="form-status"></div><div class="form-actions"><button class="button primary" type="submit">${icon('check')} Save Settings</button><button class="button secondary" type="reset">Cancel Changes</button><button class="text-button" type="button" data-action="defaults">Load Defaults</button></div></form>`;
 }
@@ -34,13 +35,12 @@ export function validateSettingsNumbers(form) {
   }
 }
 
-function safelyChecked(state) {
-  return state.settings.providedHorseArtwork ? 'checked' : '';
+function artworkSetting(state) {
+  return html`<label class="setting-row"><span><strong>Use Provided SVG Artwork</strong><small>Show the original supplied horse artwork. Turn off to use the trait-based artwork. Changes save immediately.</small></span><input class="toggle" id="provided-horse-artwork" type="checkbox" ${state.settings.providedHorseArtwork ? 'checked' : ''}></label>`;
 }
 
 export function gameSettingsPage(state, catalog) {
   return `<div class="settings-section-heading"><h1>Encounter & Stable Settings</h1></div>
-  ${html`<label class="setting-row panel"><span><strong>Use Provided SVG Artwork</strong><small>Switch instantly between the original supplied artwork and the current trait-based model.</small></span><input class="toggle" id="provided-horse-artwork" type="checkbox" ${safelyChecked(state)}></label>`}
   ${settingForm(state, false, catalog)}
   <section class="economy-settings" aria-labelledby="economy-heading"><h2 id="economy-heading">Economy Settings</h2>
   ${settingForm(state, true)}</section>${saleHistoryTable(state)}`;
