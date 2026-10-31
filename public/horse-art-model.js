@@ -5,14 +5,30 @@ import { html, raw } from './ui.js';
 import { selectedArtTraits, horseTraitCategoryArt } from './horse-trait-art.js';
 import { horseDepthDefinitions, farLegArt, coatDepthArt } from './horse-art-depth.js';
 
-function eyeMarkup(color) {
-  // Fill the entire original eye socket with one pigment, avoiding an iris-like inset.
-  return html`<path d="M248.5 207C247.7 208.2 247.5 213 248 213C248.5 213.5 250.4 212.069 252 213C256.8 217 262.333 212 264.5 209C266.667 206 271.5 202 271.5 202C269.333 200.333 264.1 196.5 260.5 194.5C256 192 250.5 195.5 249.5 198C248.5 200.5 249.5 205.5 248.5 207Z" fill="${color}"/>`;
+function modelLayerMarkup(layer) {
+  if (layer.name !== 'sock') return layer.markup;
+  // The first sock shape is the angular patch around the eye. Remove its
+  // painted use and matching outline, leaving the actual eye and leg socks.
+  return layer.markup
+    .replace(/<use href="#__PREFIX__stroke0_27_6"[^>]*\/>/g, '')
+    .replace(/M248 213[\s\S]*?(?=M285\.5 181)/, '');
 }
 
 export function horseModel(horse, eye, prefix, original = false) {
   if (original)
-    return html`<g data-horse-model="provided-svg" transform="translate(-7 0) scale(.43 .43)">${originalHorseArtLayers.filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0).map(layer => html`<g fill="none" data-layer="${layer.name}">${layer.channel === 'Eye' ? eyeMarkup(eye) : raw(layer.markup.replaceAll('__PREFIX__', `${prefix}-original-`).replaceAll('__COLOR__', horse.palette.colors[layer.channel] || layer.defaultColor))}</g>`)}</g>`;
+    return html`<g data-horse-model="provided-svg" transform="translate(-7 0) scale(.43 .43)">${originalHorseArtLayers
+      .filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0)
+      .map(
+        layer =>
+          html`<g fill="none" data-layer="${layer.name}">${raw(
+            modelLayerMarkup(layer)
+              .replaceAll('__PREFIX__', `${prefix}-original-`)
+              .replaceAll(
+                '__COLOR__',
+                layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel] || layer.defaultColor
+              )
+          )}</g>`
+      )}</g>`;
 
   const hasKeratin = horse.species === 'Unicorn' || traitChoices(horse.traits?.Keratin).length > 0;
   const hasCategory = category =>
@@ -20,8 +36,7 @@ export function horseModel(horse, eye, prefix, original = false) {
   const render = layer => {
     const value = layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel];
     const color = /^#[0-9a-f]{6}$/i.test(value || '') ? value : layer.defaultColor;
-    if (layer.channel === 'Eye') return html`<g data-layer="eye" data-channel="Eye">${eyeMarkup(color)}</g>`;
-    const markup = layer.markup.replaceAll('__PREFIX__', `${prefix}-`).replaceAll('__COLOR__', color);
+    const markup = modelLayerMarkup(layer).replaceAll('__PREFIX__', `${prefix}-`).replaceAll('__COLOR__', color);
     const shading =
       layer.channel === 'Hair'
         ? raw(
