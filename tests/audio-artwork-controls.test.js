@@ -88,9 +88,9 @@ test('cosmic eye artwork uses all five overrides without changing the generated 
   for (const [specialSpawn, color] of Object.entries({
     Solar: '#FFDD00',
     Lunar: '#44BAFF',
-    Heavenly: '#FFFFFF',
-    Void: '#000000',
-    Astral: '#D45EFF'
+    Heavenly: '#000000',
+    Void: '#FFFFFF',
+    Astral: '#FFFFFF'
   })) {
     const copy = { ...horse, specialSpawn };
     const before = structuredClone(copy);

@@ -31,6 +31,10 @@ async function fixture(t) {
 test('fresh installs receive default traits and later removals remain removed after restart', async t => {
   const f = await fixture(t);
   assert.equal(f.store.state.traitDefaultsVersion, traitDefaultsVersion);
+  assert.deepEqual(f.store.getCatalog().species.find(s => s.id === 'ghoulsteed').traits.Ears, [
+    'Lupine Ears',
+    'Bat Ears'
+  ]);
   const species = f.store.getCatalog().species.find(s => s.id === 'horse');
   assert.deepEqual(species.traits, speciesTraitData.Horse);
   await f.store.action('save-traits', { id: species.id, traits: {} });

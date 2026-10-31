@@ -44,6 +44,8 @@ test('new games use enabled 90-second cooldown; saved values override future def
     store = await new GameStore(dir, catalog, defaults).init();
   assert.equal(store.state.settings.searchCooldownEnabled, true);
   assert.equal(store.state.settings.searchCooldownSeconds, 90);
+  assert.equal(store.state.settings.providedHorseArtwork, true);
+  store.state.settings.providedHorseArtwork = false;
   store.state.settings.searchCooldownEnabled = false;
   store.state.settings.searchCooldownSeconds = 12;
   store.state.settings.saleModifiers.traitBonus = 0;
@@ -51,6 +53,7 @@ test('new games use enabled 90-second cooldown; saved values override future def
   await store.persist(store.state);
   let loaded = await new GameStore(dir, catalog, { ...defaults, futureOption: { enabled: true, seconds: 45 } }).init();
   assert.equal(loaded.state.settings.searchCooldownEnabled, false);
+  assert.equal(loaded.state.settings.providedHorseArtwork, false);
   assert.equal(loaded.state.settings.searchCooldownSeconds, 12);
   assert.equal(loaded.state.settings.saleModifiers.traitBonus, 0);
   assert.equal(loaded.state.settings.saleModifiers.mutationBonus, 75);
@@ -58,10 +61,12 @@ test('new games use enabled 90-second cooldown; saved values override future def
   const progress = structuredClone(loaded.state);
   delete loaded.state.settings.searchCooldownEnabled;
   delete loaded.state.settings.searchCooldownSeconds;
+  delete loaded.state.settings.providedHorseArtwork;
   await loaded.persist(loaded.state);
   loaded = await new GameStore(dir, catalog, defaults).init();
   assert.equal(loaded.state.settings.searchCooldownEnabled, true);
   assert.equal(loaded.state.settings.searchCooldownSeconds, 90);
+  assert.equal(loaded.state.settings.providedHorseArtwork, true);
   assert.equal(loaded.state.gold, progress.gold);
   assert.deepEqual(loaded.state.horses, progress.horses);
 });

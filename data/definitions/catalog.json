@@ -717,15 +717,20 @@
       "colors": {
         "Coat Top": "#A6D8EB",
         "Coat Bottom": "#D8EFF5",
-        "Hair": "#EAFBFF",
-        "Hoof": "#648DAF",
-        "Nose": "#C2D5E5",
-        "Sock": "#F7FCFF",
-        "Keratin": "#B7C5ED",
+        "Hair": "#FFFFFF",
+        "Hoof": "#81B8DC",
+        "Nose": "#D8EFF5",
+        "Sock": "#FFFFFF",
+        "Keratin": "#A6D8EB",
         "Paint": "#81B8DC",
-        "Pattern": "#E3E7FC"
+        "Pattern": "#FFFFFF"
       },
-      "complete": true
+      "complete": true,
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true
     },
     {
       "name": "Enchanted",
@@ -2165,19 +2170,65 @@
       "global": true,
       "colors": {
         "Coat Top": "#000000",
-        "Coat Bottom": "#C800FF",
+        "Coat Bottom": "#000000",
         "Hair": "#C800FF",
-        "Hoof": "#C800FF",
-        "Nose": "#C800FF",
-        "Sock": "#000000",
+        "Hoof": "#000000",
+        "Nose": "#000000",
+        "Sock": "#C800FF",
         "Keratin": "#000000",
-        "Paint": "#C800FF",
+        "Paint": "#000000",
         "Pattern": "#C800FF"
       },
       "group": "Developer",
       "complete": true,
       "systemId": "missingno",
       "id": "palette-missingno"
+    },
+    {
+      "name": "Betelgeuse",
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true,
+      "colors": {
+        "Coat Top": "#4A089B",
+        "Coat Bottom": "#000000",
+        "Hair": "#04BC01",
+        "Hoof": "#4A089B",
+        "Nose": "#000000",
+        "Sock": "#04BC01",
+        "Keratin": "#000000",
+        "Paint": "#270255",
+        "Pattern": "#04BC01"
+      },
+      "group": "Halloween",
+      "complete": true,
+      "systemId": "betelgeuse",
+      "id": "palette-betelgeuse"
+    },
+    {
+      "name": "Calaverita 2",
+      "description": "",
+      "variationPercent": null,
+      "speciesIds": [],
+      "assetSkins": [],
+      "global": true,
+      "colors": {
+        "Coat Top": "#3E0413",
+        "Coat Bottom": "#71041F",
+        "Hair": "#120317",
+        "Hoof": "#E48807",
+        "Nose": "#FE7698",
+        "Sock": "#1E0108",
+        "Keratin": "#E6E5E6",
+        "Paint": "#2E9975",
+        "Pattern": "#E48807"
+      },
+      "group": "Halloween",
+      "complete": true,
+      "systemId": "calaverita-2",
+      "id": "palette-calaverita-2"
     }
   ],
   "eyes": [
@@ -4352,6 +4403,10 @@
         "Tattered Tail",
         "Weeping Tail",
         "Zombie Tail"
+      ],
+      "Ears": [
+        "Lupine Ears",
+        "Bat Ears"
       ]
     },
     "Giraffetti": {

@@ -1677,6 +1677,7 @@ export const speciesTraitData = {
     ]
   },
   Ghoulsteed: {
+    Ears: ['Lupine Ears', 'Bat Ears'],
     Cosmetic: [
       'Ankle Spikes',
       'Back Plates',

@@ -4,6 +4,7 @@
   "startingGold": 0,
   "stableCapacity": 50,
   "ignoreStableLimit": true,
+  "providedHorseArtwork": true,
   "note": "Phase 1 preview defaults. Starting gold, capacity, and free guaranteed catches are provisional interface settings, not confirmed gameplay rules.",
   "saleModifiers": {
     "traitBonus": 8,
