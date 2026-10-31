@@ -21,3 +21,23 @@ await writeFile(
   await format(source, { parser: 'babel', printWidth: 120, singleQuote: true, trailingComma: 'none' })
 );
 console.log('Built browser horse artwork layers.');
+
+const originalLayers = (await readHorseLayers()).map(({ name, channel, svg }) => ({
+  name,
+  channel,
+  defaultColor: svg.match(/fill="(#[0-9a-f]{6})"/i)[1],
+  markup: svg
+    .replace(/^\s*<svg\b[^>]*>/, '')
+    .replace(/<\/svg>\s*$/, '')
+    .replace(/\bid="([^"]+)"/g, 'id="__PREFIX__$1"')
+    .replace(/(href="#|url\(#)([^")]+)/g, '$1__PREFIX__$2')
+    .replaceAll('xlink:href=', 'href=')
+    .replace(/fill="#[0-9a-f]{6}"/gi, 'fill="__COLOR__"')
+}));
+await writeFile(
+  new URL('../public/horse-art-original-layers.js', import.meta.url),
+  await format(
+    `// Generated from the untouched provided SVGs.\nexport const originalHorseArtLayers = ${JSON.stringify(originalLayers)};\n`,
+    { parser: 'babel', printWidth: 120, singleQuote: true, trailingComma: 'none' }
+  )
+);

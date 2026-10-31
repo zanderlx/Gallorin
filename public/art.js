@@ -6,6 +6,11 @@ import { horseArtBackground, horseArtAccents } from './horse-art-background.js';
 // Retain the previous renderer as an explicit, reusable alternative.
 export { legacyHorseArt, legacyHorseHeadArt } from './legacy-art.js';
 
+let providedArtwork = false;
+export function setProvidedHorseArtwork(enabled) {
+  providedArtwork = enabled === true;
+}
+
 export const horseFullViewBox = '0 0 460 310';
 export const horseHeadViewBox = '270 10 145 170';
 
@@ -20,7 +25,7 @@ export function horseArt(horse, large = false) {
   const uid = `h${horse.id.replace(/[^a-z0-9-]/gi, '')}${large ? 'l' : ''}`;
   return String(html`<svg xmlns="http://www.w3.org/2000/svg" class="horse-art" viewBox="${horseFullViewBox}" role="img" aria-label="Horse illustration facing right">
   ${horseArtBackground(coat, uid)}
-  ${horseModel(horse, eye, uid)}
+  ${horseModel(horse, eye, uid, providedArtwork)}
   ${horseArtAccents(coat)}
   </svg>`);
 }

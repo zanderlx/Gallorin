@@ -1,3 +1,4 @@
+import { html } from './ui.js';
 import { icon } from './ui.js';
 import { saleHistoryTable } from './economy.js';
 import { saleModifiers, saleModifierFields } from './sale-pricing.js';
@@ -33,8 +34,13 @@ export function validateSettingsNumbers(form) {
   }
 }
 
+function safelyChecked(state) {
+  return state.settings.providedHorseArtwork ? 'checked' : '';
+}
+
 export function gameSettingsPage(state, catalog) {
   return `<div class="settings-section-heading"><h1>Encounter & Stable Settings</h1></div>
+  ${html`<label class="setting-row panel"><span><strong>Use Provided SVG Artwork</strong><small>Switch instantly between the original supplied artwork and the current trait-based model.</small></span><input class="toggle" id="provided-horse-artwork" type="checkbox" ${safelyChecked(state)}></label>`}
   ${settingForm(state, false, catalog)}
   <section class="economy-settings" aria-labelledby="economy-heading"><h2 id="economy-heading">Economy Settings</h2>
   ${settingForm(state, true)}</section>${saleHistoryTable(state)}`;

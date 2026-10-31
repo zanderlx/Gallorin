@@ -691,6 +691,11 @@ export class GameStore {
         if (typeof payload.ignoreStableLimit !== 'boolean')
           throw new Error('Stable limit override must be true or false.');
         next.settings.ignoreStableLimit = payload.ignoreStableLimit;
+        if (payload.providedHorseArtwork !== undefined) {
+          if (typeof payload.providedHorseArtwork !== 'boolean')
+            throw new Error('Artwork preference must be a boolean.');
+          next.settings.providedHorseArtwork = payload.providedHorseArtwork;
+        }
         if (payload.horseUpdatesEnabled !== undefined) {
           if (typeof payload.horseUpdatesEnabled !== 'boolean')
             throw new Error('Override Horse Data must be true or false.');

@@ -1,3 +1,4 @@
+import { setProvidedHorseArtwork } from './art.js';
 import { bindTextButtonSounds } from './button-sounds.js';
 import { regularEyes, setCosmicEyeDefinitions } from './cosmic-types.js';
 import { bindEncounterCooldown } from './encounter-cooldown.js';
@@ -276,6 +277,7 @@ function pageContent(pageRoute, pageState = state) {
   else return plannedPage(route, state);
 }
 function render() {
+  setProvidedHorseArtwork(state.settings.providedHorseArtwork);
   renderChrome();
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
@@ -1314,5 +1316,16 @@ document.addEventListener('keydown', event => {
   if (event.target.id === 'palette-variation' && event.key === 'Enter') {
     event.preventDefault();
     event.target.blur();
+  }
+});
+
+main.addEventListener('change', async event => {
+  if (event.target.id !== 'provided-horse-artwork') return;
+  try {
+    await action('settings', { providedHorseArtwork: event.target.checked });
+    render();
+  } catch (error) {
+    notify(error.message, true);
+    render();
   }
 });
