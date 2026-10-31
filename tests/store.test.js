@@ -727,3 +727,15 @@ test('deleted built-in artwork presets stay deleted after restart', async t => {
   assert.ok(!restored.getCatalog().atmospheres.some(a => a.id === 'meadow'));
   assert.ok(restored.getCatalog().atmospheres.some(a => a.id === 'coast'));
 });
+
+test('artwork toggle saves independently of numeric game settings', async t => {
+  const { directory, store } = await fixture(t);
+  const before = structuredClone(store.state.settings);
+  await store.action('horse-artwork-preference', { providedHorseArtwork: true });
+  assert.deepEqual(store.state.settings, { ...before, providedHorseArtwork: true });
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.equal(reopened.state.settings.providedHorseArtwork, true);
+  await store.action('horse-artwork-preference', { providedHorseArtwork: false });
+  assert.deepEqual(store.state.settings, { ...before, providedHorseArtwork: false });
+  await assert.rejects(store.action('horse-artwork-preference', { providedHorseArtwork: 'true' }));
+});

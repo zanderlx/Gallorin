@@ -662,6 +662,9 @@ export class GameStore {
             amount,
             at: new Date().toISOString()
           });
+      } else if (type === 'horse-artwork-preference') {
+        if (typeof payload.providedHorseArtwork !== 'boolean') throw new Error('Artwork preference must be a boolean.');
+        next.settings.providedHorseArtwork = payload.providedHorseArtwork;
       } else if (type === 'settings') {
         if (payload.searchCooldownEnabled !== undefined) {
           if (typeof payload.searchCooldownEnabled !== 'boolean')

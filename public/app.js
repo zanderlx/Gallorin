@@ -1322,7 +1322,7 @@ document.addEventListener('keydown', event => {
 main.addEventListener('change', async event => {
   if (event.target.id !== 'provided-horse-artwork') return;
   try {
-    await action('settings', { providedHorseArtwork: event.target.checked });
+    await action('horse-artwork-preference', { providedHorseArtwork: event.target.checked });
     render();
   } catch (error) {
     notify(error.message, true);
