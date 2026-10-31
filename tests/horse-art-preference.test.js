@@ -38,3 +38,27 @@ test('artwork preference switches both views without changing the horse', () => 
     setProvidedHorseArtwork(false);
   }
 });
+
+test('provided SVG keratin follows active traits rather than species', () => {
+  const horse = {
+    id: 'keratin-toggle',
+    species: 'Unicorn',
+    palette: { colors: {} },
+    eye: { colors: ['#123456'] },
+    traits: {}
+  };
+  try {
+    setProvidedHorseArtwork(true);
+    for (const traits of [{}, { Keratin: [] }, { Keratin: ['None'] }, { Keratin: ['Awaiting species data'] }]) {
+      horse.traits = traits;
+      assert.doesNotMatch(horseArt(horse), /data-layer="keratin"/);
+    }
+    horse.traits = { Keratin: ['Tall Horn'] };
+    assert.match(horseArt(horse), /data-layer="keratin"/);
+    assert.match(horseHeadArt(horse), /data-layer="keratin"/);
+    horse.traits = { Keratin: [] };
+    assert.doesNotMatch(horseHeadArt(horse), /data-layer="keratin"/);
+  } finally {
+    setProvidedHorseArtwork(false);
+  }
+});
