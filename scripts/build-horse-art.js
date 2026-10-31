@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { format } from 'prettier';
 import { readHorseLayers } from './lib/horse-svg.js';
 
@@ -22,22 +22,46 @@ await writeFile(
 );
 console.log('Built browser horse artwork layers.');
 
-const originalLayers = (await readHorseLayers()).map(({ name, channel, svg }) => ({
-  name,
-  channel,
-  defaultColor: svg.match(/fill="(#[0-9a-f]{6})"/i)[1],
-  markup: svg
-    .replace(/^\s*<svg\b[^>]*>/, '')
-    .replace(/<\/svg>\s*$/, '')
-    .replace(/\bid="([^"]+)"/g, 'id="__PREFIX__$1"')
-    .replace(/(href="#|url\(#)([^")]+)/g, '$1__PREFIX__$2')
-    .replaceAll('xlink:href=', 'href=')
-    .replace(/fill="#[0-9a-f]{6}"/gi, 'fill="__COLOR__"')
-}));
+// Updated provided assets are independent of the generated model's source paths.
+const providedChannels = [
+  ['coat bottom', 'Coat Bottom'],
+  ['coat top', 'Coat Top'],
+  ['sock', 'Sock'],
+  ['nose', 'Nose'],
+  ['hoof', 'Hoof'],
+  ['tail', 'Hair'],
+  ['keratin', 'Keratin'],
+  ['mane', 'Hair'],
+  ['ear', 'Coat Top'],
+  ['paint', 'Paint'],
+  ['pattern', 'Pattern'],
+  ['eye', 'Eye']
+];
+const originalLayers = await Promise.all(
+  providedChannels.map(async ([name, channel]) => {
+    const svg = await readFile(new URL(`../docs/art/horse/provided/${name}.svg`, import.meta.url), 'utf8');
+    const base = svg.match(/(?:fill|stop-color)="(#[0-9a-f]{6})"/i)[1];
+    const lightness = hex => [1, 3, 5].reduce((sum, i) => sum + parseInt(hex.slice(i, i + 2), 16), 0);
+    let markup = svg
+      .replace(/^\s*<svg\b[^>]*>/, '')
+      .replace(/<\/svg>\s*$/, '')
+      .replace(/\bid="([^"]+)"/g, 'id="__PREFIX__$1"')
+      .replace(/(href="#|url\(#)([^")]+)/g, '$1__PREFIX__$2')
+      .replaceAll('xlink:href=', 'href=')
+      .replace(/fill="#[0-9a-f]{6}"/gi, 'fill="__COLOR__"')
+      .replace(/stop-color="(#[0-9a-f]{6})"/gi, (_, hex) => {
+        const ratio = Math.min(100, Math.round((lightness(hex) / lightness(base)) * 100));
+        return `stop-color="${ratio === 100 ? '__COLOR__' : `color-mix(in srgb, __COLOR__ ${ratio}%, black)`}"`;
+      });
+    // Ear.svg is exported in a tight 22x62 canvas; place it at its original skull anchor.
+    if (name === 'ear') markup = `<g transform="translate(276.017 135.214)">${markup}</g>`;
+    return { name, channel, defaultColor: base, markup };
+  })
+);
 await writeFile(
   new URL('../public/horse-art-original-layers.js', import.meta.url),
   await format(
-    `// Generated from the untouched provided SVGs.\nexport const originalHorseArtLayers = ${JSON.stringify(originalLayers)};\n`,
+    `// Generated from docs/art/horse/provided SVGs.\nexport const originalHorseArtLayers = ${JSON.stringify(originalLayers)};\n`,
     { parser: 'babel', printWidth: 120, singleQuote: true, trailingComma: 'none' }
   )
 );

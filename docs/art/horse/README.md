@@ -26,7 +26,7 @@ All supplied markings and the horn are shown in the original assembly study.
 
 ## Active game artwork
 
-`public/art.js` now renders this model facing right on the original scenery,
+`public/art.js` renders horses facing left on the original scenery,
 including its Coat Top tint. Wilds uses the full body; stable cards and both
 profile tabs use a headshot. Clicking a profile portrait opens the full body.
 Mane and tail share Hair; eyes retain the normal trait and Cosmic override
@@ -36,6 +36,14 @@ None/empty categories show no replacement. Older records without those fields
 keep the base hair and Unicorn horn fallback. Recorded traits replace the
 generic diamond Paint/Pattern samples. The source coat, nose, socks and hooves
 retain their palette colors.
+
+Provided SVG Artwork is enabled by default. Its renderer,
+`public/horse-art-provided.js`, uses the supplied assets in `provided/` without
+reshaping their geometry. It preserves the separate ear and eye layers, applies
+palette colors and gradient shading, and places keratin behind the mane when a
+Keratin trait is present. Turn the setting off to use the trait-based assembly
+described above. Save Settings applies the choice; Load Defaults enables the
+provided artwork again. Existing saved preferences remain local overrides.
 
 The old renderer remains available as `legacyHorseArt` and `legacyHorseHeadArt`
 from `public/art.js` (implemented in `public/legacy-art.js`).

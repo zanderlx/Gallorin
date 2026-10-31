@@ -1,5 +1,6 @@
 import { cosmicArtworkEye } from './cosmic-types.js';
 import { html } from './ui.js';
+import { providedHorseModel } from './horse-art-provided.js';
 import { horseModel } from './horse-art-model.js';
 import { horseArtBackground, horseArtAccents } from './horse-art-background.js';
 
@@ -25,7 +26,7 @@ export function horseArt(horse, large = false) {
   const uid = `h${horse.id.replace(/[^a-z0-9-]/gi, '')}${large ? 'l' : ''}`;
   return String(html`<svg xmlns="http://www.w3.org/2000/svg" class="horse-art" viewBox="${horseFullViewBox}" role="img" aria-label="Horse illustration facing left">
   ${horseArtBackground(coat, uid)}
-  ${horseModel(horse, eye, uid, providedArtwork)}
   ${horseArtAccents(coat)}
+  ${providedArtwork ? providedHorseModel(horse, eye, uid) : horseModel(horse, eye, uid)}
   </svg>`);
 }

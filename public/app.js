@@ -1073,7 +1073,8 @@ document.addEventListener('submit', async event => {
         startingGold: Number(values.startingGold ?? state.settings.startingGold),
         stableCapacity: Number(values.stableCapacity ?? state.settings.stableCapacity),
         ignoreStableLimit: form.elements.ignoreStableLimit?.checked ?? state.settings.ignoreStableLimit,
-        horseUpdatesEnabled: form.elements.horseUpdatesEnabled.checked
+        horseUpdatesEnabled: form.elements.horseUpdatesEnabled.checked,
+        providedHorseArtwork: form.elements.providedHorseArtwork.checked
       });
       render();
       notify('Saved successfully.');
@@ -1316,16 +1317,5 @@ document.addEventListener('keydown', event => {
   if (event.target.id === 'palette-variation' && event.key === 'Enter') {
     event.preventDefault();
     event.target.blur();
-  }
-});
-
-main.addEventListener('change', async event => {
-  if (event.target.id !== 'provided-horse-artwork') return;
-  try {
-    await action('horse-artwork-preference', { providedHorseArtwork: event.target.checked });
-    render();
-  } catch (error) {
-    notify(error.message, true);
-    render();
   }
 });

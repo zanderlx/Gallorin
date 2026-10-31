@@ -1,8 +1,7 @@
-import { originalHorseArtLayers } from './horse-art-original-layers.js';
 import { horseArtLayers } from './horse-art-layers.js';
 import { traitChoices } from './horse-update-fields.js';
 import { html, raw } from './ui.js';
-import { selectedArtTraits, horseTraitCategoryArt } from './horse-trait-art.js';
+import { horseTraitCategoryArt } from './horse-trait-art.js';
 import { horseDepthDefinitions, farLegArt, coatDepthArt } from './horse-art-depth.js';
 
 function modelLayerMarkup(layer) {
@@ -14,22 +13,7 @@ function modelLayerMarkup(layer) {
     .replace(/M248 213[\s\S]*?(?=M285\.5 181)/, '');
 }
 
-export function horseModel(horse, eye, prefix, original = false) {
-  if (original)
-    return html`<g data-horse-model="provided-svg" transform="translate(-7 0) scale(.43 .43)">${originalHorseArtLayers
-      .filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0)
-      .map(
-        layer =>
-          html`<g fill="none" data-layer="${layer.name}">${raw(
-            layer.markup
-              .replaceAll('__PREFIX__', `${prefix}-original-`)
-              .replaceAll(
-                '__COLOR__',
-                layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel] || layer.defaultColor
-              )
-          )}</g>`
-      )}</g>`;
-
+export function horseModel(horse, eye, prefix) {
   const hasKeratin = horse.species === 'Unicorn' || traitChoices(horse.traits?.Keratin).length > 0;
   const hasCategory = category =>
     Object.hasOwn(horse.traits || {}, category) || Object.hasOwn(horse.traits || {}, `${category}s`);

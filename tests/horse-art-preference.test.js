@@ -40,48 +40,25 @@ test('artwork preference switches both views without changing the horse', () => 
   }
 });
 
-test('provided SVG keratin follows active traits rather than species', () => {
-  const horse = {
-    id: 'keratin-toggle',
-    species: 'Unicorn',
-    palette: { colors: {} },
-    eye: { colors: ['#123456'] },
-    traits: {}
-  };
+test('provided artwork preserves source geometry and keeps all eye layers', () => {
+  const horse = { id: 'exact', palette: { colors: {} }, eye: { colors: ['#123456'] }, traits: { Keratin: ['Horn'] } };
   try {
     setProvidedHorseArtwork(true);
-    for (const traits of [{}, { Keratin: [] }, { Keratin: ['None'] }, { Keratin: ['Awaiting species data'] }]) {
-      horse.traits = traits;
-      assert.doesNotMatch(horseArt(horse), /data-layer="keratin"/);
-    }
-    horse.traits = { Keratin: ['Tall Horn'] };
-    assert.match(horseArt(horse), /data-layer="keratin"/);
-    assert.match(horseHeadArt(horse), /data-layer="keratin"/);
-    horse.traits = { Keratin: [] };
-    assert.doesNotMatch(horseHeadArt(horse), /data-layer="keratin"/);
-  } finally {
-    setProvidedHorseArtwork(false);
-  }
-});
-
-test('provided mode preserves every supplied layer including the full eye sock', () => {
-  const horse = {
-    id: 'source-only',
-    species: 'Horse',
-    palette: { colors: {} },
-    eye: { colors: ['#123456'] },
-    traits: { Keratin: ['Horn'] }
-  };
-  try {
-    setProvidedHorseArtwork(true);
-    const svg = horseArt(horse);
+    const art = horseArt(horse);
+    assert.deepEqual(
+      [...art.matchAll(/data-layer="([^"]+)"/g)].map(match => match[1]),
+      ['coat bottom', 'coat top', 'ear', 'sock', 'nose', 'hoof', 'tail', 'keratin', 'mane', 'paint', 'pattern', 'eye']
+    );
     for (const layer of originalHorseArtLayers) {
-      const expected = layer.markup
-        .replaceAll('__PREFIX__', 'hsource-only-original-')
+      const markup = layer.markup
+        .replaceAll('__PREFIX__', 'hexact-provided-')
         .replaceAll('__COLOR__', layer.channel === 'Eye' ? '#123456' : layer.defaultColor);
-      assert.ok(svg.includes(expected), layer.name);
+      assert.ok(art.includes(markup), layer.name);
     }
-    assert.doesNotMatch(svg, /data-depth=|data-trait-category=|data-leg-source=|data-hair-source=/);
+
+    assert.ok(art.indexOf('opacity=".6"') < art.indexOf('data-horse-model='));
+    assert.ok(art.indexOf('data-layer="keratin"') < art.indexOf('data-layer="mane"'));
+    assert.doesNotMatch(art, /data-depth=|data-trait-category=|data-far-leg=/);
   } finally {
     setProvidedHorseArtwork(false);
   }

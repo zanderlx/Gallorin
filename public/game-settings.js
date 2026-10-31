@@ -36,7 +36,7 @@ export function validateSettingsNumbers(form) {
 }
 
 function artworkSetting(state) {
-  return html`<label class="setting-row"><span><strong>Use Provided SVG Artwork</strong><small>Show the original supplied horse artwork. Turn off to use the trait-based artwork. Changes save immediately.</small></span><input class="toggle" id="provided-horse-artwork" type="checkbox" ${state.settings.providedHorseArtwork ? 'checked' : ''}></label>`;
+  return html`<label class="setting-row"><span><strong>Use Provided SVG Artwork</strong><small>Show the original supplied horse artwork. Turn off to use the trait-based artwork. Use Save Settings to apply your choice.</small></span><input class="toggle" id="provided-horse-artwork" name="providedHorseArtwork" type="checkbox" ${state.settings.providedHorseArtwork ? 'checked' : ''}></label>`;
 }
 
 export function gameSettingsPage(state, catalog) {
