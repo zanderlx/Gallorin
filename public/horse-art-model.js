@@ -7,7 +7,7 @@ import { horseDepthDefinitions, farLegArt, coatDepthArt } from './horse-art-dept
 
 export function horseModel(horse, eye, prefix, original = false) {
   if (original)
-    return html`<g data-horse-model="provided-svg" transform="translate(467 0) scale(-.43 .43)">${originalHorseArtLayers.filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0).map(layer => html`<g fill="none" data-layer="${layer.name}">${raw(layer.markup.replaceAll('__PREFIX__', `${prefix}-original-`).replaceAll('__COLOR__', layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel] || layer.defaultColor))}</g>`)}</g>`;
+    return html`<g data-horse-model="provided-svg" transform="translate(-7 0) scale(.43 .43)">${originalHorseArtLayers.filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0).map(layer => html`<g fill="none" data-layer="${layer.name}">${raw(layer.markup.replaceAll('__PREFIX__', `${prefix}-original-`).replaceAll('__COLOR__', layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel] || layer.defaultColor))}</g>`)}</g>`;
 
   const hasKeratin = horse.species === 'Unicorn' || traitChoices(horse.traits?.Keratin).length > 0;
   const hasCategory = category =>
@@ -57,6 +57,6 @@ export function horseModel(horse, eye, prefix, original = false) {
         return html`<g data-layer="base-ears"><path d="M278 170C275.5 163.5 277.234 151.188 280 147.5C283 143.5 283 136.5 283.5 135.5C284 134.5 286 136 288.5 142C288.753 142.607 288.965 143.251 289.138 143.925C290.133 147.255 291.325 152.803 291 158C291.783 159.567 293.165 162.571 294.496 166C295.427 168.4 296.344 171 297 173.5C299 181 294.5 184 295 189C295.5 194 295 198 293 196.5C287.5 185.5 280.5 178.5 278 170Z" fill="${horse.palette.colors['Coat Top']}"/></g>${['Ears', 'Whiskers'].map(category => horseTraitCategoryArt(horse, category, prefix))}${render(layer)}`;
       return render(layer);
     });
-  // Mirror the entire model (including masks and markings) to face right. Feet sit at y=274.
-  return html`<g data-horse-model="layered" transform="translate(467 0) scale(-.43 .43)"><defs>${horseDepthDefinitions(prefix)}<clipPath id="${prefix}-trait-coat">${clip}</clipPath></defs>${farLegArt(horse.palette.colors, prefix)}${layers}</g>`;
+  // Keep the source model facing left, including masks and markings. Feet sit at y=274.
+  return html`<g data-horse-model="layered" transform="translate(-7 0) scale(.43 .43)"><defs>${horseDepthDefinitions(prefix)}<clipPath id="${prefix}-trait-coat">${clip}</clipPath></defs>${farLegArt(horse.palette.colors, prefix)}${layers}</g>`;
 }

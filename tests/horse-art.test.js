@@ -7,11 +7,11 @@ import { horseArtBackground, horseArtAccents } from '../public/horse-art-backgro
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const horse = { id: 'art-test', species: 'Unicorn', palette: catalog.palettes[0], eye: { colors: ['#123456'] } };
 
-test('active artwork faces right, maps every channel, preserves source masks and never changes the horse', () => {
+test('active artwork faces left, maps every channel, preserves source masks and never changes the horse', () => {
   const before = structuredClone(horse);
   for (const palette of catalog.palettes.filter(p => p.complete && Object.keys(p.colors).length === 9)) {
     const svg = horseArt({ ...horse, palette });
-    assert.match(svg, /data-horse-model="layered" transform="translate\(467 0\) scale\(-.43 .43\)"/);
+    assert.match(svg, /data-horse-model="layered" transform="translate\(-7 0\) scale\(.43 .43\)"/);
     assert.doesNotMatch(svg, /__COLOR__|__PREFIX__|undefined|placeholder artwork/);
     for (const [channel, color] of Object.entries({ ...palette.colors, Eye: '#123456' })) {
       const groups = [
@@ -26,7 +26,7 @@ test('active artwork faces right, maps every channel, preserves source masks and
   }
   assert.deepEqual(horse, before);
   assert.doesNotMatch(horseArt({ ...horse, species: 'Arabian' }), /data-layer="keratin"/);
-  assert.match(horseHeadArt(horse), /viewBox="270 10 145 170"/);
+  assert.match(horseHeadArt(horse), /viewBox="45 10 145 170"/);
 });
 
 test('Keratin traits show palette-colored artwork on every species in full-body and headshot views', () => {

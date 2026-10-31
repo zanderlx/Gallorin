@@ -108,7 +108,7 @@ app
 
 function verifyArtwork() {
   if (!window.artReady) throw Error('Artwork viewer did not load');
-  const expected = ['0 0 460 310', '270 10 145 170', '270 10 145 170', '270 10 145 170'];
+  const expected = ['0 0 460 310', '45 10 145 170', '45 10 145 170', '45 10 145 170'];
   const art = [...document.querySelectorAll('.horse-art')];
   if (art.length !== expected.length) throw Error('Missing card/profile portraits');
   for (const [index, svg] of art.entries()) {
