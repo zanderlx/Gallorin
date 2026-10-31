@@ -41,3 +41,17 @@ test('equal palette variance numbers do not count as unsaved edits', () => {
   name.value = 'New Gold';
   assert.notEqual(formSignature(form), baseline);
 });
+
+test('zone browsing filters do not count as edits to a zone', () => {
+  const name = { tagName: 'INPUT', name: 'name', type: 'text', value: 'Quiet woods' };
+  const search = { tagName: 'INPUT', name: '', type: 'search', value: '' };
+  const rarity = { tagName: 'SELECT', name: '', value: '' };
+  const weight = { tagName: 'INPUT', name: 'weight:unicorn', type: 'number', value: '100' };
+  const form = { id: 'zone-form', elements: [name, search, rarity, weight] };
+  const baseline = formSignature(form);
+  search.value = 'Unicorn';
+  rarity.value = '2';
+  assert.equal(formSignature(form), baseline);
+  weight.value = '200';
+  assert.notEqual(formSignature(form), baseline);
+});

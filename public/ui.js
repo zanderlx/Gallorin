@@ -21,6 +21,14 @@ class SafeHTML {
 }
 /** Marks trusted markup (icons, generated art, other renderers' output) so html`` keeps it as is. */
 export const raw = value => new SafeHTML(String(value ?? ''));
+export function setHTML(target, markup) {
+  if (!(markup instanceof SafeHTML)) throw new Error('Use html or raw for trusted markup.');
+  target.innerHTML = String(markup);
+}
+export function appendHTML(target, markup) {
+  if (!(markup instanceof SafeHTML)) throw new Error('Use html or raw for trusted markup.');
+  target.insertAdjacentHTML('beforeend', String(markup));
+}
 const htmlPart = value =>
   value instanceof SafeHTML ? value.value : Array.isArray(value) ? value.map(htmlPart).join('') : escapeHTML(value);
 /**
@@ -32,6 +40,8 @@ export const html = (strings, ...values) =>
   new SafeHTML(strings.reduce((out, text, i) => out + text + (i < values.length ? htmlPart(values[i]) : ''), ''));
 export const number = value => Number(value).toLocaleString();
 export const icons = {
+  palette:
+    '<path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7 1.5 1.5 0 0 1 1-2.8h2A4 4 0 0 0 21 11a9 9 0 0 0-9-8Z"/><circle cx="7" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/><circle cx="17" cy="11" r="1"/>',
   more: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
   music: '<path d="M9 18V5l12-2v13M9 8l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   agility: '<path d="m13 2-9 12h7l-1 8 10-13h-8Z"/>',
@@ -48,6 +58,9 @@ export const icons = {
   settings: '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="16" cy="17" r="3"/>',
   spark: '<path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Zm7 0v4m-2-2h4"/>',
   arrow: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
+  reroll:
+    '<path d="M20.5 8A9 9 0 0 0 5 5L3 7m0-4v4h4m-3.5 9A9 9 0 0 0 19 19l2-2m0 4v-4h-4"/><rect x="8" y="8" width="8" height="8" rx="1.5"/><path d="M10.5 10.5h.01M13.5 13.5h.01M12 12h.01" stroke-width="2.5"/>',
+  shuffle: '<path d="m16 3 4 4-4 4m0 2 4 4-4 4M4 7h3c4 0 6 10 10 10h3M4 17h3c2 0 3-2 5-5m2-3c1-1 2-2 3-2h3"/>',
   refresh: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1"/>',
   coin: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><path d="m12 8 3 4-3 4-3-4Z"/>',
   leaf: '<path d="M20 3C8 2 2 8 5 15s17 6 15-12ZM5 20 16 9"/>',
@@ -107,7 +120,6 @@ export const groups = [
     items: [
       ['dev/settings', 'Game Settings'],
       ['dev/species', 'Species'],
-      ['dev/traits', 'Traits'],
       ['dev/colors', 'Colors & Palettes'],
       ['dev/mutations', 'Mutations'],
       ['dev/items', 'Inventory & Items'],
@@ -116,26 +128,19 @@ export const groups = [
   }
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
-workbench.items = [
-  ['dev/horse-updates', 'Horse Updates'],
-  ['dev/edit-mode', 'Edit Mode'],
-  ['dev/settings', 'Game Settings'],
-  ['dev/roadmap', 'Remaining Features']
-];
+workbench.items = [['dev/settings', 'Game Settings']];
 groups.push(
   {
     title: 'Compendium',
     icon: 'book',
     items: [
       ['dev/species', 'Species'],
-      ['dev/traits', 'Traits'],
       ['dev/colors', 'Palettes'],
       ['dev/eyes', 'Eye Colors'],
       ['dev/personalities', 'Personalities'],
       ['dev/mutations', 'Mutations'],
       ['dev/rarities', 'Rarities'],
       ['dev/locations', 'Zones'],
-      ['dev/atmospheres', 'Zone Atmospheres'],
       ['dev/items', 'Items & Potions'],
       ['dev/themes', 'Item Themes']
     ]
@@ -172,14 +177,7 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     )
     .map(group => ({
       ...group,
-      items:
-        group.title === 'Stables'
-          ? group.items
-          : [...group.items].sort((a, b) =>
-              (state.pageCopy?.site?.[`nav-${a[0].replaceAll('/', '-')}`] || a[1]).localeCompare(
-                state.pageCopy?.site?.[`nav-${b[0].replaceAll('/', '-')}`] || b[1]
-              )
-            )
+      items: group.title === 'Stables' ? group.items : [...group.items].sort((a, b) => a[1].localeCompare(b[1]))
     }));
   return `<a href="#wilds/aetherion" class="brand">${brandLogo()}<span><span class="brand-title">GALLORIN</span><small>A HORSEKEEPER’S CHRONICLE</small></span></a>
     <nav>${navigation
@@ -190,7 +188,7 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     </details>`
       )
       .join('')}</nav>
-    <div class="sidebar-foot" data-copy-skip><span>Gallorin${appVersion ? ` v${escapeHTML(appVersion)}` : ''}</span><span aria-hidden="true">|</span><button type="button" id="sidebar-changelog" aria-haspopup="dialog">Changelog</button></div>`;
+    <div class="sidebar-foot"><span>Gallorin${appVersion ? ` v${escapeHTML(appVersion)}` : ''}</span><span aria-hidden="true">|</span><button type="button" id="sidebar-changelog" aria-haspopup="dialog">Changelog</button></div>`;
 }
 export function card(horse, state, mode = 'wild', catalog) {
   const title = horse.name || horse.species;
@@ -211,5 +209,5 @@ export function emptyState(title, description, link, linkLabel, symbol = 'stable
   return `<div class="empty-state"><div class="empty-symbol">${icon(symbol)}</div><h2>${title}</h2>${description ? `<p>${description}</p>` : ''}${link ? `<a class="button primary" href="#${link}">${linkLabel} ${icon('arrow')}</a>` : ''}</div>`;
 }
 export function heading(kicker, title, description, extra = '') {
-  return `<div class="page-heading"><div>${kicker ? `<span class="eyebrow" data-copy-key="page.kicker" data-copy-label="Page eyebrow">${kicker}</span>` : ''}<h1 data-copy-key="page.title" data-copy-label="Page title">${title}</h1><p data-copy-key="page.description" data-copy-label="Page introduction">${description}</p></div>${extra}</div>`;
+  return `<div class="page-heading"><div>${kicker ? `<span class="eyebrow">${kicker}</span>` : ''}<h1>${title}</h1><p>${description}</p></div>${extra}</div>`;
 }

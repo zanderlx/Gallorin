@@ -1,17 +1,19 @@
+import { setProvidedHorseArtwork } from './art.js';
 import { bindTextButtonSounds } from './button-sounds.js';
 import { regularEyes, setCosmicEyeDefinitions } from './cosmic-types.js';
 import { bindEncounterCooldown } from './encounter-cooldown.js';
 import { bindNavigationDisclosures } from './navigation-disclosures.js';
 import { createMusicPlayer } from './music-player.js';
 import { createChangelog } from './changelog-ui.js';
-import { horseUpdatesPage, bindHorseUpdates } from './horse-updates.js';
+import { horseOverrideControls, bindHorseUpdates } from './horse-updates.js';
 import { createGoldFeedback } from './gold-feedback.js';
 import { openEmojiPicker } from './emoji-picker.js';
-import { fitMutationDescriptions, watchMutationCardWidths } from './mutation-card-layout.js';
 import { createDefinitionTransfers } from './definition-transfer.js';
 import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
-import { defaultSpawnSettings } from './spawn-config.js';
+import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
+import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
+import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
 import { defaultRaritySettings, rarityNames, raritySettings } from './rarity-settings.js';
@@ -27,39 +29,39 @@ import {
   updateMutationGrid,
   toggleMutations
 } from './mutations-manager.js';
-import { traitsEditorPage, readTraitsForm } from './traits-editor.js';
+import { readTraitsForm, traitRow, syncTraitRows, keepTraitArrowOnLine } from './traits-editor.js';
+import {
+  speciesManagerPage,
+  syncSpeciesControls,
+  updateSpeciesSort,
+  speciesDeleteConfirmation
+} from './species-manager.js';
 import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
-import { icon, sidebar, navigationSection, escapeHTML as e, number } from './ui.js';
-import {
-  wildPage,
-  stablePage,
-  collectionCards,
-  settingsPage,
-  editModePage,
-  savesPage,
-  plannedPage,
-  routeTitle
-} from './pages.js';
+import { icon, sidebar, navigationSection, escapeHTML as e, number, setHTML, appendHTML, raw } from './ui.js';
+import { wildPage, stablePage, collectionCards, settingsPage, savesPage, plannedPage, routeTitle } from './pages.js';
 import { profileContent } from './profile.js';
 import { bindProfileTabs, selectProfileTab } from './profile-layout.js';
 import { bindHorseArtViewer } from './horse-art-viewer.js';
-import { displayBirthday, horseAcquisitionDate } from './dates.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from './zones.js';
-import { zoneEditorPage, zonePreview } from './zone-editor.js';
+import {
+  zoneEditorPage,
+  zoneEditorForm,
+  createZoneEditor,
+  syncZoneEditor,
+  updateZoneSpecies,
+  applyZonePreset
+} from './zone-editor.js';
 import { draftDefinition, validateDefinition } from './definitions.js';
 import {
   editorRoutes,
   libraryEditorPage,
   readDefinitionForm,
-  traitRow,
   colorControl,
   applyWebsiteTheme
 } from './library-editor.js';
-import { createCopyEditor } from './copy-editor.js';
 import { keeperPage, avatarSVG } from './keeper.js';
-import { roadmapPage } from './roadmap.js';
 import { trackForms, updateFormState, formSignature, formBaseline, restoreBaseline } from './form-state.js';
 
 let state,
@@ -68,6 +70,10 @@ let state,
   appVersion,
   busy = false;
 let stableGridColumns = 5;
+let selectedSpeciesId,
+  speciesTab = 'overview',
+  speciesSort = 'rarity',
+  speciesSortDirection = 'asc';
 let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;
@@ -90,7 +96,6 @@ const openChangelog = createChangelog({
 document.addEventListener('click', event => {
   if (event.target.closest('#sidebar-changelog')) void openChangelog();
 });
-watchMutationCardWidths(main);
 bindProfileTabs();
 const horseArtViewer = bindHorseArtViewer();
 const profile = $('#profile');
@@ -127,43 +132,22 @@ const paletteTransfers = createPaletteTransfers({
 });
 const paletteEditor = createPaletteEditor(draft => libraryEditorPage('palettes', catalog, state, draft));
 const mutationEditor = createMutationEditor(draft => libraryEditorPage('mutations', catalog, state, draft));
-const copyEditor = createCopyEditor({ getState: () => state, getRoute: () => route, save: action, notify });
+const zoneEditor = createZoneEditor(draft => zoneEditorForm(catalog, draft));
 
-bindHorseUpdates({
-  root: main,
+const horseUpdates = bindHorseUpdates({
+  root: profile,
   getState: () => state,
   getCatalog: () => catalog,
-  preview: payload => request('/api/action', { type: 'preview-horse-updates', payload }),
-  apply: payload => action('apply-horse-updates', payload),
-  enable: enabled => action('horse-updates-enabled', { enabled }),
-  onApplied: () => render(),
-  notify
-});
-
-const profileCopyEditor = createCopyEditor({
-  getState: () => state,
-  getRoute: () => 'horse/profile',
-  save: action,
-  notify,
-  includeChrome: false,
-  getValues: () => {
-    const horse = findHorse(profile.dataset.horseId);
-    return horse
-      ? {
-          horseName: horse.name || horse.species,
-          species: horse.species,
-          gender: horse.gender,
-          birthday: horseAcquisitionDate(horse) ? displayBirthday(horseAcquisitionDate(horse)) : 'Not caught yet',
-          personality: horse.personality.name,
-          personalityDescription: horse.personality.description,
-          specialSpawn: horse.specialSpawn || 'No special spawn'
-        }
-      : {};
+  preview: (payload, signal) => request('/api/action', { type: 'preview-horse-updates', payload }, signal),
+  apply: (payload, signal) => action('apply-horse-updates', payload, signal),
+  onApplied: () => {
+    render();
+    if (profile.open) inspect(profile.dataset.horseId);
   }
 });
+
 const horseDialogs = createHorseDialogs({
   getState: () => state,
-  getCatalog: () => catalog,
   findHorse,
   save: action,
   notify,
@@ -187,10 +171,12 @@ const horseTransfers = createHorseTransfers({
     render();
   }
 });
-async function request(path, body) {
+async function request(path, body, signal) {
   const response = await fetch(
     path,
-    body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}
+    body
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal }
+      : { signal }
   );
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Unable to save. Please try again.');
@@ -203,8 +189,8 @@ const updateEncounterCooldown = bindEncounterCooldown(
     void musicPlayer.playEvent('effect/respawn-ready').catch(error => notify(error.message, true));
   }
 );
-async function action(type, payload) {
-  const result = await request('/api/action', { type, payload });
+async function action(type, payload, signal) {
+  const result = await request('/api/action', { type, payload }, signal);
   const goldChange = result.state.gold - state.gold;
   const previousState = state;
   state = result.state;
@@ -246,7 +232,7 @@ function renderChrome() {
   // The nav element is replaced above; keep the player's place in the sidebar.
   $('#sidebar nav').scrollTop = navigationScroll;
   const section = navigationSection(route);
-  const sectionName = state.pageCopy?.site?.[`group-${section.title.toLowerCase()}`] ?? section.title;
+  const sectionName = section.title;
   const definitionKind =
     route === 'dev/rarities' ? 'rarities' : route === 'dev/traits' ? 'species' : editorRoutes[route.split('/')[1]];
   const definitionPath = section.title === 'Compendium' && definitionKind ? `data/config/${definitionKind}.json` : '';
@@ -270,22 +256,28 @@ function pageContent(pageRoute, pageState = state) {
   else if (section === 'stable') return stablePage(page, state, catalog);
   else if (route === 'dev/settings' || route === 'dev/economy') return settingsPage(state, catalog);
   else if (route === 'dev/saves') return savesPage(state);
-  else if (route === 'dev/roadmap') return roadmapPage();
   else if (route === 'dev/music') return musicPlayer.page();
   else if (route === 'dev/profile') return keeperPage(state);
-  else if (route === 'dev/horse-updates') return horseUpdatesPage(state, catalog);
-  else if (route === 'dev/edit-mode') return editModePage(state);
-  else if (route === 'dev/locations') return zoneEditorPage(catalog, state);
+  else if (route === 'dev/locations' || route === 'dev/atmospheres') return zoneEditorPage(catalog, state);
   else if (section === 'dev' && page === 'rarities') return raritiesManagerPage(catalog);
   else if (section === 'dev' && page === 'eyes') return eyesManagerPage(catalog);
   else if (section === 'dev' && page === 'colors') return palettesManagerPage(catalog);
   else if (section === 'dev' && page === 'mutations') return mutationsManagerPage(catalog);
-  else if (section === 'dev' && page === 'traits') return traitsEditorPage(catalog);
+  else if (section === 'dev' && page === 'species')
+    return speciesManagerPage(
+      catalog,
+      state,
+      catalog.species.find(s => s.id === selectedSpeciesId),
+      speciesTab,
+      speciesSort,
+      speciesSortDirection
+    );
   else if (section === 'dev' && Object.hasOwn(editorRoutes, page))
     return libraryEditorPage(editorRoutes[page], catalog, state);
   else return plannedPage(route, state);
 }
 function render() {
+  setProvidedHorseArtwork(state.settings.providedHorseArtwork);
   renderChrome();
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
@@ -298,7 +290,6 @@ function render() {
       musicPlayer.bind(main);
     }
   });
-  fitMutationDescriptions(main);
   if ($('#horse-grid-size')) {
     $('#horse-grid-size').value = String(stableGridColumns);
     $('#horse-grid-size').setAttribute('aria-valuetext', `${stableGridColumns} horses per row`);
@@ -309,7 +300,6 @@ function render() {
     $('#collection-grid').style.setProperty('--stable-grid-columns', stableGridColumns);
   }
   document.title = `Gallorin v${appVersion} · ${routeTitle(route, locationsFor(catalog, state))}`;
-  copyEditor.attach(main);
   attachSettingsNumbers(main);
   trackForms(main);
 }
@@ -325,10 +315,14 @@ async function navigate({ initializeNavigation = false } = {}) {
     history.replaceState(null, '', `#${route}`);
   }
   const movedRoutes = {
-    'dev/editor': 'dev/roadmap',
-    'dev/generator': 'dev/roadmap',
-    'dev/spawn': 'dev/roadmap',
+    'dev/horse-updates': 'stable/all',
+    'dev/traits': 'dev/species',
+    'dev/editor': 'dev/settings',
+    'dev/generator': 'dev/settings',
+    'dev/spawn': 'dev/settings',
     'dev/economy': 'dev/settings',
+    'dev/edit-mode': 'dev/settings',
+    'dev/roadmap': 'dev/settings',
     'stable/favorites': 'stable/all',
     'breeding/stable': 'stable/breeding',
     'breeding/history': 'stable/all',
@@ -349,13 +343,12 @@ async function navigate({ initializeNavigation = false } = {}) {
   closeMenu();
   if (profile.open) profile.close();
   if (confirmation.open) confirmation.close();
-  copyEditor.close();
-  profileCopyEditor.close();
   horseDialogs.close();
   horseArtViewer.close();
   eyeEditor.dialog.close();
   mutationEditor.dialog.close();
   paletteEditor.dialog.close();
+  zoneEditor.close();
   try {
     if (
       route.startsWith('wilds/') &&
@@ -382,6 +375,7 @@ function readZoneForm(form) {
     subtitle: locationsFor(catalog, state).find(l => l.id === form.dataset.id)?.subtitle || '',
     description: values.get('description'),
     atmosphere: values.get('atmosphere'),
+    appearance: { tint: values.get('color:zone-tint') },
     creatures: values.getAll('speciesPool').map(name => {
       const sp = catalog.species.find(s => s.name === name);
       return { speciesId: sp.id, weight: Number(values.get(`weight:${sp.id}`)) };
@@ -391,21 +385,21 @@ function readZoneForm(form) {
       .map(tag => tag.trim())
       .filter(Boolean),
     enabled: form.elements.enabled.checked,
-    event: form.elements.event.checked,
     speciesPool: values.getAll('speciesPool'),
     palettePool: values.getAll('palettePool')
   };
 }
 function showZoneDraft(draft) {
-  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-  main.innerHTML = zoneEditorPage(catalog, state, draft);
-  copyEditor.attach(main);
-  trackForms(main);
+  zoneEditor.open(draft);
+  trackForms(zoneEditor.dialog);
   if (!draft.id && draft.name) restoreBaseline($('#zone-form'), 'unsaved-generated-draft');
   $('#zone-form input[name="name"]').focus({ preventScroll: true });
-  $('#zone-form').scrollIntoView({ block: 'start' });
 }
 function showDefinition(kind, draft) {
+  if (kind === 'species') {
+    showSpecies(draft, draft.id ? speciesTab : 'overview');
+    return;
+  }
   if (kind === 'palettes') {
     paletteEditor.open(draft);
     trackForms(paletteEditor.dialog);
@@ -437,10 +431,19 @@ function showDefinition(kind, draft) {
   }
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = libraryEditorPage(kind, catalog, state, draft);
-  copyEditor.attach(main);
   trackForms(main);
   if (!draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-duplicate-draft');
   $('#definition-form input[name="name"]')?.focus({ preventScroll: true });
+}
+function showSpecies(draft, tab = speciesTab) {
+  const listScroll = main.querySelector('.species-manager .definition-list')?.scrollTop ?? 0;
+  selectedSpeciesId = draft?.id;
+  speciesTab = tab;
+  setHTML(main, raw(speciesManagerPage(catalog, state, draft, tab, speciesSort, speciesSortDirection)));
+  trackForms(main);
+  if (draft && !draft.id && draft.name) restoreBaseline($('#definition-form'), 'unsaved-species-draft');
+  syncSpeciesControls(main);
+  main.querySelector('.species-manager .definition-list').scrollTop = listScroll;
 }
 function inspect(id) {
   const horse = findHorse(id);
@@ -456,9 +459,12 @@ function inspect(id) {
   if (rankColor) profile.style.setProperty('--profile-rarity-color', rankColor);
   else profile.style.removeProperty('--profile-rarity-color');
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-  profile.innerHTML = profileContent(horse, state, { catalog });
+  profile.innerHTML = profileContent(horse, state, {
+    catalog,
+    overrideContent: horseOverrideControls(horse, state, catalog)
+  });
+  horseUpdates.initialize();
   selectProfileTab(profile, currentTab || 'overview');
-  profileCopyEditor.attach(profile);
   trackForms(profile);
   if (!profile.open) profile.showModal();
 }
@@ -496,8 +502,13 @@ function askToDelete(type, payload, name, detail, verb = type === 'delete-profil
   pendingDeletion = { type, payload };
   confirmation.classList.toggle(
     'eye-delete-confirm',
-    type === 'delete-definition' && ['eyes', 'mutations', 'palettes'].includes(payload.kind)
+    type === 'delete-definition' && ['eyes', 'mutations', 'palettes', 'species'].includes(payload.kind)
   );
+  if (type === 'delete-definition' && payload.kind === 'species') {
+    setHTML(confirmation, speciesDeleteConfirmation(name));
+    confirmation.showModal();
+    return;
+  }
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   confirmation.innerHTML = `<div class="dialog-top"><h2 id="confirm-title">${verb} ${e(name)}?</h2></div><p class="delete-warning">${e(detail)} This is saved immediately. The previous save is kept in your backup folder.</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>${verb === 'Release' ? 'No' : 'Keep It'}</button><button class="button primary" data-action="confirm-delete">${verb === 'Release' ? 'Yes' : `Confirm ${verb}`}</button></div>`;
   confirmation.showModal();
@@ -523,6 +534,24 @@ document.addEventListener('click', async event => {
   const button = event.target.closest('[data-action]');
   if (!button || busy) return;
   const { action: intent, id } = button.dataset;
+  if (intent === 'species-sort-direction') {
+    speciesSortDirection = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+    button.dataset.direction = speciesSortDirection;
+    updateSpeciesSort(main);
+    return;
+  }
+  if (intent === 'species-tab') {
+    const species = catalog.species.find(s => s.id === main.querySelector('.species-manager').dataset.speciesId);
+    showSpecies(species, button.dataset.tab);
+    main.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
+    return;
+  }
+  if (intent === 'species-open-zone') {
+    history.pushState(null, '', '#dev/locations');
+    await navigate();
+    showZoneDraft(locationsFor(catalog, state).find(z => z.id === id));
+    return;
+  }
   if (['toggle-mutation', 'toggle-all-mutations', 'toggle-mutation-section'].includes(intent))
     return toggleMutations(main, button);
   if (['toggle-personality', 'toggle-all-personalities'].includes(intent)) return togglePersonalities(main, button);
@@ -569,6 +598,27 @@ document.addEventListener('click', async event => {
   if (intent === 'palette-sort-direction') {
     button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
     updatePaletteGrid(main, catalog);
+    return;
+  }
+  if (intent === 'zone-toggle-all') {
+    const form = button.closest('form');
+    setZoneSelection(form, button.dataset.pool, !zoneAllSelected(form, button.dataset.pool));
+    if (form.id === 'species-palettes-form') {
+      updateZonePalettes(form, catalog);
+      syncZoneSelectionButtons(form);
+      syncSpeciesControls(main);
+    } else syncZoneEditor(form, catalog, readZoneForm(form));
+    updateFormState(form);
+    return;
+  }
+  if (intent === 'zone-palette-sort-direction') {
+    button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+    updateZonePalettes(button.closest('form'), catalog);
+    return;
+  }
+  if (intent === 'zone-species-sort-direction') {
+    button.dataset.direction = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+    updateZoneSpecies($('#zone-form'), catalog);
     return;
   }
   if (intent === 'mutation-sort-direction') {
@@ -658,8 +708,6 @@ document.addEventListener('click', async event => {
   }
   if (intent === 'rename-horse')
     return startHorseRename(button, { horse: findHorse(id), save: action, onSaved: render, notify });
-  if (intent === 'add-skill-xp') return horseDialogs.open(id, 'skill', button.dataset.skill);
-  if (intent === 'edit-horse-field') return horseDialogs.open(id, 'field', button.dataset.field);
   if (intent === 'inspect') return inspect(id);
   if (intent === 'close-profile') return profile.close();
   if (intent === 'cancel-sell') return confirmation.close();
@@ -709,15 +757,11 @@ document.addEventListener('click', async event => {
     return showDefinition(kind, copy);
   }
   if (intent === 'add-trait-category') {
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    $('#trait-rows').insertAdjacentHTML('beforeend', traitRow());
+    appendHTML($('#trait-rows'), raw(traitRow()));
+    syncTraitRows(main);
     $('#trait-rows').lastElementChild.querySelector('input').focus();
     updateFormState($('#traits-form') || $('#definition-form'));
-    return;
-  }
-  if (intent === 'remove-trait-category') {
-    button.closest('.trait-editor-row').remove();
-    updateFormState($('#traits-form') || $('#definition-form'));
+    syncSpeciesControls(main);
     return;
   }
   if (intent === 'add-eye-color') {
@@ -764,8 +808,7 @@ document.addEventListener('click', async event => {
       if (input.type === 'checkbox') input.checked = value;
       else input.value = value;
     }
-    if (form.id === 'settings-form')
-      form.elements.ALLOW_DUPLICATE_MUTATIONS.checked = defaultSpawnSettings.ALLOW_DUPLICATE_MUTATIONS;
+    if (form.id === 'settings-form') form.elements.horseUpdatesEnabled.checked = false;
     if (form.id === 'economy-form')
       for (const [key, value] of Object.entries(defaults.saleModifiers || defaultSaleModifiers))
         form.elements.namedItem(`saleModifier:${key}`).value = value;
@@ -785,20 +828,12 @@ document.addEventListener('click', async event => {
       eyeEditor.dialog.close();
       mutationEditor.dialog.close();
       paletteEditor.dialog.close();
+      zoneEditor.close();
       pendingDeletion = null;
       confirmation.close();
       profile.close();
       render();
       notify('Removed and saved.');
-    } else if (intent === 'toggle-copy-mode') {
-      await action('developer-edit-mode', { enabled: !state.settings.developerEditMode });
-      render();
-      if (profile.open) inspect(profile.dataset.horseId);
-      notify(
-        state.settings.developerEditMode
-          ? 'Edit mode enabled. Use the pencils beside page text.'
-          : 'Edit mode closed. Unsaved drafts remain available until you reload.'
-      );
     } else if (intent === 'apply-theme' || intent === 'theme-mode') {
       await action('website-theme', {
         id: intent === 'theme-mode' ? state.settings.websiteTheme || 'default' : id,
@@ -892,6 +927,9 @@ profile.addEventListener('keydown', event => {
     finishHorseText(form);
   }
 });
+document.addEventListener('invalid', handleInvalidHex, true);
+document.addEventListener('select', event => protectHexSelection(event.target), true);
+document.addEventListener('selectionchange', () => protectHexSelection(document.activeElement));
 document.addEventListener('submit', async event => {
   const form = event.target;
   if (
@@ -906,6 +944,7 @@ document.addEventListener('submit', async event => {
       'zone-form',
       'definition-form',
       'traits-form',
+      'species-palettes-form',
       'rarity-settings-form'
     ].includes(form.id)
   )
@@ -931,12 +970,22 @@ document.addEventListener('submit', async event => {
       await action('rarity-settings', readRaritySettings(form));
       render();
       notify('Rarity colors saved.');
+    } else if (form.id === 'species-palettes-form') {
+      const species = catalog.species.find(s => s.id === form.dataset.id);
+      const palettePool = [...form.querySelectorAll('[name="palettePool"]:checked')].map(input => input.value);
+      await action('save-definition', { kind: 'species', id: species.id, values: { ...species, palettePool } });
+      showSpecies(
+        catalog.species.find(s => s.id === species.id),
+        'palettes'
+      );
+      notify('Species palettes saved.');
     } else if (form.id === 'traits-form') {
       const payload = readTraitsForm(form);
       await action('save-traits', payload);
-      // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-      main.innerHTML = traitsEditorPage(catalog, payload.id);
-      trackForms(main);
+      showSpecies(
+        catalog.species.find(s => s.id === payload.id),
+        'traits'
+      );
       notify('Traits saved.');
     } else if (form.id === 'spawn-settings-form') {
       await action('spawn-settings', { ALLOW_DUPLICATE_MUTATIONS: form.elements.ALLOW_DUPLICATE_MUTATIONS.checked });
@@ -970,8 +1019,10 @@ document.addEventListener('submit', async event => {
       notify('Current gold balance saved.');
     } else if (form.id === 'definition-form') {
       const payload = readDefinitionForm(form);
-      if (payload.kind === 'species')
-        payload.values.traits = catalog.species.find(s => s.id === payload.id)?.traits || {};
+      if (payload.kind === 'species') {
+        payload.values.traits ??= catalog.species.find(s => s.id === payload.id)?.traits || {};
+        payload.values.attributes ??= catalog.species.find(s => s.id === payload.id)?.attributes || {};
+      }
       validateDefinition(payload.kind, payload.values);
       await action('save-definition', payload);
       renderChrome();
@@ -1010,11 +1061,9 @@ document.addEventListener('submit', async event => {
       validateZone(draft, catalog);
       await action('save-zone', draft);
       renderChrome();
-      const saved = state.customLocations.find(l => l.id === draft.id || l.name === draft.name.trim());
-      showZoneDraft(saved);
-      $('#zone-status').textContent = saved.enabled
-        ? 'Saved! Your zone is now in the Wilds navigation and the atlas below.'
-        : 'Saved as a closed zone. Enable exploration whenever you are ready.';
+      zoneEditor.close();
+      render();
+      notify('Zone saved.');
     } else if (form.id === 'settings-form') {
       await action('settings', {
         searchCooldownEnabled: form.elements.searchCooldownEnabled.checked,
@@ -1024,7 +1073,8 @@ document.addEventListener('submit', async event => {
         startingGold: Number(values.startingGold ?? state.settings.startingGold),
         stableCapacity: Number(values.stableCapacity ?? state.settings.stableCapacity),
         ignoreStableLimit: form.elements.ignoreStableLimit?.checked ?? state.settings.ignoreStableLimit,
-        ALLOW_DUPLICATE_MUTATIONS: form.elements.ALLOW_DUPLICATE_MUTATIONS.checked
+        horseUpdatesEnabled: form.elements.horseUpdatesEnabled.checked,
+        providedHorseArtwork: form.elements.providedHorseArtwork.checked
       });
       render();
       notify('Saved successfully.');
@@ -1039,6 +1089,7 @@ document.addEventListener('submit', async event => {
   }
 });
 document.addEventListener('input', event => {
+  if (event.target.closest('#trait-rows')) syncTraitRows(main);
   if (event.target.id === 'horse-grid-size') {
     const count = Number(event.target.value);
     if ([3, 4, 5, 6].includes(count)) {
@@ -1053,11 +1104,20 @@ document.addEventListener('input', event => {
   if (event.target.matches('[data-color-picker]')) {
     event.target.closest('.color-inputs').querySelector('[data-color-hex]').value = event.target.value.toUpperCase();
   }
-  if (event.target.matches('[data-color-hex]') && /^#[\da-f]{6}$/i.test(event.target.value)) {
-    event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
+  if (event.target.matches('[data-color-hex]')) {
+    const field = event.target;
+    const start = field.selectionStart;
+    const caret = hexInputValue(field.value.slice(0, start)).length;
+    field.value = hexInputValue(field.value);
+    field.setSelectionRange(caret, caret);
+    if (validHex(event.target.value))
+      event.target.closest('.color-inputs').querySelector('[data-color-picker]').value = event.target.value;
   }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
+  if (event.target.matches('[data-zone-palette-choice]')) syncZonePaletteChoice(event.target.form, event.target);
+  if (event.target.form?.id === 'species-palettes-form') syncZoneSelectionButtons(event.target.form);
   updateFormState(event.target.form);
+  syncSpeciesControls(main);
   if (event.target.id === 'eye-search') updateEyeGrid(main, catalog);
   if (event.target.id === 'definition-search') {
     const query = event.target.value.trim().toLowerCase();
@@ -1068,14 +1128,40 @@ document.addEventListener('input', event => {
     }
     $('#definition-no-results').hidden = matches > 0;
   }
-  if (event.target.closest('#zone-form'))
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    $('#zone-preview').innerHTML = zonePreview(readZoneForm($('#zone-form')), catalog);
+  if (event.target.closest('#zone-form')) syncZoneEditor($('#zone-form'), catalog, readZoneForm($('#zone-form')));
+  if (event.target.id === 'zone-species-search') updateZoneSpecies($('#zone-form'), catalog);
+  if (event.target.id === 'zone-palette-search') updateZonePalettes(event.target.form, catalog);
   if (event.target.id === 'horse-search') updateStableSort();
   if (event.target.id === 'palette-search') updatePaletteGrid(main, catalog);
   if (event.target.id === 'mutation-search') updateMutationGrid(main, catalog);
 });
 document.addEventListener('change', async event => {
+  if (event.target.id === 'zone-palette-sort')
+    event.target.form.querySelector('[data-action="zone-palette-sort-direction"]').dataset.direction = 'asc';
+  if (['zone-palette-type', 'zone-palette-sort'].includes(event.target.id))
+    updateZonePalettes(event.target.form, catalog);
+  if (event.target.id === 'zone-species-sort')
+    $('#zone-form [data-action="zone-species-sort-direction"]').dataset.direction =
+      event.target.value === 'weight' ? 'desc' : 'asc';
+  if (['zone-species-rarity', 'zone-species-sort'].includes(event.target.id))
+    updateZoneSpecies($('#zone-form'), catalog);
+  if (
+    event.target.form?.id === 'zone-form' &&
+    event.target.name?.startsWith('weight:') &&
+    $('#zone-species-sort').value === 'weight'
+  )
+    updateZoneSpecies(event.target.form, catalog);
+  if (event.target.form?.id === 'zone-form' && event.target.name === 'atmosphere') {
+    applyZonePreset(event.target.form, catalog);
+    syncZoneEditor(event.target.form, catalog, readZoneForm(event.target.form));
+    updateFormState(event.target.form);
+  }
+  if (event.target.id === 'species-sort') {
+    speciesSort = event.target.value;
+    selectedSpeciesId = main.querySelector('.species-manager').dataset.speciesId || undefined;
+    updateSpeciesSort(main);
+    return;
+  }
   if (event.target.matches('[data-disable-developer-settings]') && event.target.checked) {
     event.target.disabled = true;
     try {
@@ -1100,23 +1186,27 @@ document.addEventListener('change', async event => {
   if (event.target.id === 'eye-sort')
     main.querySelector('[data-action="eye-sort-direction"]').dataset.direction = 'asc';
   if (['eye-rarity', 'eye-sort', 'eye-percent'].includes(event.target.id)) updateEyeGrid(main, catalog);
-  if (event.target.id === 'traits-species') {
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    main.innerHTML = traitsEditorPage(catalog, event.target.value);
-    trackForms(main);
-    return;
-  }
   if (event.target.form?.id === 'rarity-settings-form') syncRarityControls(event.target.form);
   updateFormState(event.target.form);
+  syncSpeciesControls(main);
   if (event.target.id === 'horse-sort')
     updateStableSort(['recent', 'rarity', 'favorites'].includes(event.target.value) ? 'desc' : 'asc');
 });
 document.addEventListener('reset', event => {
+  if (event.target.id === 'species-palettes-form') {
+    event.preventDefault();
+    showSpecies(
+      catalog.species.find(s => s.id === event.target.dataset.id),
+      'palettes'
+    );
+    return;
+  }
   if (event.target.id === 'traits-form') {
     event.preventDefault();
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    main.innerHTML = traitsEditorPage(catalog, event.target.dataset.id);
-    trackForms(main);
+    showSpecies(
+      catalog.species.find(s => s.id === event.target.dataset.id),
+      'traits'
+    );
     return;
   }
   if (['horse-description-form', 'horse-notes-form'].includes(event.target.id)) {
@@ -1142,6 +1232,23 @@ document.addEventListener('reset', event => {
 });
 $('.scrim').addEventListener('click', closeMenu);
 document.addEventListener('keydown', event => {
+  keepTraitArrowOnLine(event);
+  if (
+    event.target.matches('[data-action="species-tab"]') &&
+    ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+  ) {
+    const tabs = [...main.querySelectorAll('[data-action="species-tab"]:not(:disabled)')];
+    const index = tabs.indexOf(event.target);
+    const next =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? tabs.length - 1
+          : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+    event.preventDefault();
+    tabs[next]?.click();
+    return;
+  }
   if (event.key === 'Tab' && document.body.classList.contains('nav-open') && matchMedia('(max-width: 900px)').matches) {
     const focusable = [...$('#sidebar').querySelectorAll('a, summary')].filter(el => el.getClientRects().length);
     const first = focusable[0],

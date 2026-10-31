@@ -7,6 +7,9 @@ import { GameStore } from '../src/store.js';
 import { regenerateHorse, lockedCosmicMutations } from '../src/horse-regeneration.js';
 import { createHorseDocument, readHorseDocument } from '../public/horse-transfer.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
+import { horseArt, horseHeadArt } from '../public/art.js';
+import { card } from '../public/ui.js';
+import { profileContent } from '../public/profile.js';
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const defaults = JSON.parse(await readFile(new URL('../data/defaults/settings.json', import.meta.url), 'utf8'));
@@ -20,6 +23,34 @@ async function fixture(t, rng = () => 0.5) {
 }
 const preview = (store, ids, rules, allowDuplicates = false) =>
   store.previewHorseUpdates({ ids, rules, allowDuplicates });
+
+test('applying and restoring trait overrides immediately updates all artwork renderers', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const currentCatalog = store.getCatalog();
+  const species = currentCatalog.species.find(entry => entry.id === horse.speciesId);
+  const replacement = species.traits.Mane.find(name => !horse.traits.Mane.includes(name) && name !== 'None');
+  assert.ok(replacement, 'Species has an alternate mane');
+  const originalArtwork = horseArt(horse);
+  const change = await preview(store, [horse.id], { 'trait:Mane': { mode: 'set', value: [replacement] } });
+  const state = await store.action('apply-horse-updates', { token: change.preview.token });
+  const updated = state.horses.find(entry => entry.id === horse.id);
+  assert.deepEqual(updated.traits.Mane, [replacement]);
+  assert.notEqual(horseArt(updated), originalArtwork);
+  const marker = `data-trait="${replacement}"`;
+  for (const markup of [
+    horseArt(updated),
+    horseHeadArt(updated),
+    card(updated, state, 'wild', currentCatalog),
+    card(updated, state, 'stable', currentCatalog),
+    profileContent(updated, state, { catalog: currentCatalog })
+  ]) {
+    assert.ok(markup.includes(marker), 'Latest saved trait appears without a reload or art cache reset');
+  }
+  const restore = await preview(store, [horse.id], { 'trait:Mane': { mode: 'restore' } });
+  const restored = await store.action('apply-horse-updates', { token: restore.preview.token });
+  assert.equal(horseArt(restored.horses.find(entry => entry.id === horse.id)), originalArtwork);
+});
 
 test('legacy horse metadata upgrades once with a backup and survives JSON transfer', async t => {
   const { directory, store, horse } = await fixture(t);
@@ -63,6 +94,9 @@ test('preview is read-only; apply uses exact reviewed values and a dated backup'
   const state = await store.action('apply-horse-updates', { token: result.preview.token });
   const updated = state.horses[0];
   assert.equal(updated.gender, gender);
+  assert.deepEqual(updated.overriddenFields.sort(), ['gender', 'skill:bond']);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.snapshot().horses[0].overriddenFields.sort(), ['gender', 'skill:bond']);
   assert.deepEqual(updated.skills.bond, { level: 2, xp: 40 });
   assert.equal(updated.id, horse.id);
   assert.equal(updated.name, horse.name);
@@ -101,7 +135,7 @@ test('Cosmic mutation and palette remain protected during full or individual reg
   const locked = lockedCosmicMutations(horse, c)[0];
   const result = regenerateHorse(
     horse,
-    { mutations: { mode: 'reroll' }, palette: { mode: 'reroll' }, size: { mode: 'reroll' } },
+    { mutations: { mode: 'reroll' }, size: { mode: 'reroll' } },
     c,
     store.snapshot(),
     { rng: () => 0 }
@@ -117,8 +151,9 @@ test('Cosmic mutation and palette remain protected during full or individual reg
   const normal = c.palettes.find(p => p.complete && p.name !== 'Solar');
   assert.throws(
     () => regenerateHorse(horse, { palette: { mode: 'set', value: normal.id } }, c, store.snapshot()),
-    /available/
+    /Cosmic palettes/
   );
+  assert.throws(() => regenerateHorse(horse, { palette: { mode: 'reroll' } }, c, store.snapshot()), /Cosmic palettes/);
 });
 
 test('trait rerolls use species lists, respect counts, and preserve missing data', async t => {
@@ -141,14 +176,21 @@ test('trait rerolls use species lists, respect counts, and preserve missing data
   assert.equal(result.horse.traits.Pattern.length, 4);
   assert.equal(new Set(result.horse.traits.Pattern).size, 4);
   assert.ok(result.horse.traitsComplete);
+  const cosmicHorse = { ...horse, specialSpawn: 'Solar', spawnPath: 'Cosmic' };
+  const cosmic = regenerateHorse(cosmicHorse, { 'trait:Pattern': { mode: 'reroll' } }, c, store.snapshot(), {
+    rng: () => 0
+  });
+  assert.equal(cosmic.horse.traits.Pattern.length, 4);
+  assert.equal(new Set(cosmic.horse.traits.Pattern).size, 4);
   assert.throws(
     () => regenerateHorse(horse, { 'trait:Mane': { mode: 'set', value: ['Other Species Mane'] } }, c, store.snapshot()),
     /valid/
   );
   s.traits = {};
-  const missing = regenerateHorse(horse, { 'trait:Mane': { mode: 'reroll' } }, c, store.snapshot());
-  assert.deepEqual(missing.horse.traits.Mane, horse.traits.Mane);
-  assert.ok(missing.warnings.length);
+  assert.throws(
+    () => regenerateHorse(horse, { 'trait:Mane': { mode: 'reroll' } }, c, store.snapshot()),
+    /No different Mane/
+  );
 });
 
 test('keeping everything is a no-op and explicit text/date/skill changes are validated', async t => {
@@ -190,16 +232,16 @@ test('keeping everything is a no-op and explicit text/date/skill changes are val
   assert.notEqual(changed.horse.caughtAt, horse.caughtAt);
 });
 
-test('species changes clear incompatible rerolled traits and reject invalid kept traits', async t => {
+test('species changes regenerate incompatible traits and handle missing definitions', async t => {
   const { store, horse } = await fixture(t);
   const c = store.getCatalog();
   const target = c.species.find(s => s.id !== horse.speciesId);
   target.traits = {};
   const original = { ...horse, traits: { Mane: ['Old Mane'], Tail: ['Old Tail'], Pattern: ['Old Pattern'] } };
-  assert.throws(
-    () => regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot()),
-    /incompatible/
-  );
+  const automatic = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot());
+  assert.deepEqual(automatic.horse.traits.Mane, ['None']);
+  assert.deepEqual(automatic.horse.traits.Pattern, []);
+  assert.ok(automatic.warnings.some(warning => warning.includes('Pattern')));
   const rules = {
     species: { mode: 'set', value: target.id },
     'trait:Mane': { mode: 'reroll' },
@@ -207,7 +249,7 @@ test('species changes clear incompatible rerolled traits and reject invalid kept
     'trait:Pattern': { mode: 'reroll' }
   };
   const result = regenerateHorse(original, rules, c, store.snapshot());
-  assert.deepEqual(result.horse.traits.Mane, ['Awaiting species data']);
+  assert.deepEqual(result.horse.traits.Mane, ['None']);
   assert.deepEqual(result.horse.traits.Pattern, []);
   assert.equal(result.horse.speciesId, target.id);
 });
@@ -281,4 +323,267 @@ test('expired previews and no-op applications cannot write a save', async t => {
   const none = await preview(store, [horse.id], {});
   await assert.rejects(store.action('apply-horse-updates', { token: none.preview.token }), /no changes/);
   assert.equal(await readFile(join(directory, 'player/save.json'), 'utf8'), before);
+});
+
+test('settings checkbox enables horse editing without changing duplicate mutation rules', async t => {
+  const { store } = await fixture(t);
+  const duplicateRule = store.getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS;
+  await store.action('settings', { ...store.snapshot().settings, horseUpdatesEnabled: true });
+  assert.equal(store.snapshot().settings.horseUpdatesEnabled, true);
+  assert.equal(store.getCatalog().spawning.ALLOW_DUPLICATE_MUTATIONS, duplicateRule);
+  await store.action('settings', { ...store.snapshot().settings, horseUpdatesEnabled: false });
+  assert.equal(store.snapshot().settings.horseUpdatesEnabled, false);
+});
+
+test('override originals survive repeated changes and removal restores the exact value', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  async function applyRules(rules) {
+    const result = await preview(store, [horse.id], rules);
+    return (await store.action('apply-horse-updates', { token: result.preview.token })).horses[0];
+  }
+  const before = horse.notes || '';
+  let updated = await applyRules({ notes: { mode: 'set', value: 'First override' } });
+  assert.equal(updated.overrideOriginals.notes.value || '', before);
+  updated = await applyRules({ notes: { mode: 'set', value: 'Second override' } });
+  assert.equal(updated.overrideOriginals.notes.value || '', before);
+  const result = await preview(store, [horse.id], { notes: { mode: 'restore' } });
+  assert.equal(store.snapshot().horses[0].notes, 'Second override');
+  updated = (await store.action('apply-horse-updates', { token: result.preview.token })).horses[0];
+  assert.equal(updated.notes || '', before);
+  assert.ok(!updated.overriddenFields.includes('notes'));
+  assert.ok(!updated.overrideOriginals.notes);
+  await assert.rejects(preview(store, [horse.id], { notes: { mode: 'restore' } }), /not recorded/);
+});
+
+test('birthday removal restores both the birthday and exact acquisition timestamp', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const result = await preview(store, [horse.id], { birthday: { mode: 'set', value: '2000-01-01' } });
+  await store.action('apply-horse-updates', { token: result.preview.token });
+  const restoration = await preview(store, [horse.id], { birthday: { mode: 'restore' } });
+  const restored = (await store.action('apply-horse-updates', { token: restoration.preview.token })).horses[0];
+  assert.equal(restored.birthday, horse.birthday);
+  assert.equal(restored.caughtAt, horse.caughtAt);
+});
+
+test('species overrides regenerate traits with the existing counts and capture their originals', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  const target = c.species.find(s => s.id !== horse.speciesId);
+  target.name = 'Replacement Species';
+  target.traits = {
+    Mane: ['New Mane'],
+    Tail: ['New Tail'],
+    Pattern: ['P1', 'P2', 'P3', 'P4'],
+    Paint: ['Paint1', 'Paint2'],
+    Cosmetic: ['C1', 'C2', 'C3', 'C4'],
+    Keratin: ['New Horn'],
+    Ears: ['New Ears'],
+    Whiskers: ['New Whiskers']
+  };
+  const original = {
+    ...horse,
+    palette: { ...horse.palette, global: true },
+    specialSpawn: null,
+    mutations: [],
+    traits: {
+      Mane: ['Old Mane'],
+      Tail: ['Old Tail'],
+      Pattern: ['Old P1', 'Old P2', 'Old P3'],
+      Paint: ['Old Paint'],
+      Cosmetic: [],
+      Keratin: [],
+      Ears: ['Old Ears'],
+      Whiskers: []
+    }
+  };
+  const result = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot(), {
+    rng: () => 0.5
+  });
+  for (const [category, values] of Object.entries(original.traits)) {
+    assert.equal(result.horse.traits[category].length, values.length);
+    assert.ok(result.horse.traits[category].every(value => target.traits[category].includes(value)));
+  }
+  assert.deepEqual(result.horse.overrideOriginals['trait:Pattern'].value, original.traits.Pattern);
+  assert.ok(result.horse.overriddenFields.includes('trait:Pattern'));
+  target.traits.Pattern = ['Only Pattern'];
+  const limited = regenerateHorse(original, { species: { mode: 'set', value: target.id } }, c, store.snapshot());
+  assert.deepEqual(limited.horse.traits.Pattern, ['Only Pattern']);
+  assert.ok(limited.warnings.some(warning => warning.includes('Pattern') && warning.includes('using 1')));
+});
+
+test('species reroll chooses another species and rerolls all traits with the existing counts', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  const current = c.species.find(species => species.id === horse.speciesId);
+  const target = c.species.find(species => species.id !== current.id);
+  target.name = 'Reroll Target';
+  target.traits = {
+    Mane: ['Target Mane'],
+    Tail: ['Target Tail'],
+    Pattern: ['Target P1', 'Target P2', 'Target P3', 'Target P4'],
+    Paint: ['Target Paint1', 'Target Paint2'],
+    Cosmetic: ['Target C1', 'Target C2', 'Target C3', 'Target C4'],
+    Keratin: ['Target Horn'],
+    Ears: ['Target Ears'],
+    Whiskers: ['Target Whiskers']
+  };
+  c.species = [current, target];
+  const original = {
+    ...horse,
+    palette: { ...horse.palette, global: true },
+    specialSpawn: null,
+    mutations: [],
+    traits: {
+      Mane: ['Old Mane'],
+      Tail: ['Old Tail'],
+      Pattern: ['Old P1', 'Old P2', 'Old P3'],
+      Paint: ['Old Paint1', 'Old Paint2'],
+      Cosmetic: ['Old Cosmetic'],
+      Keratin: [],
+      Ears: ['Old Ears'],
+      Whiskers: []
+    }
+  };
+  const result = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
+  assert.equal(result.horse.speciesId, target.id);
+  for (const [category, values] of Object.entries(original.traits)) {
+    assert.equal(result.horse.traits[category].length, values.length);
+    assert.ok(result.horse.traits[category].every(value => target.traits[category].includes(value)));
+  }
+  // A registry with no alternative must report that fact instead of repeating a species.
+  c.species = [current];
+  assert.throws(
+    () => regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 }),
+    /No different species/
+  );
+});
+
+test('Cosmic override trait rerolls maximize every available category including optional traits', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog(),
+    species = c.species.find(entry => entry.id === horse.speciesId);
+  species.traits = {
+    Mane: ['M1', 'M2'],
+    Tail: ['T1', 'T2'],
+    Pattern: ['P1', 'P2', 'P3', 'P4', 'P5'],
+    Paint: ['Paint1', 'Paint2', 'Paint3'],
+    Cosmetic: ['C1', 'C2', 'C3', 'C4', 'C5'],
+    Keratin: ['K1', 'K2'],
+    Ears: ['E1', 'E2'],
+    Whiskers: ['W1', 'W2']
+  };
+  const original = { ...horse, specialSpawn: 'Solar', mutations: [{ name: 'Solar' }], traits: {} };
+  const limits = { Mane: 1, Tail: 1, Pattern: 4, Paint: 2, Cosmetic: 4, Keratin: 1, Ears: 1, Whiskers: 1 };
+  const rules = Object.fromEntries(
+    Object.keys(limits).map(category => ['trait:' + category, { mode: 'reroll', count: 0 }])
+  );
+  const result = regenerateHorse(original, rules, c, store.snapshot(), { rng: () => 0 });
+  for (const [category, max] of Object.entries(limits)) assert.equal(result.horse.traits[category].length, max);
+  species.traits.Pattern = ['Only Pattern'];
+  const limited = regenerateHorse(original, rules, c, store.snapshot(), { rng: () => 0 });
+  assert.deepEqual(limited.horse.traits.Pattern, ['Only Pattern']);
+  // Rerolling species also fills formerly empty optional Cosmic categories.
+  c.species = [species, { ...species, id: 'cosmic-trait-target', name: 'Target Species' }];
+  const speciesRoll = regenerateHorse(original, { species: { mode: 'reroll' } }, c, store.snapshot(), { rng: () => 0 });
+  for (const category of ['Keratin', 'Ears', 'Whiskers']) assert.equal(speciesRoll.horse.traits[category].length, 1);
+});
+
+test('rerolls exclude current values and preview reuse preserves independent Size and Personality rolls', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const rules = { personality: { mode: 'reroll' } };
+  const first = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    rerollKey: 'personality',
+    allowDuplicates: false
+  });
+  const personality = first.preview.items[0].changes.find(change => change.field === 'personality').after;
+  assert.notEqual(personality.id, horse.personality.id);
+  rules.size = { mode: 'reroll' };
+  const second = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    previousToken: first.preview.token,
+    rerollKey: 'size',
+    allowDuplicates: false
+  });
+  assert.deepEqual(second.preview.items[0].changes.find(change => change.field === 'personality').after, personality);
+  const size = second.preview.items[0].changes.find(change => change.field === 'size').after;
+  assert.notEqual(size, horse.size);
+  const third = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    previousToken: second.preview.token,
+    rerollKey: 'personality',
+    allowDuplicates: false
+  });
+  assert.equal(third.preview.items[0].changes.find(change => change.field === 'size').after, size);
+  assert.notEqual(
+    (third.preview.items[0].changes.find(change => change.field === 'personality')?.after || horse.personality).id,
+    personality.id
+  );
+  const saved = (await store.action('apply-horse-updates', { token: third.preview.token })).horses[0];
+  assert.equal(saved.size, size);
+  const c = store.getCatalog();
+  const flipped = regenerateHorse(saved, { gender: { mode: 'reroll' } }, c, store.snapshot());
+  assert.notEqual(flipped.horse.gender, saved.gender);
+});
+
+test('unchanged rerolls reject unavailable alternatives instead of repeating the current value', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  c.personalities = [horse.personality];
+  c.eyes = [horse.eye];
+  assert.throws(
+    () => regenerateHorse(horse, { personality: { mode: 'reroll' } }, c, store.snapshot()),
+    /No different personality/
+  );
+  assert.throws(() => regenerateHorse(horse, { eye: { mode: 'reroll' } }, c, store.snapshot()), /No different eye/);
+});
+
+test('preview reuse keeps generated values after an unrelated section is saved', async t => {
+  const { store, horse } = await fixture(t);
+  await store.action('horse-updates-enabled', { enabled: true });
+  const rules = { personality: { mode: 'reroll' } };
+  const first = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    rerollKey: 'personality',
+    allowDuplicates: false
+  });
+  const chosen = first.preview.items[0].changes.find(change => change.field === 'personality').after;
+  const other = await preview(store, [horse.id], { notes: { mode: 'set', value: 'Unrelated saved value' } });
+  await store.action('apply-horse-updates', { token: other.preview.token });
+  const refreshed = await store.previewHorseUpdates({
+    ids: [horse.id],
+    rules,
+    previousToken: first.preview.token,
+    allowDuplicates: false
+  });
+  assert.deepEqual(refreshed.preview.items[0].changes.find(change => change.field === 'personality').after, chosen);
+  const saved = (await store.action('apply-horse-updates', { token: refreshed.preview.token })).horses[0];
+  assert.equal(saved.notes, 'Unrelated saved value');
+  assert.equal(saved.personality.id, chosen.id);
+});
+
+test('unavailable Keratin, Ears and Whiskers rerolls identify the species', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog(),
+    species = c.species.find(entry => entry.id === horse.speciesId);
+  for (const category of ['Keratin', 'Ears', 'Whiskers']) {
+    species.traits[category] = [];
+    assert.throws(
+      () => regenerateHorse(horse, { ['trait:' + category]: { mode: 'reroll' } }, c, store.snapshot()),
+      error => error.message.includes(category) && error.message.includes(species.name)
+    );
+    species.traits[category] = ['Only Choice'];
+    const original = { ...horse, traits: { ...horse.traits, [category]: ['Only Choice'] } };
+    assert.throws(
+      () => regenerateHorse(original, { ['trait:' + category]: { mode: 'reroll', count: 1 } }, c, store.snapshot()),
+      error => error.message.includes(category) && error.message.includes(species.name)
+    );
+  }
 });

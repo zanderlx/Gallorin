@@ -1,29 +1,14 @@
 <div align="center">
 
-![Gallorin v1.2.4](docs/assets/gallorin-banner.svg)
+![Gallorin v1.3.0](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.2.4
+# Gallorin v1.3.0: The Lucky Horseshoe
 
 **Desktop horse collection game · Windows**
 
 [Download](https://github.com/zanderlx/Gallorin/releases/latest) · [Changelog](CHANGELOG.md)
 
 </div>
-
-## Features
-
-- Explore zones and tame, rename, favorite, sell, import, and export horses.
-- Inspect horse details, palettes, traits, mutations, notes, and skill XP.
-- Customize species, traits, palettes, eye colors, personalities, rarities, and zones through the Compendium.
-- Configure rarity borders and glow independently, and customize Cosmic artwork eye colors without changing generated eye traits.
-- Manage location playlists and a separate sound-effect library, with event assignments, crossfades, and a compact player.
-- Control music and sound-effect volumes independently, with individual event levels and configurable text-button click sounds.
-- Generate horses with an expanded set of categorized color palettes.
-- Configure optional Wilds search cooldowns with a persistent countdown and completion sound.
-- Adjust themes, page text, profiles, economy, and spawning settings.
-- Save locally with exports, automatic backups, and hourly snapshots. Saved settings override bundled defaults; missing settings inherit them.
-
-Breeding, Town activities, equipment gameplay, and skill training remain planned. Developer Horse Updates is a work in progress.
 
 ## Play — recommended
 
@@ -34,6 +19,19 @@ Breeding, Town activities, equipment gameplay, and skill training remain planned
 The installer includes everything needed. Players do not need Node.js, Git, npm, or the source folder.
 
 **Future updates:** the installed app checks for published releases. Use **Esc → Check For Updates**, choose **Download**, then **Restart and Install**. You can update inside the app without downloading another installer manually. Saves and personal settings are retained.
+
+## Features
+
+- Explore zones and tame, rename, favorite, sell, import, and export horses.
+- View full-body artwork and portraits, with provided SVG artwork enabled by default and optional trait-based artwork.
+- Customize species, categorized traits, palettes, eye colors, personalities, and rarity appearance through the Compendium.
+- Design zones with artwork presets, tint, species weights, palette filters, and bulk selection controls. Species can also have their own palette pools.
+- Inspect horse traits, mutations, notes, and skill XP. Enable Override Horse Data for section-based editing, rerolls, and restoration of recorded original values.
+- Manage playlists and sound events with crossfades, independent music/effect volumes, and individual event levels.
+- Configure search cooldowns, spawning, economy, profiles, themes, and page text.
+- Keep saves local with exports, automatic backups, and hourly snapshots. Saved preferences override bundled defaults.
+
+Breeding, Town activities, equipment gameplay, and skill training remain planned.
 
 ## Local development
 

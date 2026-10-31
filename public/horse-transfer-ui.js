@@ -52,7 +52,7 @@ export function createHorseTransfers({ getCatalog, getState, save, notify, onImp
     // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
     previewDialog.innerHTML = profileContent(
       { ...horse, id: 'import-preview' },
-      { ...state, horses: [], sold: [], settings: { ...state.settings, developerEditMode: false } },
+      { ...state, horses: [], sold: [], settings: { ...state.settings } },
       { importPreview: true, catalog: getCatalog?.() }
     ).replace('id="profile-title"', 'id="import-preview-title"');
     previewDialog.showModal();

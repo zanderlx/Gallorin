@@ -6,8 +6,8 @@ import { join, dirname, resolve, basename } from 'node:path';
 import { GameStore } from '../src/store.js';
 import { newZoneDraft } from '../public/zones.js';
 import { locationsFor } from '../public/zones.js';
-import { horseFieldOptions } from '../public/horse-fields.js';
 import { createHorseDocument, readHorseDocument } from '../public/horse-transfer.js';
+import { horseSalePrice } from '../public/sale-pricing.js';
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const defaults = JSON.parse(await readFile(new URL('../data/defaults/settings.json', import.meta.url), 'utf8'));
@@ -20,6 +20,30 @@ async function fixture(t) {
   });
   return { directory, store: await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init() };
 }
+test('retired edit actions reject legacy saves without changing player data', async t => {
+  const { directory, store } = await fixture(t);
+  await store.action('visit', { locationId: 'aetherion' });
+  const id = store.state.encounters.aetherion[0].id;
+  await store.action('catch', { id });
+  store.state.settings.developerEditMode = true;
+  store.state.pageCopy = { site: { 'brand-title': 'Legacy title' } };
+  await store.persist(store.state);
+  const reopened = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
+  const before = reopened.snapshot();
+  for (const [type, payload] of [
+    ['developer-edit-mode', { enabled: true }],
+    ['save-copy', { scope: 'site', entries: { 'brand-title': 'Changed' } }],
+    ['horse-field', { id, field: 'size', value: 'Teacup' }],
+    ['horse-skill-xp', { id, skill: 'agility', xp: 600 }]
+  ]) {
+    await assert.rejects(reopened.action(type, payload), /Unknown action/);
+    assert.deepEqual(reopened.snapshot(), before);
+  }
+  assert.equal(before.settings.developerEditMode, true);
+  assert.deepEqual(before.pageCopy, store.state.pageCopy);
+  assert.deepEqual(before.horses, store.state.horses);
+});
+
 test('owned personality descriptions default on catch, persist, and reject invalid edits', async t => {
   const { directory, store } = await fixture(t);
   await store.action('visit', { locationId: 'aetherion' });
@@ -162,46 +186,6 @@ test('horse notes survive catching and reload; invalid notes leave the save unch
   assert.equal(restored.state.horses[0].notes, notes);
   await store.action('horse-notes', { id, notes: '' });
   assert.equal(store.state.horses[0].notes, '');
-});
-test('edit mode updates only the selected horse with validated choices and dates', async t => {
-  const { directory, store } = await fixture(t);
-  await store.action('visit', { locationId: 'aetherion' });
-  const id = store.state.encounters.aetherion[0].id;
-  const other = structuredClone(store.state.encounters.aetherion[1]);
-  await assert.rejects(store.action('horse-field', { id, field: 'age', value: 'Elder' }));
-  await store.action('developer-edit-mode', { enabled: true });
-  const options = horseFieldOptions('personality', store.getCatalog(), store.state);
-  assert.deepEqual(
-    options.map(o => o.label),
-    options.map(o => o.label).sort((a, b) => a.localeCompare(b))
-  );
-  for (const [field, value] of Object.entries({
-    age: 'Elder',
-    origin: 'Wild',
-    size: 'Teacup',
-    birthday: '2024-02-29',
-    personality: options[0].value
-  })) {
-    await store.action('horse-field', { id, field, value });
-  }
-  const saved = structuredClone(store.state.encounters.aetherion[0]);
-  for (const [field, value] of [
-    ['birthday', '2023-02-29'],
-    ['birthday', '9999-01-01'],
-    ['age', 'Unknown'],
-    ['origin', 'Unknown'],
-    ['size', 'Unknown'],
-    ['personality', 'Unknown'],
-    ['gold', '100']
-  ]) {
-    await assert.rejects(store.action('horse-field', { id, field, value }));
-  }
-  assert.deepEqual(store.state.encounters.aetherion[0], saved);
-  assert.deepEqual(store.state.encounters.aetherion[1], other);
-  assert.equal(saved.sizePercent, 75);
-  assert.equal(saved.personality.name, options[0].label);
-  const restored = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
-  assert.deepEqual(restored.state.encounters.aetherion[0], saved);
 });
 test('zone and horse deletion persist without awarding gold or removing unrelated records', async t => {
   const { directory, store } = await fixture(t);
@@ -354,8 +338,11 @@ test('settings persist and affect new searches and sales, never existing horses'
   await store.action('search', { locationId: 'aetherion' });
   assert.equal(store.state.encounters.aetherion.length, 5);
   assert.deepEqual(store.state.horses[0], original);
+  const quote = horseSalePrice(original, store.state.settings);
+  assert.equal(quote.basePrice, 420);
+  const goldBefore = store.state.gold;
   await store.action('sell', { id: horse.id });
-  assert.equal(store.state.gold, 495);
+  assert.equal(store.state.gold, goldBefore + quote.total);
   const restarted = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
   assert.equal(restarted.state.settings.horsesPerSearch, 5);
 });
@@ -439,7 +426,7 @@ test('invalid, empty, duplicate and unknown zone edits are rejected without savi
   for (const patch of [
     { name: '' },
     { name: 'x'.repeat(61) },
-    { description: '' },
+    { description: 'x'.repeat(601) },
     { atmosphere: 'unknown' },
     { speciesPool: [] },
     { speciesPool: ['Unknown horse'] },
@@ -557,24 +544,6 @@ test('legacy horses receive separate persisted skills without overwriting existi
   assert.ok((await readdir(join(directory, 'backups'))).some(n => n.startsWith('pre-horse-skills-')));
 });
 
-test('skill XP awards are validated, isolated per horse and persisted', async t => {
-  const { directory, store } = await fixture(t);
-  await store.action('visit', { locationId: 'aetherion' });
-  const first = store.state.encounters.aetherion[0];
-  await store.action('catch', { id: first.id });
-  const second = store.state.encounters.aetherion[0];
-  await store.action('catch', { id: second.id });
-  await assert.rejects(store.action('horse-skill-xp', { id: first.id, skill: 'agility', xp: 600 }));
-  await store.action('developer-edit-mode', { enabled: true });
-  await store.action('horse-skill-xp', { id: first.id, skill: 'agility', xp: 600 });
-  assert.deepEqual(store.state.horses.find(h => h.id === first.id).skills.agility, { level: 2, xp: 75 });
-  assert.deepEqual(store.state.horses.find(h => h.id === second.id).skills.agility, { level: 0, xp: 0 });
-  for (const xp of [-1, 1.5, '10'])
-    await assert.rejects(store.action('horse-skill-xp', { id: first.id, skill: 'wing', xp }));
-  const loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
-  assert.deepEqual(loaded.state.horses.find(h => h.id === first.id).skills.agility, { level: 2, xp: 75 });
-});
-
 test('selling directly from a wild encounter credits its quote without adding it to the stable', async t => {
   const { store } = await fixture(t);
   await store.action('visit', { locationId: 'aetherion' });
@@ -678,7 +647,6 @@ test('developer settings detect the secret within About Me, persist, and preserv
   assert.equal(reopened.state.settings.developerSettingsVisible, true);
   await reopened.action('disable-developer-settings');
   assert.equal(reopened.state.settings.developerSettingsVisible, false);
-  assert.equal(reopened.state.settings.developerEditMode, false);
   const cleaned = 'My favorite horses live here. More about me.';
   assert.equal(reopened.state.keeper.about, cleaned);
   await reopened.action('save-profile', { ...profile, about: cleaned });
@@ -702,4 +670,72 @@ test('profile unlock removes the secret without changing surrounding text or par
     await store.action('save-profile', { name: 'Keeper', avatarSeed: 11, about });
     assert.equal(store.state.keeper.about, expected);
   }
+});
+
+test('zone editor saves optional descriptions and weighted pools through restart and deletion', async t => {
+  const { directory, store } = await fixture(t);
+  const species = store.getCatalog().species.slice(0, 2);
+  const creatures = species.map((s, i) => ({ speciesId: s.id, weight: i ? 75 : 25 }));
+  await store.action('save-zone', {
+    ...newZoneDraft(),
+    name: 'Weighted zone',
+    description: '',
+    speciesPool: species.map(s => s.name),
+    creatures
+  });
+  const zone = store.state.customLocations[0];
+  assert.equal(zone.event, null);
+  assert.equal(zone.description, '');
+  assert.deepEqual(zone.creatures, creatures);
+  await store.action('save-zone', { ...zone, creatures: creatures.map(c => ({ ...c, weight: 0 })), enabled: false });
+  const restored = await new GameStore(directory, catalog, defaults).init();
+  const saved = locationsFor(restored.getCatalog(), restored.state).find(l => l.id === zone.id);
+  assert.equal(saved.enabled, false);
+  assert.ok(saved.creatures.every(c => c.weight === 0));
+  await restored.action('delete-zone', { id: zone.id });
+  assert.ok(!locationsFor(restored.getCatalog(), restored.state).some(l => l.id === zone.id));
+});
+
+test('zone atmosphere edits are local to the zone and survive configuration reload', async t => {
+  const { directory, store } = await fixture(t);
+  const original = locationsFor(store.getCatalog(), store.state)[0];
+  const preset = structuredClone(store.getCatalog().atmospheres.find(a => a.id === original.atmosphere));
+  const appearance = { tint: '#123456' };
+  await store.action('save-zone', { ...original, appearance: { ...appearance, encounterTitle: 'Legacy heading' } });
+  const restored = await new GameStore(directory, catalog, defaults).init();
+  const saved = locationsFor(restored.getCatalog(), restored.state).find(l => l.id === original.id);
+  assert.deepEqual(saved.appearance, appearance);
+  assert.deepEqual(
+    restored.getCatalog().atmospheres.find(a => a.id === preset.id),
+    preset
+  );
+  for (const patch of [{ tint: 'url(bad)', encounterTitle: 'Heading' }, { tint: '#12345' }]) {
+    await assert.rejects(restored.action('save-zone', { ...saved, appearance: patch }), /Zone appearance/);
+  }
+  assert.deepEqual(
+    locationsFor(restored.getCatalog(), restored.state).find(l => l.id === saved.id).appearance,
+    appearance
+  );
+});
+
+test('deleted built-in artwork presets stay deleted after restart', async t => {
+  const { directory, store } = await fixture(t);
+  assert.ok(store.getCatalog().atmospheres.some(a => a.id === 'meadow'));
+  await store.action('delete-definition', { kind: 'atmospheres', id: 'meadow' });
+  assert.ok(!store.getCatalog().atmospheres.some(a => a.id === 'meadow'));
+  const restored = await new GameStore(directory, catalog, defaults).init();
+  assert.ok(!restored.getCatalog().atmospheres.some(a => a.id === 'meadow'));
+  assert.ok(restored.getCatalog().atmospheres.some(a => a.id === 'coast'));
+});
+
+test('artwork toggle saves independently of numeric game settings', async t => {
+  const { directory, store } = await fixture(t);
+  const before = structuredClone(store.state.settings);
+  await store.action('horse-artwork-preference', { providedHorseArtwork: true });
+  assert.deepEqual(store.state.settings, { ...before, providedHorseArtwork: true });
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.equal(reopened.state.settings.providedHorseArtwork, true);
+  await store.action('horse-artwork-preference', { providedHorseArtwork: false });
+  assert.deepEqual(store.state.settings, { ...before, providedHorseArtwork: false });
+  await assert.rejects(store.action('horse-artwork-preference', { providedHorseArtwork: 'true' }));
 });

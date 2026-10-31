@@ -1,13 +1,18 @@
+import { copyHorseOverrideField, horseOverrideValue } from '../public/horse-override-markers.js';
+import { horseTraitLimits } from '../public/horse-update-fields.js';
 // @ts-check
-import { regularEyes, isCosmicEye } from '../public/cosmic-types.js';
+import { regularEyes, isCosmicEye, isCosmicPalette } from '../public/cosmic-types.js';
 import { limits, formatLimit } from '../public/limits.js';
 import { withLocalDefaults } from '../public/local-defaults.js';
-import { regenerateHorse, horseFingerprint } from './horse-regeneration.js';
+import { regenerateHorse, horseFingerprint, validateHorseRules } from './horse-regeneration.js';
 import { migrateHorseVersion } from '../public/horse-version.js';
 import { ConfigurationFiles } from './configuration.js';
-import { readHorseSkills, awardHorseSkillXP } from '../public/skill-progress.js';
+import { readHorseSkills } from '../public/skill-progress.js';
 import { synchronizeCosmicPalettes } from './cosmic-palettes.js';
 import { paletteAdditionsVersion, missingBundledPalettes } from './palette-additions.js';
+import { updatedBundledPalettes } from './palette-updates.js';
+import { traitDefaultsVersion, withTraitDefaults } from './trait-defaults.js';
+import { removeUnusedTraits } from '../public/unused-traits.js';
 import { validateRaritySettings } from '../public/rarity-settings.js';
 import { horseSalePrice, saleModifiers, validateSaleModifiers } from '../public/sale-pricing.js';
 import {
@@ -19,7 +24,7 @@ import {
 } from '../public/spawn-config.js';
 import { localCalendarDate } from '../public/dates.js';
 import { readHorseDocument } from '../public/horse-transfer.js';
-import { validateHorseName, horseRecords, updateHorseField } from '../public/horse-fields.js';
+import { validateHorseName, horseRecords } from '../public/horse-fields.js';
 import { mkdir, readFile, copyFile } from 'node:fs/promises';
 import { replaceDurable, writeDurable, copyDurable, pruneBackups } from './durable-file.js';
 import { join } from 'node:path';
@@ -29,7 +34,6 @@ import { createEncounters } from './encounters.js';
 import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
 import { validateKeeper } from '../public/keeper.js';
-import { validateCopyPatch } from '../public/page-copy.js';
 
 const snapshotIntervalMs = 60 * 60 * 1000;
 const backupsPerKind = 20;
@@ -37,6 +41,8 @@ const backupsPerKind = 20;
 const upgradeBackupPrefixes = [
   'pre-spawning-',
   'pre-palette-additions-',
+  'pre-trait-defaults-',
+  'pre-unused-traits-',
   'pre-cosmic-zone-cleanup-',
   'pre-horse-version-',
   'pre-horse-skills-',
@@ -47,6 +53,7 @@ const upgradeBackupPrefixes = [
 
 /** Applies save-format upgrades to one horse in place and reports which kinds changed. */
 function upgradeHorse(horse) {
+  const unusedTraits = removeUnusedTraits(horse);
   const version = migrateHorseVersion(horse);
   let details = false;
   if (horse.species === 'Friesan') {
@@ -58,7 +65,7 @@ function upgradeHorse(horse) {
     horse.skills = skills;
     details = true;
   }
-  return { version, details };
+  return { version, details, unusedTraits };
 }
 
 export class GameStore {
@@ -120,24 +127,79 @@ export class GameStore {
         await this.files.read(seeded.catalog);
         next.configurationRevision = revision;
         next.paletteAdditionsVersion = paletteAdditionsVersion;
+        next.traitDefaultsVersion = traitDefaultsVersion;
         await this.persist(next);
       });
       this.state = next;
     }
     await this.addBundledPalettes();
+    await this.addDefaultTraits();
+    await this.removeUnusedSpeciesTraits();
     await this.upgradeHorses();
     await this.readConfiguration();
     await this.pruneOldBackups();
     return this;
   }
-  // One-time additive upgrade: appends known bundled palettes to an existing registry without touching local entries.
+  // Retired categories are removed without changing other traits or spawn assignments.
+  async removeUnusedSpeciesTraits() {
+    const species = await this.files.json('species.json');
+    if (!species.map(removeUnusedTraits).some(Boolean)) return;
+    const configuration = await this.files.read(catalogFor(this.catalog, this.state));
+    const next = this.snapshot();
+    for (const entry of next.library?.species || []) removeUnusedTraits(entry);
+    for (const traits of Object.values(next.library?.traits || {})) removeUnusedTraits({ traits });
+    const backup = `pre-unused-traits-${Date.now()}-${randomUUID()}`;
+    await copyFile(this.file, join(this.directory, 'backups', `${backup}.json`));
+    await copyFile(this.files.path('species.json'), join(this.directory, 'backups', `${backup}-species.json`));
+    await this.files.commit(
+      configuration,
+      async revision => {
+        next.configurationRevision = revision;
+        await this.persist(next);
+      },
+      { 'species.json': species }
+    );
+    this.state = next;
+  }
+
+  // One-time additive upgrade; later trait edits and removals remain intentional.
+  async addDefaultTraits() {
+    if ((this.state.traitDefaultsVersion || 0) >= traitDefaultsVersion) return;
+    const configuration = await this.files.read(catalogFor(this.catalog, this.state));
+    const original = await this.files.json('species.json');
+    const species = withTraitDefaults(this.catalog, original);
+    const next = this.snapshot();
+    next.traitDefaultsVersion = traitDefaultsVersion;
+    if (JSON.stringify(species) === JSON.stringify(original)) {
+      await this.persist(next);
+      this.state = next;
+      return;
+    }
+    const backup = `pre-trait-defaults-${Date.now()}-${randomUUID()}`;
+    await copyFile(this.file, join(this.directory, 'backups', `${backup}.json`));
+    await copyFile(this.files.path('species.json'), join(this.directory, 'backups', `${backup}-species.json`));
+    await this.files.commit(
+      configuration,
+      async revision => {
+        await this.files.read(catalogFor(this.catalog, this.state));
+        next.configurationRevision = revision;
+        await this.persist(next);
+      },
+      { 'species.json': species }
+    );
+    this.state = next;
+  }
+
+  // One-time upgrade: adds bundled palettes and updates untouched defaults, preserving local customizations.
   async addBundledPalettes() {
     if ((this.state.paletteAdditionsVersion || 0) >= paletteAdditionsVersion) return;
     const configuration = await this.files.read(catalogFor(this.catalog, this.state));
     const additions = missingBundledPalettes(this.catalog, configuration.catalog, this.state);
+    const registry = await this.files.json('palettes.json');
+    const updated = updatedBundledPalettes(this.catalog, registry, this.state);
     const next = this.snapshot();
     next.paletteAdditionsVersion = paletteAdditionsVersion;
-    if (!additions.length) {
+    if (!additions.length && updated.every((palette, i) => palette === registry[i])) {
       await this.persist(next);
       this.state = next;
       return;
@@ -145,8 +207,8 @@ export class GameStore {
     const backup = `pre-palette-additions-${Date.now()}-${randomUUID()}`;
     await copyFile(this.file, join(this.directory, 'backups', `${backup}.json`));
     await copyFile(this.files.path('palettes.json'), join(this.directory, 'backups', `${backup}-palettes.json`));
-    // Only palettes.json is written, so existing entries keep their stored form exactly.
-    const palettes = [...(await this.files.json('palettes.json')), ...additions];
+    // Only palettes.json is written; customized entries retain their stored form.
+    const palettes = [...updated, ...additions];
     try {
       await this.files.commit(
         configuration,
@@ -214,6 +276,7 @@ export class GameStore {
     const results = horseRecords(next).map(upgradeHorse);
     const prefixes = [
       results.some(result => result.version) && 'pre-horse-version-',
+      results.some(result => result.unusedTraits) && 'pre-unused-traits-',
       results.some(result => result.details) && 'pre-horse-skills-'
     ].filter(Boolean);
     if (!prefixes.length) return;
@@ -275,19 +338,86 @@ export class GameStore {
         if (!horse) throw new Error('Choose horses currently in your stable.');
         return horse;
       });
-      const results = selected.map(original => ({
-        id: original.id,
-        name: original.name || original.species,
-        before: horseFingerprint(original),
-        schemaVersion: original.schemaVersion,
-        revision: original.revision,
-        ...regenerateHorse(original, payload.rules, catalog, this.state, {
+      validateHorseRules(payload.rules);
+      const previous = payload.previousToken ? this.horseUpdatePreviews.get(payload.previousToken) : null;
+      if (
+        payload.previousToken &&
+        (!previous ||
+          previous.expires < Date.now() ||
+          previous.catalog !== horseFingerprint(catalog) ||
+          previous.settings !== horseFingerprint(this.state.settings))
+      )
+        throw new Error('The horse or configuration changed. Reroll again.');
+      const results = selected.map(original => {
+        const prior = previous?.results.find(result => result.id === original.id);
+        if (
+          previous &&
+          (!prior ||
+            !prior.source ||
+            ['species', 'speciesId', 'mutations'].some(
+              key => JSON.stringify(prior.source[key]) !== JSON.stringify(original[key])
+            ) ||
+            Object.keys(payload.rules).some(
+              key =>
+                JSON.stringify(horseOverrideValue(prior.source, key)) !==
+                JSON.stringify(horseOverrideValue(original, key))
+            ))
+        )
+          throw new Error('The horse changed in a way that affects these choices. Reroll again.');
+        const base = structuredClone(original),
+          rules = { ...payload.rules };
+        if (prior)
+          for (const key of Object.keys(rules)) {
+            if (!previous.rules?.[key]) continue;
+            copyHorseOverrideField(prior.horse, base, key);
+            if (key === 'species')
+              for (const category of Object.keys(horseTraitLimits))
+                copyHorseOverrideField(prior.horse, base, 'trait:' + category);
+            if (payload.rerollKey !== key && JSON.stringify(rules[key]) === JSON.stringify(previous.rules[key]))
+              delete rules[key];
+          }
+        const result = regenerateHorse(base, rules, catalog, this.state, {
           rng: this.rng,
           allowDuplicates: payload.allowDuplicates
-        })
-      }));
+        });
+        for (const key of [...(result.horse.overriddenFields || [])])
+          if (
+            !original.overriddenFields?.includes(key) &&
+            JSON.stringify(horseOverrideValue(result.horse, key)) === JSON.stringify(horseOverrideValue(original, key))
+          ) {
+            result.horse.overriddenFields = result.horse.overriddenFields.filter(field => field !== key);
+            if (result.horse.overrideOriginals) delete result.horse.overrideOriginals[key];
+          }
+        const changes = Object.keys(result.horse)
+          .filter(
+            key =>
+              !['overriddenFields', 'overrideOriginals', 'generationVersion', 'lastRegeneratedAt'].includes(key) &&
+              JSON.stringify(result.horse[key]) !== JSON.stringify(original[key])
+          )
+          .map(key => ({ field: key, before: original[key] ?? null, after: result.horse[key] ?? null }));
+        if (
+          !changes.length &&
+          JSON.stringify(original.overriddenFields) !== JSON.stringify(result.horse.overriddenFields)
+        )
+          changes.push({
+            field: 'Override status',
+            before: original.overriddenFields || [],
+            after: result.horse.overriddenFields || []
+          });
+        return {
+          id: original.id,
+          name: original.name || original.species,
+          before: horseFingerprint(original),
+          source: structuredClone(original),
+          schemaVersion: original.schemaVersion,
+          revision: original.revision,
+          ...result,
+          changes
+        };
+      });
       const preview = {
         token: randomUUID(),
+        rules: structuredClone(payload.rules),
         expires: Date.now() + 600000,
         catalog: horseFingerprint(catalog),
         settings: horseFingerprint(this.state.settings),
@@ -302,7 +432,7 @@ export class GameStore {
         preview: {
           token: preview.token,
           expires: preview.expires,
-          items: results.map(({ horse, before, ...result }) => result)
+          items: results.map(({ horse, before, source, ...result }) => result)
         }
       };
     });
@@ -421,16 +551,6 @@ export class GameStore {
         if (type === 'rename') {
           horse.name = validateHorseName(payload.name);
         } else horse.favorite = !horse.favorite;
-      } else if (type === 'horse-skill-xp') {
-        if (!next.settings.developerEditMode) throw new Error('Enable Edit Mode to add skill XP.');
-        const horse = next.horses.find(h => h.id === payload.id);
-        if (!horse) throw new Error('Horse not found in your stable.');
-        horse.skills = awardHorseSkillXP(horse.skills, payload.skill, payload.xp);
-      } else if (type === 'horse-field') {
-        if (!next.settings.developerEditMode) throw new Error('Enable Edit Mode to change horse details.');
-        const horse = horseRecords(next).find(h => h.id === payload.id);
-        if (!horse) throw new Error('Horse not found.');
-        updateHorseField(horse, payload.field, payload.value, catalog, next);
       } else if (type === 'horse-description') {
         const horse = next.horses.find(h => h.id === payload.id);
         if (!horse) throw new Error('Horse not found in your stable.');
@@ -453,7 +573,6 @@ export class GameStore {
         }
       } else if (type === 'disable-developer-settings') {
         next.settings.developerSettingsVisible = false;
-        next.settings.developerEditMode = false;
       } else if (type === 'delete-profile') {
         delete next.keeper;
       } else if (type === 'delete-horse') {
@@ -471,8 +590,6 @@ export class GameStore {
         next.deletedLocationIds = [...new Set([...(next.deletedLocationIds || []), payload.id])];
         delete next.encounters[payload.id];
         delete next.searches[payload.id];
-        if (next.pageCopy) delete next.pageCopy[`wilds/${payload.id}`];
-        if (next.pageCopy?.site) delete next.pageCopy.site[`nav-wilds-${payload.id}`];
       } else if (type === 'delete-definition') {
         const { kind, id } = payload;
         if (!Object.hasOwn(definitionKinds, kind)) throw new Error('Unknown definition type.');
@@ -492,6 +609,8 @@ export class GameStore {
           for (const cosmic of catalog.spawning.cosmic) if (cosmic.mutationId === id) cosmic.chance = 0;
         if (kind === 'palettes')
           next.deletedBuiltinPalettes = [...new Set([...(next.deletedBuiltinPalettes || []), id])];
+        if (kind === 'atmospheres')
+          next.deletedBuiltinAtmospheres = [...new Set([...(next.deletedBuiltinAtmospheres || []), id])];
         if (['species', 'palettes'].includes(kind)) {
           const pool = kind === 'species' ? 'speciesPool' : 'palettePool';
           for (const zone of [...catalog.locations, ...next.customLocations]) {
@@ -503,6 +622,9 @@ export class GameStore {
         if (kind === 'species')
           for (const palette of catalog.palettes)
             palette.speciesIds = (palette.speciesIds || []).filter(sid => sid !== id);
+        if (kind === 'palettes')
+          for (const species of catalog.species)
+            if (species.palettePool) species.palettePool = species.palettePool.filter(name => name !== entry.name);
         if (kind === 'atmospheres')
           for (const zone of [...catalog.locations, ...next.customLocations])
             if (zone.atmosphere === id) zone.atmosphere = catalog.atmospheres[0].id;
@@ -540,6 +662,9 @@ export class GameStore {
             amount,
             at: new Date().toISOString()
           });
+      } else if (type === 'horse-artwork-preference') {
+        if (typeof payload.providedHorseArtwork !== 'boolean') throw new Error('Artwork preference must be a boolean.');
+        next.settings.providedHorseArtwork = payload.providedHorseArtwork;
       } else if (type === 'settings') {
         if (payload.searchCooldownEnabled !== undefined) {
           if (typeof payload.searchCooldownEnabled !== 'boolean')
@@ -569,13 +694,23 @@ export class GameStore {
         if (typeof payload.ignoreStableLimit !== 'boolean')
           throw new Error('Stable limit override must be true or false.');
         next.settings.ignoreStableLimit = payload.ignoreStableLimit;
+        if (payload.providedHorseArtwork !== undefined) {
+          if (typeof payload.providedHorseArtwork !== 'boolean')
+            throw new Error('Artwork preference must be a boolean.');
+          next.settings.providedHorseArtwork = payload.providedHorseArtwork;
+        }
+        if (payload.horseUpdatesEnabled !== undefined) {
+          if (typeof payload.horseUpdatesEnabled !== 'boolean')
+            throw new Error('Override Horse Data must be true or false.');
+          next.settings.horseUpdatesEnabled = payload.horseUpdatesEnabled;
+        }
         if (payload.ALLOW_DUPLICATE_MUTATIONS !== undefined)
           catalog.spawning = validateSpawnSettings({
             ...catalog.spawning,
             ALLOW_DUPLICATE_MUTATIONS: payload.ALLOW_DUPLICATE_MUTATIONS
           });
       } else if (type === 'save-zone') {
-        const zone = validateZone(payload, catalog);
+        const zone = { ...validateZone(payload, catalog), creatures: [] };
         const existing = payload.id ? locationsFor(catalog, next).find(l => l.id === payload.id) : null;
         if (payload.id && !existing) throw new Error('Zone not found.');
         if (
@@ -621,7 +756,12 @@ export class GameStore {
           ? {
               ...values,
               systemId: existing?.systemId || randomUUID(),
-              ...(kind === 'species' ? { attributes: values.attributes ?? existing?.attributes ?? {} } : {})
+              ...(kind === 'species'
+                ? {
+                    attributes: values.attributes ?? existing?.attributes ?? {},
+                    palettePool: values.palettePool ?? existing?.palettePool
+                  }
+                : {})
             }
           : values;
         const definition = validateDefinition(
@@ -652,6 +792,10 @@ export class GameStore {
           for (const location of [...catalog.locations, ...next.customLocations]) {
             location[pool] = location[pool].map(name => (name === existing.name ? updated.name : name));
           }
+          if (kind === 'palettes')
+            for (const species of catalog.species)
+              if (species.palettePool)
+                species.palettePool = species.palettePool.map(name => (name === existing.name ? updated.name : name));
         }
         if (kind === 'mutations' && !['Cosmic', 'Mutated'].includes(updated.type))
           for (const cosmic of catalog.spawning.cosmic) if (cosmic.mutationId === updated.id) cosmic.chance = 0;
@@ -663,6 +807,12 @@ export class GameStore {
         if (kind === 'palettes' && updated.speciesIds.some(sid => !catalog.species.some(s => s.id === sid)))
           throw new Error('Choose registered species for this palette.');
         if (kind === 'species') {
+          if (
+            updated.palettePool?.some(
+              name => !catalog.palettes.some(p => p.name === name && p.complete && !isCosmicPalette(p))
+            )
+          )
+            throw new Error('Choose complete, non-Cosmic palettes.');
           const locations = [...catalog.locations, ...next.customLocations];
           if (
             values.zoneIds !== undefined &&
@@ -698,19 +848,6 @@ export class GameStore {
           throw new Error('Choose dark or light mode.');
         next.settings.websiteTheme = payload.id;
         next.settings.websiteThemeMode = payload.mode || 'dark';
-      } else if (type === 'developer-edit-mode') {
-        if (typeof payload.enabled !== 'boolean') throw new Error('Choose whether edit mode is enabled.');
-        next.settings.developerEditMode = payload.enabled;
-      } else if (type === 'save-copy') {
-        const entries = validateCopyPatch(payload);
-        next.pageCopy ??= {};
-        const page = { ...(next.pageCopy[payload.scope] || {}) };
-        for (const [key, text] of Object.entries(entries)) {
-          if (text === null) delete page[key];
-          else page[key] = text;
-        }
-        if (Object.keys(page).length) next.pageCopy[payload.scope] = page;
-        else delete next.pageCopy[payload.scope];
       } else if (type === 'backup') {
         await writeDurable(
           join(this.directory, 'backups', `save-${Date.now()}-${randomUUID().slice(0, 8)}.json`),

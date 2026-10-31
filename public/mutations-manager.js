@@ -1,5 +1,4 @@
 import { openEmojiPicker } from './emoji-picker.js';
-import { fitMutationDescriptions } from './mutation-card-layout.js';
 import { animateCardBody } from './collapsible-cards.js';
 import { definitionTransferControls } from './definition-transfer-controls.js';
 import { escapeHTML as e, icon, html, raw } from './ui.js';
@@ -150,7 +149,6 @@ export function toggleMutations(root, button) {
     toggle.setAttribute('aria-expanded', String(expand));
     toggle.setAttribute('aria-label', `${expand ? 'Collapse' : 'Expand'} ${toggle.dataset.name}`);
   }
-  fitMutationDescriptions(root);
   for (const { body, height } of bodies) animateCardBody(body, expand, height);
   refreshMutationExpansion(root);
 }

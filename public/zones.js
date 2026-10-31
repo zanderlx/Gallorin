@@ -34,8 +34,25 @@ export function locationsFor(catalog, state = {}) {
 export const availableAtmospheres = catalog => catalog?.atmospheres || baseAtmospheres;
 export const atmosphereFor = (catalog, id) =>
   availableAtmospheres(catalog).find(a => a.id === id) || baseAtmospheres[0];
-export const atmosphereStyle = atmosphere =>
-  /^#[\da-f]{6}$/i.test(atmosphere.tint) ? `--zone-tint:${atmosphere.tint}` : '';
+export const zoneArtwork = Object.freeze({
+  forest: '/assets/wilds.svg',
+  autumn: '/assets/zones/amber-woodland.svg',
+  moonlit: '/assets/zones/moonlit-grove.svg',
+  frost: '/assets/zones/frosted-forest.svg',
+  meadow: '/assets/zones/sunlit-meadow.svg',
+  coast: '/assets/zones/sapphire-coast.svg',
+  desert: '/assets/zones/ember-dunes.svg'
+});
+export function atmosphereStyle(atmosphere) {
+  const artwork = Object.hasOwn(zoneArtwork, atmosphere.id) ? zoneArtwork[atmosphere.id] : zoneArtwork.forest;
+  const preset = baseAtmospheres.find(a => a.id === atmosphere.id);
+  const tint = /^#[\da-f]{6}$/i.test(atmosphere.tint) ? `--zone-tint:${atmosphere.tint};` : '';
+  return `${tint}--zone-art:url('${artwork}');--zone-blend:${preset?.tint.toLowerCase() === atmosphere.tint?.toLowerCase() ? 'normal' : 'luminosity'}`;
+}
+export const zoneAtmosphere = (zone, catalog) => ({
+  ...atmosphereFor(catalog, zone.atmosphere),
+  ...zone.appearance
+});
 export function zoneTags(zone, catalog) {
   return (
     zone.tags ?? [
@@ -57,7 +74,7 @@ export function validateZone(input, catalog) {
   };
   const name = text('name', 60),
     subtitle = input.subtitle === undefined ? '' : text('subtitle', 100, false),
-    description = text('description', 600);
+    description = text('description', 600, false);
   if (!availableAtmospheres(catalog).some(a => a.id === input.atmosphere))
     throw new Error('Choose an available atmosphere.');
   if (typeof input.enabled !== 'boolean') throw new Error('Choose whether the zone is enabled.');
@@ -69,6 +86,12 @@ export function validateZone(input, catalog) {
   )
     throw new Error('Choose whether the zone is an Event.');
   const event = input.event === true ? 'Event' : input.event || null;
+  let appearance;
+  if (input.appearance !== undefined) {
+    if (!input.appearance || typeof input.appearance !== 'object' || !/^#[\da-f]{6}$/i.test(input.appearance.tint))
+      throw new Error('Zone appearance needs a six-digit hex tint.');
+    appearance = { tint: input.appearance.tint };
+  }
   const tags = input.tags === undefined ? zoneTags(input, catalog) : input.tags;
   if (
     !Array.isArray(tags) ||
@@ -92,6 +115,7 @@ export function validateZone(input, catalog) {
     description,
     tags: [...new Set(tags.map(tag => tag.trim()))],
     atmosphere: input.atmosphere,
+    ...(appearance ? { appearance } : {}),
     enabled: input.enabled,
     speciesPool: pool(
       'speciesPool',

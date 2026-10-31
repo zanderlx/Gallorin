@@ -22,6 +22,185 @@
   gap: 24px;
   align-items: start;
 }
+.species-workbench {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 2fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px 24px;
+  align-items: start;
+}
+.species-detail {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  min-width: 0;
+}
+.species-detail-heading {
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: end;
+  gap: 16px 24px;
+  min-width: 0;
+}
+.species-detail > #species-tab-panel {
+  grid-row: 2;
+  min-width: 0;
+}
+.species-list-column {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  min-width: 0;
+}
+.species-list-column .library-list-panel {
+  grid-row: 2;
+  position: sticky;
+  top: 95px;
+  align-self: start;
+  padding-right: 0;
+}
+.species-list-column .definition-list {
+  margin-top: 0;
+  padding-right: 12px;
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+.species-list-controls {
+  grid-row: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.species-list-controls .zone-field {
+  margin: 0;
+  min-width: 0;
+}
+.species-list-controls > .zone-field:has(input[type='search']) {
+  flex: 1 1 0;
+}
+.species-sort-field {
+  flex: 0 0 110px;
+  width: 110px;
+  max-width: 100%;
+}
+.species-sort-direction {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+}
+.species-list-controls :is(input, select) {
+  height: 48px;
+  min-height: 48px;
+}
+.species-identity-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr) minmax(0, 1.125fr);
+  max-width: 652px;
+  gap: 16px;
+  margin: 12px 0;
+}
+.species-identity-fields > .zone-field {
+  margin: 0;
+  gap: 6px;
+}
+.species-manager #definition-form > .zone-field {
+  margin: 12px 0;
+  gap: 6px;
+}
+.species-manager #definition-form [data-action='delete-definition'] {
+  min-height: 32px;
+  padding: 4px 8px;
+}
+.species-manager #definition-form {
+  padding-bottom: 12px;
+}
+.species-manager #definition-form .form-actions {
+  margin-top: 8px;
+}
+@media (max-width: 600px) {
+  .species-identity-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.species-tabs {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  margin: 0;
+}
+.species-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 48px;
+  padding: 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+}
+.species-tabs button[aria-selected='true'] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.species-tabs button:disabled,
+.species-manager .library-list-panel button:disabled,
+.species-manager [data-action='new-definition']:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.species-spawn-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.species-zones-empty {
+  margin-top: 24px;
+}
+.species-zones-empty .button {
+  margin-top: 16px;
+}
+.species-spawn-row h4,
+.species-spawn-row p {
+  margin: 4px 0;
+}
+@media (max-width: 1100px) {
+  .species-workbench {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 24px;
+  }
+  .species-workbench .library-list-panel {
+    position: static;
+  }
+  .species-workbench .species-list-column {
+    position: static;
+  }
+  .species-workbench :is(.species-list-column, .species-detail) {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-rows: none;
+    gap: 16px;
+  }
+  .species-workbench :is(.species-list-controls, .library-list-panel, .species-detail-heading, #species-tab-panel) {
+    grid-row: auto;
+  }
+  .species-workbench .definition-list {
+    max-height: 220px;
+  }
+}
 .library-list-panel {
   position: sticky;
   top: 95px;
@@ -81,6 +260,105 @@
 }
 .trait-editor-row .zone-field input[readonly] {
   color: var(--muted);
+}
+.trait-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.trait-toolbar .zone-field {
+  flex: 1 1 240px;
+}
+#traits-form {
+  container-type: inline-size;
+  container-name: traits;
+}
+.trait-category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+@container traits (max-width: 760px) {
+  .trait-category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container traits (max-width: 520px) {
+  .trait-category-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.trait-category-card {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-deep);
+}
+.trait-section-heading {
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.trait-title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.trait-title-row p {
+  margin: 0;
+  white-space: nowrap;
+}
+.trait-category-card .zone-field {
+  margin: 16px 0 0;
+  gap: 6px;
+}
+.trait-category-card summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.trait-category-card summary::-webkit-details-marker {
+  display: none;
+}
+.trait-category-card summary [data-trait-count] {
+  color: var(--muted);
+}
+.trait-category-toggle {
+  margin-left: auto;
+}
+.trait-category-card[open] .trait-category-toggle svg {
+  transform: rotate(180deg);
+}
+.trait-category-card textarea {
+  height: 220px;
+  min-height: 180px;
+  max-height: 220px;
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.trait-category-card[hidden] {
+  display: none;
+}
+#traits-form .form-actions {
+  position: sticky;
+  bottom: var(--music-player-height, 0px);
+  z-index: 2;
+  background: var(--panel);
+  padding: 12px 0;
+}
+#traits-form .form-actions:has(button[type='submit'][hidden]) {
+  display: none;
 }
 .color-editor-grid {
   display: grid;
@@ -430,6 +708,9 @@ h4,
 .theme-card,
 .zone-choice {
   text-transform: uppercase;
+}
+.species-manager .definition-list-item {
+  text-transform: none;
 }
 .nav-items a {
   text-transform: capitalize;
@@ -1107,6 +1388,13 @@ option:not(nav option) {
   font-size: 13px;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+.horse-trait-group dd > .horse-trait-tag {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-width: 0;
+  width: fit-content;
+  max-width: 100%;
 }
 .horse-trait-none {
   font-size: 13px;
@@ -2069,6 +2357,7 @@ select:not([multiple]) {
 }
 .mutation-collapse-card .mutation-card-meta {
   margin-top: 12px;
+  padding-inline: calc(var(--mutation-emoji-width) + var(--mutation-name-gap));
 }
 .eye-grid-controls > [data-action='toggle-all-mutations'] {
   height: 48px;
@@ -2110,7 +2399,7 @@ select:not([multiple]) {
   line-height: 26px;
 }
 .mutation-collapse-card .personality-card-body .personality-card-description {
-  height: var(--mutation-description-height, auto);
+  height: 180px;
 }
 
 .mutation-definition-grid.personality-card-grid {

@@ -6,7 +6,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GameStore } from '../src/store.js';
-import { wildPage, stablePage, collectionCards, settingsPage, savesPage, editModePage } from '../public/pages.js';
+import { wildPage, stablePage, collectionCards, settingsPage, savesPage } from '../public/pages.js';
 import { profileContent } from '../public/profile.js';
 import { sidebar, card } from '../public/ui.js';
 import { libraryEditorPage } from '../public/library-editor.js';
@@ -15,14 +15,15 @@ import { keeperPage } from '../public/keeper.js';
 import { saleHistoryTable } from '../public/economy.js';
 import { eyesManagerPage } from '../public/eyes-manager.js';
 import { gameSettingsPage } from '../public/game-settings.js';
-import { horseUpdatesPage } from '../public/horse-updates.js';
+import { horseOverrideControls } from '../public/horse-updates.js';
 import { musicManagerPage } from '../public/music-manager.js';
 import { mutationsManagerPage } from '../public/mutations-manager.js';
 import { palettesManagerPage } from '../public/palettes-manager.js';
 import { personalitiesManagerPage } from '../public/personalities-manager.js';
 import { raritiesManagerPage } from '../public/rarities-manager.js';
 import { traitsEditorPage } from '../public/traits-editor.js';
-import { zoneEditorPage } from '../public/zone-editor.js';
+import { zoneEditorPage, zoneEditorForm } from '../public/zone-editor.js';
+import { newZoneDraft } from '../public/zones.js';
 
 const payload = '"><img src=x onerror=alert(1)>';
 const leaked = /<img src=x onerror/;
@@ -54,7 +55,6 @@ const state = store.snapshot();
 const catalog = store.getCatalog();
 await rm(directory, { recursive: true, force: true });
 
-state.settings.developerEditMode = true;
 for (const list of [state.horses, state.sold, ...Object.values(state.encounters)]) poison(list);
 state.keeper = { name: payload, title: payload, bio: payload };
 for (const transaction of state.transactions) transaction.horseName = payload;
@@ -81,12 +81,15 @@ const views = {
   'collection cards': () => collectionCards('all', state, '', 'name', catalog, 'asc'),
   'settings page': () => settingsPage(state),
   'saves page': () => savesPage(state),
-  'edit mode page': () => editModePage(state),
   'keeper page': () => keeperPage(state),
   'sale history': () => saleHistoryTable(state),
   'game settings': () => gameSettingsPage(state, hostileCatalog),
   'horse updates': () =>
-    horseUpdatesPage({ ...state, settings: { ...state.settings, horseUpdatesEnabled: true } }, hostileCatalog),
+    horseOverrideControls(
+      horse,
+      { ...state, settings: { ...state.settings, horseUpdatesEnabled: true } },
+      hostileCatalog
+    ),
   'music manager': () => musicManagerPage(music, catalog.locations),
   'eyes manager': () => eyesManagerPage(hostileCatalog),
   'mutations manager': () => mutationsManagerPage(hostileCatalog),
@@ -94,7 +97,8 @@ const views = {
   'personalities manager': () => personalitiesManagerPage(hostileCatalog),
   'rarities manager': () => raritiesManagerPage(hostileCatalog),
   'traits editor': () => traitsEditorPage(hostileCatalog, hostileCatalog.species[0].id),
-  'zone editor': () => zoneEditorPage(hostileCatalog, state),
+  'zone landing page': () => zoneEditorPage(hostileCatalog, state),
+  'zone editor': () => zoneEditorForm(hostileCatalog, { ...newZoneDraft(), name: payload }),
   ...Object.fromEntries(
     Object.keys(definitionKinds).map(kind => [
       `library editor (${kind})`,

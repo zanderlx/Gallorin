@@ -14,6 +14,10 @@ import { configureUpdates } from './updater.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const smoke = process.argv.includes('--smoke-test');
+if (smoke) {
+  app.commandLine.appendSwitch('mute-audio');
+  app.on('browser-window-created', (_event, window) => window.webContents.setAudioMuted(true));
+}
 // Keep the cinematic splash for players; automated tests opt in only when testing it.
 const showSplash = !smoke || process.argv.includes('--test-splash');
 if (smoke && !process.env.AETHERION_TEST_DATA)

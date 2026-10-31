@@ -7,75 +7,10 @@ import { GameStore } from '../src/store.js';
 import { draftDefinition, defaultThemes, validateDefinition } from '../public/definitions.js';
 import { locationsFor, newZoneDraft } from '../public/zones.js';
 import { colorsForMode } from '../public/theme-modes.js';
-import { validateCopyPatch, renderCopy, copyKey } from '../public/page-copy.js';
 import { mutatedPalettes } from '../public/mutated-palettes.js';
 
 const catalog = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
 const defaults = JSON.parse(await readFile(new URL('../data/defaults/settings.json', import.meta.url), 'utf8'));
-test('profile wording and deleted text survive restart, restore cleanly, and support live tokens', async t => {
-  const { directory, store } = await fixture(t);
-  await store.action('save-copy', {
-    scope: 'horse/profile',
-    entries: { 'horse.title': 'Meet {horseName}', 'personality.note': '' }
-  });
-  await store.action('save-copy', {
-    scope: 'wilds/aetherion',
-    entries: { 'encounters.count': '{encounterCount} visitors' }
-  });
-  const loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
-  assert.equal(loaded.state.pageCopy['horse/profile']['personality.note'], '');
-  assert.equal(
-    renderCopy(loaded.state.pageCopy['horse/profile']['horse.title'], { horseName: 'Moonbeam' }),
-    'Meet Moonbeam'
-  );
-  assert.equal(
-    renderCopy(loaded.state.pageCopy['wilds/aetherion']['encounters.count'], { encounterCount: 2 }),
-    '2 visitors'
-  );
-  await loaded.action('save-copy', { scope: 'horse/profile', entries: { 'personality.note': null } });
-  assert.equal(loaded.state.pageCopy['horse/profile']['personality.note'], undefined);
-});
-test('page wording merges, resets, stays isolated and survives restart and backup', async t => {
-  const { directory, store } = await fixture(t);
-  await store.action('developer-edit-mode', { enabled: true });
-  await store.action('save-copy', {
-    scope: 'stable/all',
-    entries: { 'page.title': 'My sanctuary', intro: '<script>plain text</script> {horseCount}' }
-  });
-  await store.action('save-copy', { scope: 'stable/all', entries: { 'page.title': 'Our sanctuary' } });
-  await store.action('save-copy', { scope: 'site', entries: { 'brand-subtitle': 'A quiet place' } });
-  await store.action('save-copy', { scope: 'wilds/aetherion', entries: { 'page.title': 'The woods' } });
-  const loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
-  assert.equal(loaded.state.settings.developerEditMode, true);
-  assert.equal(loaded.state.pageCopy['stable/all']['page.title'], 'Our sanctuary');
-  assert.equal(loaded.state.pageCopy['stable/all'].intro, '<script>plain text</script> {horseCount}');
-  assert.equal(loaded.state.pageCopy.site['brand-subtitle'], 'A quiet place');
-  await loaded.action('save-copy', { scope: 'stable/all', entries: { 'page.title': null } });
-  assert.equal(loaded.state.pageCopy['stable/all']['page.title'], undefined);
-  assert.equal(loaded.state.pageCopy['wilds/aetherion']['page.title'], 'The woods');
-  const backup = JSON.parse(await readFile(join(directory, 'backups', 'previous-save.json'), 'utf8'));
-  assert.equal(backup.pageCopy['stable/all']['page.title'], 'Our sanctuary');
-});
-test('invalid copy patches leave saves unchanged and live tokens are allowlisted', async t => {
-  const { store } = await fixture(t);
-  for (const payload of [
-    { scope: '../player', entries: { title: 'bad' } },
-    { scope: 'site', entries: JSON.parse('{"__proto__":"bad"}') },
-    { scope: 'site', entries: { title: 'x'.repeat(4001) } },
-    { scope: 'site', entries: { title: 42 } }
-  ]) {
-    const before = store.snapshot();
-    assert.throws(() => validateCopyPatch(payload));
-    await assert.rejects(store.action('save-copy', payload));
-    assert.deepEqual(store.snapshot(), before);
-  }
-  assert.equal(
-    renderCopy('{horseCount} horses, {gold} gold, {unknown}', { horseCount: 3, gold: 500 }),
-    '3 horses, 500 gold, {unknown}'
-  );
-  assert.equal(copyKey('Heading'), copyKey('Heading'));
-  assert.notEqual(copyKey('Heading'), copyKey('Other heading'));
-});
 test('dark themes are the default and custom variants persist independently', async t => {
   const { directory, store } = await fixture(t);
   await store.action('website-theme', { id: 'pastel-rose' });
@@ -131,6 +66,58 @@ async function add(store, kind, values) {
   await store.action('save-definition', { kind, values: { ...draftDefinition(kind), ...values } });
   return store.getCatalog()[kind].at(-1);
 }
+
+test('species palettes persist, survive overview edits, and follow palette renames and deletion', async t => {
+  const { directory, store } = await fixture(t);
+  const species = store.getCatalog().species[0];
+  const palette = store.getCatalog().palettes.find(p => p.complete && !p.cosmicType);
+  const other = store.getCatalog().species[1];
+  const save = values => store.action('save-definition', { kind: 'species', id: species.id, values });
+  await save({ ...species, palettePool: [palette.name] });
+  const { palettePool: ignored, ...overview } = store.getCatalog().species.find(s => s.id === species.id);
+  assert.deepEqual(ignored, [palette.name]);
+  await save({ ...overview, description: 'Updated description' });
+  let loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === species.id).palettePool, [palette.name]);
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === other.id).palettePool, other.palettePool);
+  await assert.rejects(save({ ...species, palettePool: ['Unknown palette'] }), /complete, non-Cosmic/);
+  await store.action('save-definition', {
+    kind: 'palettes',
+    id: palette.id,
+    values: { ...palette, name: 'Renamed species palette' }
+  });
+  assert.deepEqual(store.getCatalog().species.find(s => s.id === species.id).palettePool, ['Renamed species palette']);
+  await store.action('delete-definition', { kind: 'palettes', id: palette.id });
+  loaded = await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init();
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === species.id).palettePool, []);
+});
+
+test('trait CRUD stays species-scoped, preserves horse snapshots and persists deletions', async t => {
+  const { directory, store } = await fixture(t);
+  const first = store.getCatalog().species[0];
+  const second = store.getCatalog().species[1];
+  const secondBefore = structuredClone(second.traits);
+  await store.action('visit', { locationId: 'aetherion' });
+  const horse = store.state.encounters.aetherion[0];
+  await store.action('catch', { id: horse.id });
+  const horsesBefore = structuredClone(store.state.horses);
+  await store.action('save-traits', { id: first.id, traits: { Mane: ['Braided'], Tail: ['Long'], Paint: ['Spots'] } });
+  await store.action('save-traits', { id: first.id, traits: { Mane: ['Short'], Tail: ['Long'], Paint: [] } });
+  assert.deepEqual(store.getCatalog().species.find(s => s.id === second.id).traits, secondBefore);
+  assert.deepEqual(store.state.horses, horsesBefore);
+  await assert.rejects(store.action('save-traits', { id: 'missing', traits: {} }), /Species not found/);
+  await assert.rejects(
+    store.action('save-traits', { id: first.id, traits: { Paint: [], 'paint ': [] } }),
+    /different name/
+  );
+  const loaded = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(loaded.getCatalog().species.find(s => s.id === first.id).traits, {
+    Mane: ['Short'],
+    Tail: ['Long'],
+    Paint: []
+  });
+  assert.deepEqual(loaded.state.horses, horsesBefore);
+});
 test('all five Mutated palettes preserve the supplied nine-region colors', () => {
   const expected = {
     Solar: ['#FFDF44', '#FECC32', '#B72908', '#FFFFFF', '#FEECA0', '#FFFAC5', '#FFFFFF', '#FF9E30', '#FF4800'],

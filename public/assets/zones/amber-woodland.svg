@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#563b48"/><stop offset=".6" stop-color="#d79862"/><stop offset="1" stop-color="#f3ce85"/></linearGradient>
+    <linearGradient id="river" x2="0" y2="1"><stop stop-color="#e5b378"/><stop offset="1" stop-color="#7c7567"/></linearGradient>
+    <g id="oak"><path d="M-8 12 0-165 12 12m-9-110-57-55m61 28 50-49" fill="none" stroke="#4d352d" stroke-width="14"/><path d="M-88-149q-51-56 10-82-6-67 63-53 58-50 83 14 78-5 61 58 48 47-18 78Z"/></g>
+    <g id="lantern"><path d="M0-55V0" stroke="#b49d6c" stroke-width="2"/><path d="M-10 0H10L15 31H-15Z" fill="#ffd58b"/><path d="M-17 0h34M-19 32h38" stroke="#57412f" stroke-width="5"/><path d="M0 4V28" stroke="#fff1ba" stroke-width="5"/></g>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v650H0z"/>
+  <circle cx="1090" cy="158" r="61" fill="#ffdc97" opacity=".85"/>
+  <path d="M0 390 240 235 450 338 697 206 910 355 1180 255 1600 368V650H0Z" fill="#9b7966"/>
+  <path d="M0 421Q350 315 700 395t900-14v269H0Z" fill="#886245"/>
+  <g fill="#bb743e"><use href="#oak" transform="translate(706 421) scale(.66)"/><use href="#oak" transform="translate(1075 435) scale(.74)"/><use href="#oak" transform="translate(1308 421) scale(.92)"/></g>
+  <path d="M0 506Q435 370 824 481t776-39v208H0Z" fill="#654b32"/>
+  <path d="M1000 443q-165 65 7 87t-134 120h364q141-77-79-117t-158-90" fill="url(#river)"/>
+  <g fill="#995132"><use href="#oak" transform="translate(187 495) scale(1.7)"/><use href="#oak" transform="translate(1452 506) scale(1.55)"/></g>
+  <g fill="#ca8845"><use href="#oak" transform="translate(-42 535) scale(2.15)"/></g>
+  <path d="M0 0H1600V53Q1430 120 1300 65T1000 49 650 81 330 25 0 105Z" fill="#543829" opacity=".8"/>
+  <path d="M0 592q322-76 638 6t962-35v87H0Z" fill="#362f22"/>
+  <use href="#lantern" transform="translate(376 228) scale(1.2)"/><use href="#lantern" transform="translate(1355 167) scale(1.1)"/>
+  <g fill="#edb45c"><path d="m753 204 14 10-18 4Z M1182 329l15-3-6 14Z M907 394l17 8-17 9Z M1340 465l16 4-13 12Z M624 520l17 6-17 6Z M1125 583l20-3-10 13Z"/></g>
+</svg>

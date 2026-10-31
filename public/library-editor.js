@@ -1,9 +1,9 @@
 import { mutationTypes } from './mutations-manager.js';
 import { registryKinds } from './spawn-config.js';
 import { personalitiesManagerPage } from './personalities-manager.js';
-import { locationsFor } from './zones.js';
+import { speciesManagerPage } from './species-manager.js';
 import { escapeHTML as e, heading, icon } from './ui.js';
-import { definitionKinds, draftDefinition, regions, traitCategories, themeTokens } from './definitions.js';
+import { definitionKinds, draftDefinition, regions, themeTokens } from './definitions.js';
 import { colorsForMode } from './theme-modes.js';
 
 export const editorRoutes = {
@@ -60,10 +60,7 @@ const editorGuidance = {
 };
 export function colorControl(key, value = '#D6B4DF', label = key) {
   const valid = /^#[\da-f]{6}$/i.test(value) ? value : '#D6B4DF';
-  return `<div class="color-control"><span>${e(label)}</span><span class="color-inputs"><input type="color" data-color-picker="${e(key)}" value="${valid}" aria-label="${e(label)} color picker"><input name="color:${e(key)}" data-color-hex="${e(key)}" value="${e(value)}" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="${e(label)} hex value"></span></div>`;
-}
-export function traitRow(category = '', values = []) {
-  return `<div class="trait-editor-row"><label class="zone-field">Category<input data-trait-category value="${e(category)}" maxlength="60" required ${traitCategories.includes(category) ? 'readonly' : ''}></label><label class="zone-field">Trait names · one per line<textarea data-trait-values rows="3" placeholder="Add as many options as you like">${e(values.join('\n'))}</textarea></label><button class="text-button" type="button" data-action="remove-trait-category">Remove Category</button></div>`;
+  return `<div class="color-control"><span>${e(label)}</span><span class="color-inputs"><input type="color" data-color-picker="${e(key)}" value="${valid}" aria-label="${e(label)} color picker"><input name="color:${e(key)}" data-color-hex="${e(key)}" value="${e(value)}" pattern="#[0-9a-fA-F]{6}" maxlength="7" spellcheck="false" required aria-label="${e(label)} hex value"></span></div>`;
 }
 export function themePicker(catalog, state) {
   const mode = state.settings.websiteThemeMode || 'dark';
@@ -75,6 +72,7 @@ export function themePicker(catalog, state) {
     .join('')}</div></section>`;
 }
 export function libraryEditorPage(kind, catalog, state, draft) {
+  if (kind === 'species') return speciesManagerPage(catalog, state, draft);
   if (kind === 'personalities') return personalitiesManagerPage(catalog, draft);
   const showEditor = kind !== 'personalities' || !!draft;
   draft ||= draftDefinition(kind);
@@ -90,36 +88,6 @@ export function libraryEditorPage(kind, catalog, state, draft) {
     personalities: 'Personalities Manager'
   };
   let fields = '';
-  if (kind === 'species') {
-    fields =
-      `<label class="zone-field">Rarity Tier<select name="rarityTier">${[
-        [0, 'Cosmic'],
-        [1, 'Ultra Rare'],
-        [2, 'Rare'],
-        [3, 'Uncommon'],
-        [4, 'Common']
-      ]
-        .map(
-          ([tier, label]) =>
-            `<option value="${tier}" ${Number(draft.rarityTier ?? 4) === tier ? 'selected' : ''}>${label}</option>`
-        )
-        .join('')}</select></label>` +
-      `<fieldset class="zone-pool"><legend>World Zones</legend>${locationsFor(catalog, state)
-        .map(
-          z =>
-            `<label class="zone-choice"><input type="checkbox" name="speciesZones" value="${e(z.id)}" ${z.creatures?.some(c => c.speciesId === draft.id) || z.speciesPool.includes(draft.name) ? 'checked' : ''}><span>${e(z.name)}</span></label>`
-        )
-        .join('')}</fieldset>` +
-      textField(
-        'Event or group (optional)',
-        'event',
-        draft.event,
-        false,
-        catalog.species.map(s => s.event)
-      ) +
-      textField('Acquisition or rarity notes (optional)', 'restriction', draft.restriction) +
-      `<p class="preview-note">Selected zones receive this species ID and rarity weight. Manage appearance traits in the Traits section.</p>`;
-  }
   if (kind === 'palettes')
     fields = `<label class="zone-field">Type<select name="group" required>${[
       ...new Set([...catalog.palettes.map(p => p.group), draft.group || 'Custom'])
@@ -210,19 +178,6 @@ export function readDefinitionForm(form) {
   const data = new FormData(form),
     kind = form.dataset.kind;
   const values = Object.fromEntries(data);
-  if (kind === 'species') {
-    const entries = [...form.querySelectorAll('.trait-editor-row')].map(row => [
-      row.querySelector('[data-trait-category]').value.trim(),
-      row
-        .querySelector('[data-trait-values]')
-        .value.split(/\r?\n/)
-        .map(s => s.trim())
-        .filter(Boolean)
-    ]);
-    if (new Set(entries.map(([key]) => key)).size !== entries.length)
-      throw new Error('Each trait category needs a different name.');
-    if (entries.length) values.traits = Object.fromEntries(entries);
-  }
   const colors = [...data].filter(([key]) => key.startsWith('color:'));
   if (kind === 'eyes') values.colors = colors.map(([, value]) => value);
   if (kind === 'palettes') values.colors = Object.fromEntries(colors.map(([key, value]) => [key.slice(6), value]));
@@ -249,7 +204,8 @@ export function readDefinitionForm(form) {
   };
   if (kind === 'species') {
     values.rarityTier = Number(values.rarityTier);
-    values.zoneIds = data.getAll('speciesZones');
+    if (data.has('traits')) values.traits = json('traits');
+    if (data.has('attributes')) values.attributes = json('attributes');
   }
   if (kind === 'personalities') values.behaviorTags = json('behaviorTags');
   if (kind === 'eyes') {

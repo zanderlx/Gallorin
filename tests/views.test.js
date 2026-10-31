@@ -44,23 +44,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createEncounters } from '../src/encounters.js';
-import {
-  wildPage,
-  stablePage,
-  collectionCards,
-  settingsPage,
-  editModePage,
-  savesPage,
-  plannedPage
-} from '../public/pages.js';
+import { wildPage, stablePage, collectionCards, settingsPage, savesPage, plannedPage } from '../public/pages.js';
 import { profileContent } from '../public/profile.js';
 import { groups, sidebar, navigationSection } from '../public/ui.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from '../public/zones.js';
-import { zoneEditorPage } from '../public/zone-editor.js';
+import { zoneEditorPage, zoneEditorForm } from '../public/zone-editor.js';
 import { normalizeCatalog, definitionKinds } from '../public/definitions.js';
 import { libraryEditorPage, editorRoutes } from '../public/library-editor.js';
 import { keeperPage, avatarSVG } from '../public/keeper.js';
-import { roadmapPage } from '../public/roadmap.js';
 import { card } from '../public/ui.js';
 import { saleHistory } from '../public/economy.js';
 
@@ -90,20 +81,24 @@ test('zone tags render as safe text without icons and can be removed', () => {
   assert.match(tags, /&lt;script&gt;Quiet&lt;\/script&gt;/);
   assert.doesNotMatch(tags, /<svg|<script/);
   assert.match(wildPage({ ...location, tags: [] }, state), /<div class="hero-bottom"><\/div>/);
-  const editor = zoneEditorPage(catalog, state);
+  const editor = String(zoneEditorForm(catalog, newZoneDraft()));
+  const landing = zoneEditorPage(catalog, state);
   assert.match(editor, /name="tags"/);
   assert.doesNotMatch(editor, /ORIGINAL REALM|YOUR CREATION|YOUR NEXT ADVENTURE|Randomize fills in a draft/);
   assert.doesNotMatch(editor, /name="subtitle"|Short tagline|Open for exploration/);
-  assert.match(editor, /name="event"/);
+  assert.doesNotMatch(editor, /name="event"/);
   assert.match(editor, /<span>Show this zone in the Wilds navigation\.<\/span>/);
-  assert.match(editor, /class="icon-button zone-delete" data-action="delete-zone"[^>]*aria-label="Delete /);
-  assert.match(editor, />My Zones<\/h1>/);
-  assert.ok(editor.indexOf('zone-collection') < editor.indexOf('id="zone-form"'));
+  assert.doesNotMatch(landing, /data-action="delete-zone"/);
+  assert.doesNotMatch(editor, /data-action="delete-zone"/);
+  assert.match(String(zoneEditorForm(catalog, locationsFor(catalog, state)[0])), /data-action="delete-zone"/);
+  assert.match(landing, />Zone Manager<\/h1>/);
+  assert.doesNotMatch(landing, /id="zone-form"|id="definition-form"|zone-atmospheres/);
+  assert.match(landing, /hero zone-preview/);
   assert.doesNotMatch(
     editor,
     /THE KEEPER’S WORLDBUILDER|Make room for a little wonder|Places to get a little lost|Let curiosity lead/
   );
-  assert.equal((editor.match(/class="panel zone-card"/g) || []).length, locationsFor(catalog, state).length);
+  assert.equal((landing.match(/class="panel zone-card"/g) || []).length, locationsFor(catalog, state).length);
   assert.match(editor, /The evergreen realm\nFree exploration/);
 });
 test('Wilds pages begin with the zone banner without duplicate zone tabs', () => {
@@ -132,20 +127,17 @@ test('wild horses have no export control; owned profiles export without release'
   assert.match(profileContent(horses[0], state), /horse-wild-description/);
   assert.doesNotMatch(owned, />Personality Description<\/h3>/);
   assert.ok(owned.indexOf('horse-notes-form') < owned.indexOf('profile-lower'));
-  assert.ok(owned.indexOf('trait.eye-color') < owned.indexOf('trait.' + 'text-'));
+  assert.ok(owned.indexOf('Eye Color') < owned.indexOf('>Mane</dt>'));
   assert.doesNotMatch(owned, /personality-note|Horse notes|Horse ID/);
   assert.doesNotMatch(profileContent(horses[0], state), /horse-notes-form|data-action="sell"/);
   assert.match(owned, /data-action="sell"/);
   assert.doesNotMatch(owned, /rename-form|Give your companion a name/);
   assert.doesNotMatch(profileContent(horses[0], state), /data-action="rename-horse"/);
 });
-test('horse fields have individual edit controls only in edit mode and notes are escaped', () => {
+test('horse profiles ignore legacy edit mode and keep notes escaped', () => {
   const horse = { ...horses[0], caughtAt: new Date().toISOString(), notes: '</textarea><script>bad</script>' };
   const html = profileContent(horse, { ...state, horses: [horse], settings: { ...settings, developerEditMode: true } });
-  for (const field of ['origin', 'size', 'birthday', 'personality', 'eye', 'gender'])
-    assert.ok(html.includes(`data-field="${field}"`));
-  assert.doesNotMatch(profileContent(horse, state), /data-action="edit-horse-field"/);
-  assert.doesNotMatch(html, /data-copy-key="horse.subtitle"|data-field="species"|data-field="age"/);
+  assert.doesNotMatch(html, /data-action="(?:edit-horse-field|add-skill-xp)"/);
   assert.match(html, /&lt;\/textarea&gt;&lt;script&gt;/);
 });
 test('horse previews and details expose edit targets and the simplified nine-color layout', () => {
@@ -192,17 +184,13 @@ test('every navigation destination renders content without undefined values', ()
               ? settingsPage(state)
               : route === 'dev/saves'
                 ? savesPage(state)
-                : route === 'dev/edit-mode'
-                  ? editModePage(state)
-                  : route === 'dev/profile'
-                    ? keeperPage(state)
-                    : route === 'dev/roadmap'
-                      ? roadmapPage()
-                      : route === 'dev/locations'
-                        ? zoneEditorPage(catalog, state)
-                        : section === 'dev' && Object.hasOwn(editorRoutes, page)
-                          ? libraryEditorPage(editorRoutes[page], catalog, state)
-                          : plannedPage(route, state);
+                : route === 'dev/profile'
+                  ? keeperPage(state)
+                  : route === 'dev/locations'
+                    ? zoneEditorPage(catalog, state)
+                    : section === 'dev' && Object.hasOwn(editorRoutes, page)
+                      ? libraryEditorPage(editorRoutes[page], catalog, state)
+                      : plannedPage(route, state);
     assert.match(html, /<h1/, route);
     assert.doesNotMatch(html, /undefined|NaN/, route);
   }
@@ -269,10 +257,18 @@ test('Game Settings contains gameplay and a separate Economy section without gui
   assert.match(saves, /Create backup/);
   assert.match(saves, /Export all data/);
 });
-test('edit mode has one dedicated page and economy exposes the actual gold balance', () => {
+test('dev settings omit retired pages and economy exposes the actual gold balance', () => {
   assert.doesNotMatch(settingsPage(state), /toggle-copy-mode/);
   assert.doesNotMatch(settingsPage(state, true), /toggle-copy-mode/);
-  assert.match(editModePage(state), /data-action="toggle-copy-mode"/);
+  assert.doesNotMatch(
+    sidebar(
+      'dev/settings',
+      { ...state, settings: { ...settings, developerSettingsVisible: true } },
+      new Set(),
+      catalog
+    ),
+    /Edit Mode|Remaining Features|dev\/(?:edit-mode|roadmap)/
+  );
   assert.match(settingsPage({ ...state, gold: 12345 }, true), /name="gold"[^>]+value="12345"/);
 });
 test('wild view has three inspectable illustrations without preview captions', () => {
@@ -301,7 +297,7 @@ test('horse profile escapes names and preserves source traits and all nine color
   assert.match(html, /Mane/);
   assert.match(html, /Tail/);
   assert.match(html, /Eye Color/);
-  assert.match(html, /Awaiting species data/);
+  for (const values of Object.values(horse.traits)) for (const value of values) assert.ok(html.includes(value));
   for (const region of Object.keys(horse.palette.colors)) assert.ok(html.includes(region));
 });
 test('collection search, sorting and favorites work with complete saved records', () => {
@@ -423,8 +419,8 @@ test('custom zones appear in navigation and wild pages with safe text; disabled 
   assert.match(html, /hero moonlit/);
   assert.match(html, /&lt;script&gt;magic&lt;\/script&gt;/);
   assert.doesNotMatch(html, /#wilds\/zone-hidden/);
-  const editor = zoneEditorPage(catalog, populated, zone);
-  assert.match(editor, /Generate random zone/);
+  const editor = String(zoneEditorForm(catalog, zone));
+  assert.doesNotMatch(editor, /Generate random zone/);
   assert.match(editor, /name="speciesPool"/);
   assert.doesNotMatch(editor, /<script>/);
 });
@@ -454,9 +450,10 @@ test('Horse Definitions dashboard exposes five managers and the spawning configu
   assert.match(species, /name="rarityTier"/);
   assert.match(species, />Ultra Rare<\/option>/);
   assert.match(species, /<option value="0"[^>]*>Cosmic<\/option>/);
-  assert.match(species, /Description \(optional\)/);
+  assert.match(species, />Description<textarea/);
   assert.doesNotMatch(species, /Base Attributes|>System ID|Description & notes|1: Ultra Rare/);
-  assert.match(species, /name="speciesZones"/);
+  assert.doesNotMatch(species, /name="speciesZones"/);
+  assert.match(species, /data-action="species-tab"/);
   const palettes = libraryEditorPage('palettes', catalog, state);
   assert.match(palettes, /name="assetSkins"/);
   assert.match(palettes, /name="speciesIds"/);
@@ -465,7 +462,7 @@ test('Horse Definitions dashboard exposes five managers and the spawning configu
   assert.match(eyes, /name="layers"/);
   const mutations = libraryEditorPage('mutations', catalog, state);
   assert.doesNotMatch(mutations, /name="ALLOW_DUPLICATE_MUTATIONS"/);
-  assert.match(settingsPage(state, catalog), /name="ALLOW_DUPLICATE_MUTATIONS"/);
+  assert.doesNotMatch(settingsPage(state, catalog), /name="ALLOW_DUPLICATE_MUTATIONS"/);
   assert.match(mutations, /name="thresholds"/);
 
   assert.match(libraryEditorPage('personalities', catalog, state, catalog.personalities[0]), /name="behaviorTags"/);
@@ -497,12 +494,15 @@ test('Eye Color Manager lists cards with colors and modal edit actions', () => {
   assert.doesNotMatch(html, /library-workbench/);
 });
 
-test('Traits has a separate species-linked editor outside Species settings', () => {
+test('Traits editor embeds within the Species manager', () => {
   const html = traitsEditorPage(catalog);
   assert.match(html, /<h1>Traits<\/h1>/);
   assert.match(html, /id="traits-species"/);
   assert.match(html, /id="traits-form"/);
-  assert.doesNotMatch(libraryEditorPage('species', catalog, state), /id="trait-rows"/);
+  const manager = libraryEditorPage('species', catalog, state);
+  assert.match(manager, /data-tab="traits"/);
+  assert.match(manager, /data-tab="zones"/);
+  assert.doesNotMatch(sidebar('dev/species', state, new Set(), catalog), /href="#dev\/traits"/);
 });
 
 test('Eye card search combines name hex and rarity with alphabetical sorting', () => {
@@ -570,7 +570,7 @@ test('Horse import preview offers only confirmation and cancellation actions', (
   const horse = { ...horses[0], notes: 'Imported notes' };
   const html = profileContent(
     horse,
-    { ...state, horses: [], sold: [], settings: { ...state.settings, developerEditMode: false } },
+    { ...state, horses: [], sold: [], settings: { ...state.settings } },
     { importPreview: true }
   );
   assert.match(html, /data-action="confirm-import"/);

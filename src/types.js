@@ -40,6 +40,7 @@
  * @property {Record<string, any>[]} [customLocations]
  * @property {string} [configurationRevision]
  * @property {number} [paletteAdditionsVersion]
+ * @property {number} [traitDefaultsVersion]
  * @property {string} createdAt
  * @property {string | null} savedAt
  */

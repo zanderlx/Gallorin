@@ -183,21 +183,31 @@ export function createEyeEditor(renderEditor, getEyes) {
   dialog.addEventListener('close', () => {
     if (!dialog.open) dialog.replaceChildren();
   });
+  let startedOnBackdrop = false;
+  const onBackdrop = event => {
+    if (event.target !== dialog) return false;
+    const bounds = dialog.getBoundingClientRect();
+    return (
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom
+    );
+  };
+  dialog.addEventListener('pointerdown', event => {
+    startedOnBackdrop = onBackdrop(event);
+  });
+  dialog.addEventListener('pointercancel', () => {
+    startedOnBackdrop = false;
+  });
   dialog.addEventListener('click', event => {
+    const closeFromBackdrop = startedOnBackdrop && onBackdrop(event);
+    startedOnBackdrop = false;
     if (event.target.closest('[data-action="close-eye-editor"]')) {
       requestClose();
       return;
     }
-    if (event.target === dialog) {
-      const bounds = dialog.getBoundingClientRect();
-      if (
-        event.clientX < bounds.left ||
-        event.clientX > bounds.right ||
-        event.clientY < bounds.top ||
-        event.clientY > bounds.bottom
-      )
-        requestClose();
-    }
+    if (closeFromBackdrop) requestClose();
     const button = event.target.closest('[data-eye-add]');
     if (!button) return;
     event.stopPropagation();

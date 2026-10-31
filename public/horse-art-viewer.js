@@ -1,4 +1,4 @@
-import { icon } from './ui.js';
+import { html, icon, raw, setHTML } from './ui.js';
 
 export function bindHorseArtViewer() {
   let dialog;
@@ -36,12 +36,16 @@ export function bindHorseArtViewer() {
       for (const attr of [...node.attributes]) {
         let value = attr.value;
         if (attr.name === 'id') value = ids.get(value) || value;
+        else if (attr.localName === 'href' && value.startsWith('#'))
+          value = `#${ids.get(value.slice(1)) || value.slice(1)}`;
         else for (const [oldID, newID] of ids) value = value.replaceAll(`url(#${oldID})`, `url(#${newID})`);
         node.setAttribute(attr.name, value);
       }
     }
-    // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-    dialog.innerHTML = `<div class="horse-art-viewer-header"><button type="button" class="icon-button" data-close-horse-art aria-label="Close full horse illustration">${icon('close')}</button></div><div class="horse-art-viewer-stage"></div>`;
+    setHTML(
+      dialog,
+      html`<div class="horse-art-viewer-header"><button type="button" class="icon-button" data-close-horse-art aria-label="Close full horse illustration">${raw(icon('close'))}</button></div><div class="horse-art-viewer-stage"></div>`
+    );
     const stage = dialog.querySelector('.horse-art-viewer-stage');
     stage.append(art);
     dialog.style.width = '';
@@ -50,8 +54,10 @@ export function bindHorseArtViewer() {
     // Trim empty artwork above the ears and below the hooves without enlarging the horse.
     const bounds = art.getBoundingClientRect();
     const scale = Math.min(bounds.width / 460, bounds.height / 310);
-    const imageHeight = 258 * scale;
-    art.setAttribute('viewBox', '0 32 460 258');
+    // Adornments such as antlers and wings can extend into the old empty margins.
+    const hasTraits = !!art.querySelector('[data-trait-category]');
+    const imageHeight = (hasTraits ? 310 : 258) * scale;
+    art.setAttribute('viewBox', hasTraits ? '0 0 460 310' : '0 32 460 258');
     art.style.width = `${460 * scale}px`;
     art.style.height = `${imageHeight}px`;
     art.style.maxWidth = '100%';

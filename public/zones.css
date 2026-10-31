@@ -188,10 +188,6 @@ main {
   display: flex;
   align-items: center;
 }
-.zone-card-actions .zone-delete {
-  margin-left: auto;
-}
-
 .zone-preview {
   align-items: flex-start;
 }
@@ -282,4 +278,466 @@ main {
 .zone-creature-row input[type='number'] {
   width: 85px;
   display: block;
+}
+
+/* Illustrated browse view and focused editor, matching compendium managers. */
+.zone-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 24px;
+}
+.zones-manager .zone-card-actions {
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.zone-card-actions p {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+.zone-card-actions .form-actions {
+  margin: 0;
+  gap: 12px;
+}
+.zone-card .zone-preview p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.zone-editor-dialog {
+  width: min(920px, calc(100vw - 32px));
+}
+.zone-editor-dialog > .dialog-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--panel);
+  border-bottom: 0;
+}
+.zone-editor-dialog #zone-form {
+  padding: 24px;
+}
+.zone-editor-identity .zone-field {
+  margin: 0 0 18px;
+}
+.zone-editor-identity .setting-row {
+  margin-bottom: 0;
+  padding: 12px 0;
+  border-bottom: 0;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.zone-editor-dialog .zone-preview,
+.zone-editor-dialog .zone-preview .hero-content {
+  min-height: 200px;
+}
+.zone-editor-dialog .zone-preview h2 {
+  font-size: 30px;
+}
+.zone-editor-section {
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.zone-editor-section > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  padding: 18px 20px;
+  cursor: pointer;
+  font: 22px var(--serif);
+  color: var(--text);
+}
+.zone-editor-section > summary::-webkit-details-marker {
+  display: none;
+}
+.zone-editor-section > summary:hover {
+  background: #d2b4770c;
+}
+.zone-editor-section > summary > .icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: var(--gold);
+}
+@supports (interpolate-size: allow-keywords) {
+  .zone-editor-section {
+    interpolate-size: allow-keywords;
+  }
+  .zone-editor-section::details-content {
+    block-size: 0;
+    opacity: 0;
+    overflow: clip;
+    transition:
+      block-size 240ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 180ms ease,
+      content-visibility 240ms allow-discrete;
+  }
+  .zone-editor-section[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zone-editor-section::details-content,
+  .zone-editor-section > summary .chevron {
+    transition: none;
+  }
+}
+.zone-editor-section > summary .badge {
+  margin-left: 12px;
+  vertical-align: middle;
+}
+.zone-disclosure-body {
+  padding: 0 20px 20px;
+}
+.zone-disclosure-body .zone-field {
+  margin: 16px 0;
+}
+.zone-disclosure-body textarea {
+  min-height: 72px;
+}
+.zone-species-controls {
+  display: grid;
+  grid-template-columns: auto minmax(140px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
+  gap: 12px;
+  align-items: end;
+  padding: 0 16px 0 4px;
+}
+.zone-species-controls input,
+.zone-species-controls select {
+  min-width: 0;
+  height: 48px;
+}
+.zone-species-controls .definition-sort-controls .zone-field {
+  flex: 1;
+}
+.zone-species-controls .definition-sort-controls .sort-direction {
+  height: 48px;
+  margin-bottom: 16px;
+}
+.zone-spawn-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  max-height: 420px;
+  overflow: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+}
+.zone-spawn-list .zone-creature-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 66px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-deep);
+}
+.zone-spawn-list .zone-creature-row > label:not(.zone-choice) {
+  font-size: 12px;
+  text-align: center;
+}
+.zone-creature-row[hidden] {
+  display: none;
+}
+.zone-creature-row small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.zone-species-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.zone-spawn-list input[type='number'] {
+  width: 100%;
+  height: 30px;
+  min-height: 30px;
+  padding: 3px 6px;
+  line-height: 1.2;
+  text-align: center;
+}
+.zone-spawn-list input[type='number']:not(:focus) {
+  appearance: textfield;
+}
+.zone-spawn-list input[type='number']:not(:focus)::-webkit-inner-spin-button,
+.zone-spawn-list input[type='number']:not(:focus)::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.zone-editor-section .zone-options {
+  max-height: 300px;
+}
+.zone-editor-actions {
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.zone-save-confirm {
+  width: min(500px, calc(100vw - 32px));
+}
+.zone-save-confirm > p,
+.zone-save-confirm > .form-actions {
+  margin: 24px;
+}
+@media (max-width: 800px) {
+  .zone-spawn-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .zone-editor-dialog #zone-form {
+    padding: 16px;
+  }
+  .zone-disclosure-body {
+    padding: 0 12px 16px;
+  }
+  .zone-species-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .zone-spawn-list .zone-creature-row {
+    grid-template-columns: minmax(0, 1fr) 66px;
+    gap: 8px;
+  }
+}
+@media (max-width: 480px) {
+  .zone-spawn-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.zones-manager .zone-card {
+  position: relative;
+  isolation: isolate;
+  box-shadow: 0 4px 12px #0003;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+.zones-manager .zone-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 28px #0007,
+    0 5px 10px #0004;
+  border-color: var(--gold);
+}
+.zone-card-open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.zone-card-open:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zones-manager .zone-card {
+    transition: none;
+  }
+  .zones-manager .zone-card:hover {
+    transform: none;
+  }
+}
+
+.hero:is(.forest, .autumn, .moonlit, .frost, .atmosphere-custom)[style*='--zone-art'] {
+  background-image: var(--zone-art);
+  background-blend-mode: var(--zone-blend, normal);
+}
+.zone-editor-dialog textarea[name='description'] {
+  min-height: 160px;
+  resize: none;
+}
+.zone-editor-dialog textarea[data-zone-tags] {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  font-family: var(--sans);
+}
+
+.zone-palette-controls {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 2fr) minmax(100px, 1fr) minmax(160px, 1fr);
+  align-items: end;
+  gap: 12px;
+}
+.zone-palette-controls .zone-field {
+  min-width: 0;
+  margin: 16px 0;
+}
+.zone-palette-controls :is(input, select) {
+  min-width: 0;
+  height: 48px;
+}
+.zone-palette-controls .definition-sort-controls .zone-field {
+  flex: 1;
+}
+.zone-palette-controls .definition-sort-controls .sort-direction {
+  margin-bottom: 16px;
+  height: 48px;
+}
+.zone-palette-results {
+  max-height: 460px;
+  overflow-y: auto;
+  padding: 8px 20px 16px 4px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+.zone-palette-group + .zone-palette-group {
+  margin-top: 24px;
+}
+.zone-palette-group > h3 {
+  font: 22px var(--serif);
+  margin: 0 0 12px;
+}
+.zone-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+.zone-palette-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-deep);
+  cursor: pointer;
+}
+.zone-palette-card:hover,
+.zone-palette-card:has(input:checked) {
+  border-color: var(--gold);
+  background: var(--panel);
+}
+.zone-palette-card-title {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 10px;
+  font: 16px var(--serif);
+  overflow-wrap: anywhere;
+}
+.zone-palette-card-title input {
+  flex: 0 0 17px;
+  width: 17px;
+  min-height: 17px;
+  height: 17px;
+  margin: 0;
+}
+.zone-palette-card .palette-card-swatches {
+  height: 14px;
+}
+.zone-palette-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.zone-palette-empty {
+  color: var(--muted);
+  margin: 12px 0;
+}
+@media (max-width: 700px) {
+  .zone-palette-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.zone-selection-toggle {
+  height: 48px;
+  width: 140px;
+  min-width: 140px;
+  flex: 0 0 140px;
+  margin-bottom: 16px;
+  white-space: nowrap;
+}
+
+#species-palettes-form {
+  container: species-palettes / inline-size;
+}
+#species-palettes-form .zone-palette-controls {
+  grid-template-columns: 140px minmax(100px, 2fr) minmax(80px, 1fr) minmax(140px, 1fr);
+  padding-block: 16px;
+}
+#species-palettes-form .zone-palette-controls .zone-field,
+#species-palettes-form .zone-palette-controls button {
+  margin-block: 0;
+}
+@container species-palettes (max-width: 500px) {
+  #species-palettes-form .zone-palette-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.zone-editor-dialog .color-control {
+  color: var(--gold);
+}
+.zone-editor-dialog .color-inputs {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.zone-editor-dialog .color-inputs input[type='color'] {
+  width: 72px;
+  flex: 0 0 72px;
+}
+.zone-editor-dialog .color-inputs input[data-color-hex] {
+  width: 112px;
+  flex: 0 0 112px;
+  height: 42px;
+}
+
+.zone-artwork-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px;
+  margin: 16px 0;
+}
+.zone-artwork-controls > .zone-field {
+  min-width: 0;
+  margin: 0;
+}
+.zone-artwork-controls select {
+  min-width: 0;
+  height: 48px;
+}
+.zone-artwork-controls .color-inputs input[type='color'] {
+  width: 120px;
+  flex-basis: 120px;
+  height: 48px;
+}
+.zone-artwork-controls .color-inputs input[data-color-hex] {
+  height: 48px;
+  width: 120px;
+  flex-basis: 120px;
+  text-align: center;
+}
+@media (max-width: 600px) {
+  .zone-artwork-controls {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }

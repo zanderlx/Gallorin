@@ -1,24 +1,28 @@
 # Horse versions and retroactive updates
 
-Open **Developer Settings → Horse Updates** and enable the tool. This is separate from page-text Edit Mode.
+Enable **Override Horse Data** in **Developer Settings → Game Settings**. Then open a horse in **Stables → My Horses** and select its **Edit** tab. The tab is available only for owned horses while that setting is enabled. Save notifications appear at the bottom of the modal and fade away.
 
-1. Select stable horses (up to 100 per preview). Search and Select Visible help with batches.
-2. Leave everything you want to preserve at **Keep**.
-3. Choose **Set** for an exact value, **Reroll** for a generated value, or the available clear/reset option.
-4. Generate **Preview Changes**. Review each horse's current/proposed values and warnings.
-5. Choose **Apply Reviewed Changes**. A dated standalone player-save backup is created first.
+1. Expand a section using the Zones-style dropdown headings.
+2. Each section lists **Field**, **Original**, **Override**, and **Change**. Use the pencil icon to choose an exact value. The dice-with-circular-arrows icon generates a value immediately in the Override column; Save applies that displayed result without rerolling it. Rerolls choose a different value; if no alternative exists, a message explains why. Rerolling one field preserves other prepared values.
+3. Pencil popups show only the field’s available values. The table changes only after **Use This Override** is clicked; Cancel leaves it unchanged. Trait choices enforce their limits and required minimums. **Use This Override** stages the field; **Cancel** or Escape discards that modal’s edits.
+4. Select **Save** inside the section to apply only that section’s edits. A standalone player-save backup is created first.
+5. Select **Cancel** inside a section to discard only its unsaved edits. Other sections keep their drafts when you save or cancel.
 
-A preview never rerolls when applied: the server keeps the exact generated results for ten minutes. Changing a selected horse, the configuration, or relevant settings invalidates that preview. Reloading/restarting requires generating another preview. Changes apply together; a stale horse prevents the whole batch from applying.
+Names, descriptions, notes, life stage, calculated age, favorites, and palette-region colors are not editable in this tab. Palette colors come from the chosen palette and its variance. Mutation duplicate behavior follows the existing spawning configuration; there is no per-horse duplicate toggle. Trash appears only when a field has a saved or pending override: it cancels a pending override or stages restoration of the recorded original. Save that section to confirm restoration.
+
+Applied fields that actually changed receive a saved **OVERRIDE** marker. Badges appear in the override editor and on owned horse profiles while Override Horse Data is enabled. Original values are recorded before the first tracked override and retained across later edits. Older badge-only overrides show **Not recorded** for their original and cannot be restored automatically; their trash action is disabled.
+
+Each section save validates and applies its changes together. A stale horse or changed configuration prevents the save; unsaved edits remain available to correct or cancel.
 
 ## Available controls
 
-- Species, name, gender, life stage, acquisition date/birthday, age in days, origin, size, favorite.
-- Personality, description, notes, eye color, palette, and each of the nine palette colors.
+- Species, gender, acquisition date/birthday, origin, and size.
+- Personality (under Identity), eye color, and palette. Palette and eye choices show their colors in the popup. Cosmic palettes are locked.
 - Each species trait category: Mane, Tail, Pattern, Paint, Cosmetic, Keratin, Ears, Whiskers.
-- All unlocked mutations together or individual slots.
+- Individual mutation slots; Cosmic-defining slots are locked.
 - Each skill's level and XP, or reset to level 0. XP uses the normal level-up rules.
 
-Age on profiles means days since acquisition. Setting age in days changes the acquisition date. Choose either age in days or birthday/date in one update. The legacy life-stage field does not replace the displayed day count.
+Age on profiles is calculated as days since acquisition. Changing the acquisition date updates that calculated age.
 
 Changing personality preserves the saved description unless Description is also selected. Keeping size preserves it even if a size-affecting mutation changes; choose Size → Reroll to regenerate size with the final mutations.
 
@@ -26,11 +30,11 @@ Changing personality preserves the saved description unless Description is also 
 
 Trait rolls read the current species's Compendium definitions. Mane/Tail require one defined option. Optional categories support up to four Patterns, two Paints, four Cosmetics, and one each of Keratin, Ears, and Whiskers. Rerolls can use a fixed count or a random count. Unknown lists stay unchanged; this tool does not invent missing traits. After adding species traits later, select existing horses and reroll only those categories.
 
-Changing species requires replacing incompatible traits/palettes. Cosmic palettes remain tied to the horse's Cosmic identity. Individual palette colors can still be explicitly adjusted.
+Species rerolls choose a different species when alternatives exist. Every species edit or reroll automatically regenerates traits from the selected species, keeping the existing count in each category where the new species has enough choices and allows that count. Cosmic override rerolls instead fill every category to its maximum available choices. Any count adjustment is explained inside the horse modal. Saving a species edit opens a confirmation modal listing all changed values, including regenerated traits. Nothing is saved until **Confirm Save** is selected; **Cancel** keeps the draft. Species and generated traits are then saved together. A compatible palette is still required. Cosmic palettes remain tied to the horse's Cosmic identity. Palette colors use the palette’s variance settings.
 
 Solar, Lunar, Heavenly, Void, and Astral defining mutations are protected. They survive full rerolls and cannot be removed through individual slot updates. A legacy Cosmic horse whose defining mutation is absent has it restored when regenerating mutations. The four-slot limit still applies; legacy records above that limit require separate review and are preserved.
 
-Full mutation rerolls use current cascading slot chances, weights, species thresholds, and the chosen duplicate policy. Individual slot rerolls draw one eligible standard mutation, independent of the cascading slot chances. Exact mutation selections can include non-Cosmic Special mutations; thresholds still apply. Weight 0 prevents random selection but does not prohibit an explicit developer selection. The duplicate checkbox affects this operation only.
+Full mutation rerolls use current cascading slot chances, weights, species thresholds, and the chosen duplicate policy. Individual slot rerolls draw one eligible standard mutation, independent of the cascading slot chances. Exact mutation selections can include non-Cosmic Special mutations; thresholds still apply. Weight 0 prevents random selection but does not prohibit an explicit developer selection. Duplicate behavior follows the existing spawning configuration.
 
 IDs, capture history, favorites, notes, visuals, and other unselected values remain intact. Existing unsupported fields/equipment are not fabricated. Rarity follows species/Cosmic identity and is not an independent override.
 

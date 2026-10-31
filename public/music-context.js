@@ -49,7 +49,6 @@ const sectionDefinitions = [
     'compendium',
     [
       ['dev/species', 'Species'],
-      ['dev/traits', 'Traits'],
       ['dev/colors', 'Palettes'],
       ['dev/eyes', 'Eye Colors'],
       ['dev/personalities', 'Personalities'],
@@ -74,10 +73,8 @@ const sectionDefinitions = [
     'Developer Settings',
     'developer',
     [
-      ['dev/edit-mode', 'Edit Mode'],
       ['dev/settings', 'Game Settings'],
-      ['dev/horse-updates', 'Horse Updates'],
-      ['dev/roadmap', 'Remaining Features']
+      ['dev/horse-updates', 'Horse Overrides']
     ]
   ]
 ];

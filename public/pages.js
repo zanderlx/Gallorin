@@ -1,14 +1,14 @@
 import { gameSettingsPage } from './game-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';
-import { atmosphereFor, atmosphereStyle, zoneTags } from './zones.js';
+import { zoneAtmosphere, atmosphereStyle, zoneTags } from './zones.js';
 
 export function wildPage(location, state, locations = [location], catalog) {
   const horses = state.encounters[location.id] || [];
   const atmosphere = location.atmosphere || (location.id === 'hallowhoof' ? 'autumn' : 'forest');
-  const atmosphereDefinition = atmosphereFor(catalog, atmosphere);
+  const atmosphereDefinition = zoneAtmosphere({ ...location, atmosphere }, catalog);
   return `<section class="hero ${['forest', 'autumn', 'moonlit', 'frost'].includes(atmosphere) ? atmosphere : 'atmosphere-custom'}" style="${atmosphereStyle(atmosphereDefinition)}" aria-labelledby="location-title"><div class="hero-content">
-  <h1 id="location-title" data-copy-key="hero.title">${e(location.name)}</h1><p data-copy-key="hero.description">${e(location.description)}</p>
+  <h1 id="location-title">${e(location.name)}</h1><p>${e(location.description)}</p>
   <div class="hero-bottom">${zoneTags(location, catalog)
     .map(tag => `<span>${e(tag)}</span>`)
     .join('<span class="hero-divider" aria-hidden="true"></span>')}</div>
@@ -21,7 +21,7 @@ export function wildPage(location, state, locations = [location], catalog) {
 }
 export function stablePage(kind, state, catalog) {
   const sold = kind === 'sold';
-  return `${sold ? heading('', 'Horse management', 'A complete record of the companions you have sold.') : `<div class="page-heading stable-heading"><h1 data-copy-key="page.title">My Horses</h1><button type="button" class="button secondary stable-import" data-action="import-horse" title="Import Horse" aria-label="Import Horse">${icon('download')}</button></div>`}
+  return `${sold ? heading('', 'Horse management', 'A complete record of the companions you have sold.') : `<div class="page-heading stable-heading"><h1>My Horses</h1><button type="button" class="button secondary stable-import" data-action="import-horse" title="Import Horse" aria-label="Import Horse">${icon('download')}</button></div>`}
 
   <div class="collection-toolbar"><label class="search-field">${icon('search')}<input id="horse-search" type="search" placeholder="Search name, species, or personality…" aria-label="Search horses"></label><label class="sort-field stable-grid-control">Grid Size<span class="stable-grid-slider"><input id="horse-grid-size" type="range" min="3" max="6" step="1" value="5" aria-label="Horses per row" aria-valuetext="5 horses per row"><span class="stable-grid-nodes"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><output id="horse-grid-value" for="horse-grid-size">5</output></span></span></label><div class="stable-sort-controls"><label class="sort-field">Sort By <select id="horse-sort"><option value="recent">Newest first</option><option value="name">Name</option><option value="species">Species</option><option value="rarity">Rarity</option><option value="favorites">Favorites</option></select></label><button type="button" class="icon-button sort-direction" data-action="sort-direction" data-direction="desc" aria-label="Descending order. Switch to ascending" title="Descending order. Switch to ascending">${icon('arrow')}</button></div></div>
   <div id="collection-grid" class="horse-grid">${collectionCards(kind, state, '', 'recent', catalog)}</div>
@@ -65,10 +65,7 @@ export function collectionCards(
 export const settingsPage = gameSettingsPage;
 export function libraryPage(kind, catalog) {
   const options = {
-    species: [
-      'Species & traits',
-      '46 species are preserved from your source. Only Ghoulsteed has a supplied species-specific trait list.'
-    ],
+    species: ['Species & traits', 'Species-specific appearance lists are managed in the Traits section.'],
     colors: [
       'Colors & palettes',
       'Complete palettes are shown below. Incomplete palettes are preserved but excluded from preview encounters.'
@@ -94,7 +91,7 @@ export function libraryPage(kind, catalog) {
         s =>
           `<article class="panel definition-card"><div class="definition-icon">${icon('spark')}</div><h3>${e(s.name)}</h3><p>${e(s.event ? s.event + ' event' : s.restriction || 'Non-event species')}</p><span class="badge ${s.traitsComplete ? 'green' : ''}">${s.traitsComplete ? 'Trait list available' : 'Traits awaiting data'}</span>${
             s.traitsComplete
-              ? `<details><summary>View Ghoulsteed traits</summary>${Object.entries(catalog.traits.Ghoulsteed)
+              ? `<details><summary>View traits</summary>${Object.entries(s.traits || catalog.traits[s.name] || {})
                   .map(([type, traits]) => `<h4>${e(type)}</h4><p>${traits.map(e).join(' · ')}</p>`)
                   .join('')}</details>`
               : ''
@@ -188,8 +185,3 @@ export const routeTitle = (route, locations = []) =>
   locations.find(l => route === `wilds/${l.id}`)?.name ||
   groups.flatMap(g => g.items).find(([path]) => path === route)?.[1] ||
   'Gallorin';
-
-export function editModePage(state) {
-  return `${heading('', 'Edit Mode', 'Manage website wording from one dedicated place.')}
-  <section class="panel" data-copy-ui><h2>Page Text Editing</h2><p>Current status: <strong>${state.settings.developerEditMode ? 'Enabled' : 'Disabled'}</strong>. Enable editing, then visit any page and use its pencils to change headings, section text, sidebar labels, or footer wording.</p><p>Save one section immediately, or preview several edits and use Save Page. Restore defaults and discard controls are available in the editing toolbar. All saved wording is included in backups and exports.</p><button class="button primary" data-action="toggle-copy-mode" aria-pressed="${Boolean(state.settings.developerEditMode)}">${state.settings.developerEditMode ? 'Disable' : 'Enable'} Edit Mode</button></section>`;
-}

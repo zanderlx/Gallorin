@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#68a3b2"/><stop offset="1" stop-color="#e0e0ad"/></linearGradient>
+    <linearGradient id="grass" x2="0" y2="1"><stop stop-color="#6c9257"/><stop offset="1" stop-color="#294c3a"/></linearGradient>
+    <g id="flower"><path d="M0 0V34m0-12-9-8m9 13 11-9" stroke="#3e6947" stroke-width="3" fill="none"/><path d="M-2-3q-14-18-21-2-4 13 17 13-8 19 6 20 16-1 7-20 22 1 18-12-7-17-23 1Z"/><circle r="5" fill="#edcf7e"/></g>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v650H0z"/>
+  <circle cx="1102" cy="141" r="57" fill="#ffedb9"/>
+  <g fill="#f4f0d9" opacity=".65"><path d="M745 149q-30-45-63-12-43-27-59 16h153q3-26-31-4Z"/><path d="M1359 109q-26-31-49-9-40-24-55 14h133q0-25-29-5Z"/></g>
+  <path d="M0 385 280 256 496 342 753 227 951 344 1221 241 1600 360v290H0Z" fill="#98b6a0"/>
+  <path d="M0 455Q287 284 657 414t943-48v284H0Z" fill="#9bb174"/>
+  <path d="M0 497q474-74 857-45t743-40v238H0Z" fill="#7d9f5c"/>
+  <path d="M0 525q347-146 706-29t894-7v161H0Z" fill="url(#grass)"/>
+  <path d="M1086 435q-116 63-21 91T947 650h175q127-83 37-127t-73-88" fill="#d4c893"/>
+  <path d="M1386 469V297m0 83-63-50m63 15 54-46" stroke="#536c46" stroke-width="13"/>
+  <path d="M1287 328q-41-66 20-89 25-67 84-25 72-24 88 42 58 48-9 82Z" fill="#628453"/>
+  <path d="M0 613q425-68 758 9t842-22v50H0Z" fill="#284e3b"/>
+  <g fill="#e2a2a8"><use href="#flower" transform="translate(607 580) scale(.7)"/><use href="#flower" transform="translate(1298 573) scale(.9)"/><use href="#flower" transform="translate(1459 604)"/></g>
+  <g fill="#e7e4ca"><use href="#flower" transform="translate(712 610) scale(.8)"/><use href="#flower" transform="translate(1174 610) scale(.7)"/><use href="#flower" transform="translate(854 568) scale(.6)"/></g>
+  <g fill="#a9a2cf"><use href="#flower" transform="translate(1356 623) scale(.8)"/><use href="#flower" transform="translate(775 587) scale(.7)"/><use href="#flower" transform="translate(519 621) scale(.9)"/></g>
+  <path d="m939 176 9 4 9-4m272 40 8 4 8-4" fill="none" stroke="#547b79" stroke-width="3"/>
+</svg>

@@ -382,10 +382,8 @@ test('settings pages retain playback even with legacy page or section assignment
     'dev/appearance',
     'dev/music',
     'dev/profile',
-    'dev/edit-mode',
     'dev/settings',
     'dev/horse-updates',
-    'dev/roadmap',
     'dev/saves'
   ]) {
     assert.equal(musicContext(route, library), null, route);

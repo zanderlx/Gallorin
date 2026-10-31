@@ -272,7 +272,7 @@ strong {
 nav {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #65523a transparent;
+  scrollbar-color: var(--gold-soft) transparent;
   flex: 1;
   padding: 0 16px 15px;
 }

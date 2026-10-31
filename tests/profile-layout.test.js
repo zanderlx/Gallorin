@@ -14,6 +14,42 @@ const settings = JSON.parse(await readFile(new URL('../data/defaults/settings.js
 const horse = createEncounters(catalog, 'aetherion', 1, 0, undefined, () => 0.5)[0];
 const state = { horses: [], sold: [], settings };
 
+test('existing horse mutation cards follow current definitions without changing saved rolls', () => {
+  const saved = {
+    id: 'mutation-old',
+    systemId: 'stable-id',
+    name: 'Old Name',
+    type: 'Standard',
+    description: 'Old text'
+  };
+  const current = { ...saved, id: 'mutation-new', name: 'New Name', description: '<Updated description>' };
+  const existing = { ...horse, mutations: [saved, { id: 'deleted', name: 'Deleted', description: 'Saved text' }] };
+  const before = structuredClone(existing);
+  for (const records of [{ horses: [existing] }, { sold: [existing] }, {}]) {
+    const html = profileContent(existing, { ...state, ...records }, { catalog: { ...catalog, mutations: [current] } });
+    assert.match(html, /New Name/);
+    assert.match(html, /&lt;Updated description&gt;/);
+    assert.doesNotMatch(html, /Old text/);
+    assert.match(html, /Saved text/);
+  }
+  assert.deepEqual(existing, before);
+});
+
+test('mutation cards resolve local IDs and legacy names but preserve missing definitions', () => {
+  const current = { id: 'local', name: 'Current', type: 'Standard', description: 'Current description' };
+  for (const saved of [{ id: 'local', name: 'Before' }, 'Current', { name: 'Current', type: 'Standard' }]) {
+    assert.match(
+      profileContent({ ...horse, mutations: [saved] }, state, { catalog: { ...catalog, mutations: [current] } }),
+      /Current description/
+    );
+  }
+  const deleted = { id: 'deleted', name: 'Current', description: 'Preserved snapshot' };
+  assert.match(
+    profileContent({ ...horse, mutations: [deleted] }, state, { catalog: { ...catalog, mutations: [current] } }),
+    /Preserved snapshot/
+  );
+});
+
 test('horse profile separates overview from appearance and keeps unique portrait IDs', () => {
   const html = profileContent(horse, state, { catalog });
   assert.equal((html.match(/role="tab"/g) || []).length, 2);
@@ -32,7 +68,7 @@ test('horse profile separates overview from appearance and keeps unique portrait
   assert.match(appearance, />Traits<\/h3>/);
   assert.match(appearance, />Mutations<\/h3>/);
   assert.match(appearance, />Palette<\/h3>/);
-  assert.equal((html.match(/viewBox="240 25 135 145"/g) || []).length, 2);
+  assert.equal((html.match(/viewBox="45 10 145 170"/g) || []).length, 2);
   assert.equal((html.match(/data-full-horse title="View Full Horse"/g) || []).length, 2);
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
   assert.equal(new Set(ids).size, ids.length);
@@ -56,9 +92,9 @@ test('preview headshots and full artwork share the same horse colors', () => {
   const full = horseArt(horse);
   const head = horseHeadArt(horse);
   assert.match(full, /viewBox="0 0 460 310"/);
-  assert.equal(head, full.replace('viewBox="0 0 460 310"', 'viewBox="240 25 135 145"'));
+  assert.equal(head, full.replace('viewBox="0 0 460 310"', 'viewBox="45 10 145 170"'));
   assert.match(card(horse, state, 'wild', catalog), /viewBox="0 0 460 310"/);
-  assert.match(card(horse, { ...state, horses: [horse] }, 'stable', catalog), /viewBox="240 25 135 145"/);
+  assert.match(card(horse, { ...state, horses: [horse] }, 'stable', catalog), /viewBox="45 10 145 170"/);
 });
 
 test('switching profile tabs hides inactive content and supports focus without replacing forms', () => {
@@ -109,9 +145,9 @@ test('each profile renders its own skill progress and maxed skills use MAX', () 
   assert.equal((other.match(/>Lv\. 0<\/span>/g) || []).length, 5);
 });
 
-test('skill XP controls are limited to owned horses in Edit Mode', () => {
+test('legacy edit mode never exposes skill XP controls', () => {
   const editing = { ...state, horses: [horse], settings: { ...state.settings, developerEditMode: true } };
-  assert.equal((profileContent(horse, editing, { catalog }).match(/data-action="add-skill-xp"/g) || []).length, 5);
+  assert.doesNotMatch(profileContent(horse, editing, { catalog }), /data-action="add-skill-xp"/);
   assert.doesNotMatch(profileContent(horse, state, { catalog }), /data-action="add-skill-xp"/);
   assert.doesNotMatch(profileContent(horse, editing, { catalog, importPreview: true }), /data-action="add-skill-xp"/);
 });

@@ -1,6 +1,7 @@
 import { rarityTier, systemID, validateThresholds, defaultSpeciesTiers } from './spawn-config.js';
 import { withCosmicEyes, cosmicEyeColors } from './cosmic-types.js';
 import { mutatedPalettes } from './mutated-palettes.js';
+import { isUnusedTraitCategory } from './unused-traits.js';
 export const regions = ['Coat Top', 'Coat Bottom', 'Hair', 'Hoof', 'Nose', 'Sock', 'Keratin', 'Paint', 'Pattern'];
 export const traitCategories = ['Mane', 'Tail', 'Pattern', 'Paint', 'Cosmetic', 'Keratin', 'Ears', 'Whiskers'];
 export const themeTokens = [
@@ -192,31 +193,52 @@ export const defaultThemes = [
 export const baseAtmospheres = [
   {
     id: 'forest',
-    name: 'Evergreen forest',
+    name: 'Evergreen Forest',
     encounterTitle: 'Among the whispering trees',
     tint: '#426553',
     description: 'Soft moss and fireflies beneath an ancient canopy.'
   },
   {
     id: 'autumn',
-    name: 'Amber woodland',
+    name: 'Amber Woodland',
     encounterTitle: 'Beyond the amber leaves',
     tint: '#7a3b22',
     description: 'Copper leaves drift between warm lanterns.'
   },
   {
     id: 'moonlit',
-    name: 'Moonlit grove',
+    name: 'Moonlit Grove',
     encounterTitle: 'Under a sky full of wishes',
     tint: '#49375f',
     description: 'Silver moonlight and quiet, starlit magic.'
   },
   {
     id: 'frost',
-    name: 'Frosted forest',
+    name: 'Frosted Forest',
     encounterTitle: 'Where the silver branches shimmer',
     tint: '#87a8bb',
     description: 'Gentle hoofprints wind through glittering frost.'
+  },
+  {
+    id: 'meadow',
+    name: 'Sunlit Meadow',
+    encounterTitle: 'Across the flowering hills',
+    tint: '#73965d',
+    description: 'Wildflowers and soft hills beneath an open sky.'
+  },
+  {
+    id: 'coast',
+    name: 'Sapphire Coast',
+    encounterTitle: 'Along the sapphire shore',
+    tint: '#327d96',
+    description: 'Sea stacks, white surf, and a distant lighthouse.'
+  },
+  {
+    id: 'desert',
+    name: 'Ember Dunes',
+    encounterTitle: 'Beyond the sunset sands',
+    tint: '#b97549',
+    description: 'Wind-carved sandstone and rolling dunes at sunset.'
   }
 ];
 export const definitionKinds = {
@@ -283,6 +305,9 @@ export function normalizeCatalog(source) {
 }
 export function catalogFor(original, state) {
   const catalog = normalizeCatalog(state.library || original);
+  for (const preset of baseAtmospheres.slice(4))
+    if (!catalog.atmospheres.some(a => a.id === preset.id) && !state.deletedBuiltinAtmospheres?.includes(preset.id))
+      catalog.atmospheres.push(structuredClone(preset));
   for (const palette of mutatedPalettes)
     if (
       !catalog.palettes.some(p => p.id === palette.id || p.name.toLowerCase() === palette.name.toLowerCase()) &&
@@ -368,6 +393,7 @@ export function validateDefinition(kind, input) {
       throw new Error('System IDs use letters, digits, underscores, and hyphens.');
   }
   if (kind === 'species') {
+    if (input.palettePool !== undefined) result.palettePool = strings('palettePool');
     const tier = input.rarityTier ?? 4;
     if (!Number.isInteger(tier) || tier < 0 || tier > 4)
       throw new Error('Choose a valid rarity from Common through Cosmic.');
@@ -402,7 +428,9 @@ export function validateDefinition(kind, input) {
         throw new Error('Trait categories need a name and up to 100 trait names of 100 characters or fewer.');
       return [key.trim(), [...new Set(values.map(v => v.trim()))]];
     });
-    result.traits = Object.fromEntries(entries);
+    if (new Set(entries.map(([key]) => key.toLowerCase())).size !== entries.length)
+      throw new Error('Each trait category needs a different name.');
+    result.traits = Object.fromEntries(entries.filter(([category]) => !isUnusedTraitCategory(category)));
     result.traitsComplete = !!(result.traits.Mane?.length && result.traits.Tail?.length);
     result.event = text('event') || null;
     result.restriction = text('restriction') || null;

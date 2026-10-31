@@ -6,6 +6,49 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.3.0] - The Lucky Horseshoe - 2026-10-31
+
+Build your Compendium, shape the Wilds, and give your horses a more personal look.
+
+### Added
+
+- **Species & Traits**
+  - Categorized species trait libraries with searchable editors, supplied trait defaults, group selection, and rarity sorting.
+  - Species palette pools combine with zone palette selections when generating horses.
+  - Existing Lupine Ears and Bat Ears traits are also available in Ghoulsteed's Ears category.
+
+- **Zone Manager**
+  - Artwork cards open a focused zone editor with atmosphere presets, tint, descriptions, tags, and Wilds visibility.
+  - Species search, rarity filters, weight sorting, and grouped palette browsing with color swatches.
+  - A Select All / Unselect All toggle beside each search field selects every species or eligible palette, including filtered options.
+
+- **Horse Editing**
+  - Override Horse Data adds an Edit tab to owned horse profiles, with original and override values, exact choices, and rerolls.
+  - Save or cancel each section independently, review species-change consequences, and restore recorded original values. Saves create backups and preserve unrelated prepared edits.
+  - Cosmic identity and palette protections remain enforced; unavailable rerolls explain which species lacks alternatives.
+
+- **Palettes**
+  - Buddy, Dart Frog, Magma, Nephyrian 2, Candy Corn, Flora 4, MissingNo, Betelgeuse, and Calaverita 2.
+
+### Updated
+
+- **Horse Artwork**
+  - Left-facing full-body artwork, stable portraits, and an enlarged artwork viewer use palette colors throughout.
+  - Provided SVG Artwork is enabled by default, preserves the supplied geometry and shading, and is saved through Save Settings. Turn it off for trait-based mane, tail, keratin, and marking artwork.
+  - Default Heavenly artwork eyes are black; Void and Astral artwork eyes are white. Saved eye-color customizations remain local overrides.
+
+- **Traits & Palettes**
+  - Spawning and regeneration follow species trait limits, including required keratin for Unicorn and Anticorn horses and maximum marking counts for Cosmic horses.
+  - Revised Lettuce, Vegetable, Frozen, and MissingNo colors. Palette upgrades back up the registry and preserve customizations, recorded deletions, and existing horse snapshots.
+  - Removed unused Wings traits from species and horse records. Retired developer Edit Mode and Remaining Features controls were removed.
+
+### Fixed
+
+- **Editors & Display**
+  - Color editors support free hex entry, guide invalid saves to the affected field, and avoid dismissing the eye editor when text selection ends outside it.
+  - Existing horse profiles show current mutation descriptions, with scrolling for long text.
+  - Horse trait badges fit their text, Species navigation retains its scroll position, and music-player controls remain aligned across window sizes.
+
 ## [1.2.4] - 2026-10-27
 
 Simpler desktop navigation, local save access, and more reliable startup. #i<3horses

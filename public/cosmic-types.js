@@ -9,9 +9,9 @@ export const isCosmicPalette = palette =>
 export const cosmicEyeColors = Object.freeze({
   Solar: '#FFDD00',
   Lunar: '#44BAFF',
-  Heavenly: '#FFFFFF',
-  Void: '#000000',
-  Astral: '#D45EFF'
+  Heavenly: '#000000',
+  Void: '#FFFFFF',
+  Astral: '#FFFFFF'
 });
 
 export const cosmicEyeDescription =

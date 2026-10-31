@@ -1,4 +1,5 @@
 import { readHorseVersion } from './horse-version.js';
+import { removeUnusedTraits } from './unused-traits.js';
 import { limits, formatLimit } from './limits.js';
 import { horseAcquisitionDate } from './dates.js';
 import { readHorseSkills } from './skill-progress.js';
@@ -61,6 +62,7 @@ export function readHorseDocument(document) {
       return [key, values.map(v => text(v, 'Trait', 120))];
     })
   );
+  removeUnusedTraits({ traits: safeTraits });
   if (!Array.isArray(h.mutations) || h.mutations.length > 30)
     throw new Error('Provide a mutations array with at most 30 entries.');
   const mutations = h.mutations.map(m => {
