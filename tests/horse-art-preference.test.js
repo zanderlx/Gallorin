@@ -1,3 +1,4 @@
+import { originalHorseArtLayers } from '../public/horse-art-original-layers.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { horseArt, horseHeadArt, setProvidedHorseArtwork } from '../public/art.js';
@@ -58,6 +59,29 @@ test('provided SVG keratin follows active traits rather than species', () => {
     assert.match(horseHeadArt(horse), /data-layer="keratin"/);
     horse.traits = { Keratin: [] };
     assert.doesNotMatch(horseHeadArt(horse), /data-layer="keratin"/);
+  } finally {
+    setProvidedHorseArtwork(false);
+  }
+});
+
+test('provided mode preserves every supplied layer including the full eye sock', () => {
+  const horse = {
+    id: 'source-only',
+    species: 'Horse',
+    palette: { colors: {} },
+    eye: { colors: ['#123456'] },
+    traits: { Keratin: ['Horn'] }
+  };
+  try {
+    setProvidedHorseArtwork(true);
+    const svg = horseArt(horse);
+    for (const layer of originalHorseArtLayers) {
+      const expected = layer.markup
+        .replaceAll('__PREFIX__', 'hsource-only-original-')
+        .replaceAll('__COLOR__', layer.channel === 'Eye' ? '#123456' : layer.defaultColor);
+      assert.ok(svg.includes(expected), layer.name);
+    }
+    assert.doesNotMatch(svg, /data-depth=|data-trait-category=|data-leg-source=|data-hair-source=/);
   } finally {
     setProvidedHorseArtwork(false);
   }

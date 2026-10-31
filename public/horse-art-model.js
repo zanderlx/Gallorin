@@ -21,7 +21,7 @@ export function horseModel(horse, eye, prefix, original = false) {
       .map(
         layer =>
           html`<g fill="none" data-layer="${layer.name}">${raw(
-            modelLayerMarkup(layer)
+            layer.markup
               .replaceAll('__PREFIX__', `${prefix}-original-`)
               .replaceAll(
                 '__COLOR__',
