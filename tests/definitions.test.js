@@ -64,7 +64,7 @@ async function fixture(t) {
 }
 async function add(store, kind, values) {
   await store.action('save-definition', { kind, values: { ...draftDefinition(kind), ...values } });
-  return store.getCatalog()[kind].at(-1);
+  return store.getCatalog()[kind].find(entry => entry.name === values.name);
 }
 
 test('species palettes persist, survive overview edits, and follow palette renames and deletion', async t => {
@@ -303,7 +303,7 @@ test('all definition categories support additions and updates', async t => {
       id: definition.id,
       values: { ...definition, description: 'Expanded notes.' }
     });
-    assert.equal(store.getCatalog()[kind].at(-1).description, 'Expanded notes.');
+    assert.equal(store.getCatalog()[kind].find(entry => entry.id === definition.id).description, 'Expanded notes.');
   }
   const theme = store.getCatalog().themes.at(-1);
   const item = store.getCatalog().items.at(-1);

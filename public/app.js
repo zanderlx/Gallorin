@@ -1,6 +1,6 @@
 import { setProvidedHorseArtwork } from './art.js';
 import { bindTextButtonSounds } from './button-sounds.js';
-import { regularEyes, setCosmicEyeDefinitions } from './cosmic-types.js';
+import { regularEyes } from './cosmic-types.js';
 import { bindEncounterCooldown } from './encounter-cooldown.js';
 import { bindNavigationDisclosures } from './navigation-disclosures.js';
 import { createMusicPlayer } from './music-player.js';
@@ -219,7 +219,6 @@ function renderChrome() {
       openGroups.add(details.dataset.group);
     else openGroups.delete(details.dataset.group);
   }
-  setCosmicEyeDefinitions(catalog.eyes);
   applyWebsiteTheme(catalog, state);
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   $('#sidebar').innerHTML = sidebar(route, state, openGroups, catalog, appVersion);

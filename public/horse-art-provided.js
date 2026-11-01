@@ -1,4 +1,5 @@
 import { originalHorseArtLayers } from './horse-art-original-layers.js';
+import { horseHairColor } from './horse-hair-colors.js';
 import { selectedArtTraits } from './horse-trait-art.js';
 import { html, raw } from './ui.js';
 
@@ -15,5 +16,5 @@ providedLayers.splice(
   originalHorseArtLayers.find(layer => layer.name === 'ear')
 );
 export function providedHorseModel(horse, eye, prefix) {
-  return html`<g data-horse-model="provided-svg" transform="translate(-7 0) scale(.43 .43)">${providedLayers.filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0).map(layer => html`<g data-layer="${layer.name}" fill="none">${raw(layer.markup.replaceAll('__PREFIX__', `${prefix}-provided-`).replaceAll('__COLOR__', layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel] || layer.defaultColor))}</g>`)}</g>`;
+  return html`<g data-horse-model="provided-svg" transform="translate(-7 0) scale(.43 .43)">${providedLayers.filter(layer => layer.channel !== 'Keratin' || selectedArtTraits(horse, 'Keratin').length > 0).map(layer => html`<g data-layer="${layer.name}" fill="none">${raw(layer.markup.replaceAll('__PREFIX__', `${prefix}-provided-`).replaceAll('__COLOR__', layer.channel === 'Eye' ? eye : layer.channel === 'Hair' ? horseHairColor(horse, layer.name === 'mane' ? 'maneColor' : 'tailColor') || layer.defaultColor : horse.palette.colors[layer.channel] || layer.defaultColor))}</g>`)}</g>`;
 }

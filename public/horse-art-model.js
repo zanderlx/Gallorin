@@ -1,4 +1,5 @@
 import { horseArtLayers } from './horse-art-layers.js';
+import { horseHairColor } from './horse-hair-colors.js';
 import { traitChoices } from './horse-update-fields.js';
 import { html, raw } from './ui.js';
 import { horseTraitCategoryArt } from './horse-trait-art.js';
@@ -18,7 +19,12 @@ export function horseModel(horse, eye, prefix) {
   const hasCategory = category =>
     Object.hasOwn(horse.traits || {}, category) || Object.hasOwn(horse.traits || {}, `${category}s`);
   const render = layer => {
-    const value = layer.channel === 'Eye' ? eye : horse.palette.colors[layer.channel];
+    const value =
+      layer.channel === 'Eye'
+        ? eye
+        : layer.channel === 'Hair'
+          ? horseHairColor(horse, layer.name === 'mane' ? 'maneColor' : 'tailColor')
+          : horse.palette.colors[layer.channel];
     const color = /^#[0-9a-f]{6}$/i.test(value || '') ? value : layer.defaultColor;
     const markup = modelLayerMarkup(layer).replaceAll('__PREFIX__', `${prefix}-`).replaceAll('__COLOR__', color);
     const shading =

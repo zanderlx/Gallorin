@@ -5,7 +5,7 @@ export const isCosmicPalette = palette =>
       .toLowerCase()
   );
 
-// Artwork-only overrides; generated eye traits still come from the eye registry.
+// Fixed Cosmic artwork colors; generated eye traits still come from the normal eye registry.
 export const cosmicEyeColors = Object.freeze({
   Solar: '#FFDD00',
   Lunar: '#44BAFF',
@@ -15,13 +15,23 @@ export const cosmicEyeColors = Object.freeze({
 });
 
 export const cosmicEyeDescription =
-  'Name and Rarity cannot be changed because these special eye colors are reserved for the Cosmic rarity. Changing these rules requires updating species logic. The eye color itself remains editable.';
+  'Cosmic eye colors are fixed for each Cosmic type and cannot be changed by local settings or imports.';
 
 export const isCosmicEye = eye => Object.hasOwn(cosmicEyeColors, eye?.cosmicType || '');
 export const regularEyes = eyes => eyes.filter(eye => !isCosmicEye(eye));
 export function withCosmicEyes(eyes) {
   return [
-    ...eyes.map(eye => (isCosmicEye(eye) && !eye.description ? { ...eye, description: cosmicEyeDescription } : eye)),
+    ...eyes.map(eye =>
+      isCosmicEye(eye)
+        ? {
+            ...eye,
+            name: eye.cosmicType,
+            rarity: 'Cosmic',
+            colors: [cosmicEyeColors[eye.cosmicType]],
+            description: cosmicEyeDescription
+          }
+        : eye
+    ),
     ...Object.entries(cosmicEyeColors)
       .filter(([name]) => !eyes.some(eye => eye.cosmicType === name))
       .map(([name, color]) => ({
@@ -37,21 +47,17 @@ export function withCosmicEyes(eyes) {
       }))
   ];
 }
-let artworkEyes = withCosmicEyes([]);
-export function setCosmicEyeDefinitions(eyes) {
-  artworkEyes = withCosmicEyes(eyes).filter(isCosmicEye);
-}
 export function cosmicArtworkEye(horse) {
   const names = [horse.specialSpawn, ...(horse.mutations || []).map(m => (typeof m === 'string' ? m : m?.name))];
   for (const name of names) {
-    const eye = artworkEyes.find(
-      eye =>
-        eye.cosmicType.toLowerCase() ===
+    const type = Object.keys(cosmicEyeColors).find(
+      type =>
+        type.toLowerCase() ===
         String(name || '')
           .trim()
           .toLowerCase()
     );
-    if (eye) return eye.colors[0];
+    if (type) return cosmicEyeColors[type];
   }
   return null;
 }

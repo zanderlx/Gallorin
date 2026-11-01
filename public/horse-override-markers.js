@@ -1,7 +1,9 @@
 import { horseAcquisitionDate, horseDaysOwned } from './dates.js';
 import { html } from './ui.js';
+import { isHairColorField } from './horse-hair-colors.js';
 
 export function horseOverrideValue(horse, key) {
+  if (isHairColorField(key)) return horse[key] || '';
   const [kind, name] = key.split(':');
   if (kind === 'trait') return horse.traits?.[name] || horse.traits?.[name + 's'] || [];
   if (kind === 'mutation') return horse.mutations?.[Number(name)] || null;

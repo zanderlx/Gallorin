@@ -461,6 +461,7 @@ export function validateDefinition(kind, input) {
     if (input.cosmicType) {
       if (!Object.hasOwn(cosmicEyeColors, input.cosmicType)) throw new Error('Choose a valid Cosmic horse type.');
       result.cosmicType = input.cosmicType;
+      result.colors = [cosmicEyeColors[input.cosmicType]];
       result.name = input.cosmicType;
       result.rarity = 'Cosmic';
       result.systemId = `cosmic-eye-${input.cosmicType.toLowerCase()}`;

@@ -45,9 +45,27 @@ test('Cosmics maximize pattern, paint and cosmetic without guaranteeing optional
   }
 });
 
-test('Unicorn and Anticorn keratin is guaranteed for wild and Cosmic horses', () => {
-  for (const name of ['Unicorn', 'Anticorn'])
-    for (const cosmic of [false, true]) assert.equal(roll('Keratin', cosmic, () => 0, { name }).length, 1);
+test('guaranteed keratin species skip the presence roll and randomly select from their own list', () => {
+  for (const name of ['Caprine', 'Bisorse', 'Unicorn', 'Anticorn', 'Kirin'])
+    for (const cosmic of [false, true])
+      for (const [random, expected] of [
+        [0, 'First'],
+        [0.999, 'Last']
+      ]) {
+        let calls = 0;
+        const result = roll(
+          'Keratin',
+          cosmic,
+          () => {
+            calls++;
+            return random;
+          },
+          { name },
+          ['First', 'Last']
+        );
+        assert.deepEqual(result, [expected], `${name}, cosmic=${cosmic}`);
+        assert.equal(calls, 1, 'only the choice roll should consume randomness');
+      }
 });
 
 test('empty lists are safe and explicit counts respect mandatory traits', () => {

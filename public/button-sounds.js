@@ -9,7 +9,7 @@ export function textButtonFor(target) {
   );
   if (
     !button ||
-    button.matches(':disabled') ||
+    button.matches(':disabled,[data-music="toggle"]') ||
     button.closest('[inert],[aria-disabled="true"]') ||
     ['menu', 'listbox', 'tree', 'true'].includes(button.getAttribute('aria-haspopup')) ||
     ['combobox', 'menuitem', 'option'].includes(button.getAttribute('role'))

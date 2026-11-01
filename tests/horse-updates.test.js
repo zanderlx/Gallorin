@@ -24,6 +24,43 @@ async function fixture(t, rng = () => 0.5) {
 const preview = (store, ids, rules, allowDuplicates = false) =>
   store.previewHorseUpdates({ ids, rules, allowDuplicates });
 
+test('hair color fields save, restore, transfer, and follow added and removed mutations', async t => {
+  const { store, horse } = await fixture(t);
+  const current = { ...horse, mutations: [], overriddenFields: [], overrideOriginals: {} };
+  const c = store.getCatalog();
+  const state = store.snapshot();
+  const manual = regenerateHorse(
+    current,
+    { maneColor: { mode: 'set', value: '#abcdef' }, tailColor: { mode: 'set', value: '#fedcba' } },
+    c,
+    state
+  ).horse;
+  assert.equal(manual.maneColor, '#ABCDEF');
+  assert.equal(manual.tailColor, '#FEDCBA');
+  assert.equal(readHorseDocument(createHorseDocument(manual)).maneColor, '#ABCDEF');
+  const restored = regenerateHorse(
+    manual,
+    { maneColor: { mode: 'restore' }, tailColor: { mode: 'restore' } },
+    c,
+    state
+  ).horse;
+  assert.equal(restored.maneColor, undefined);
+  assert.equal(restored.tailColor, undefined);
+  for (const name of ['Chimera Mane', 'Chimera Tail', 'Harlequin Mane', 'Harlequin Tail']) {
+    const mutation = c.mutations.find(m => m.name === name);
+    const added = regenerateHorse(current, { 'mutation:0': { mode: 'set', value: mutation.id } }, c, state).horse;
+    assert.notEqual(horseArt(added), horseArt(current));
+    const removed = regenerateHorse(added, { 'mutation:0': { mode: 'clear' } }, c, state).horse;
+    assert.equal(horseArt(removed), horseArt(current));
+    const key = name.endsWith('Mane') ? 'maneColor' : 'tailColor';
+    assert.throws(
+      () => regenerateHorse(added, { [key]: { mode: 'set', value: '#123456' } }, c, state),
+      /Remove.*mutation/
+    );
+  }
+  assert.throws(() => regenerateHorse(current, { maneColor: { mode: 'set', value: 'red' } }, c, state), /hex color/);
+});
+
 test('applying and restoring trait overrides immediately updates all artwork renderers', async t => {
   const { store, horse } = await fixture(t);
   await store.action('horse-updates-enabled', { enabled: true });

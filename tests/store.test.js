@@ -458,8 +458,9 @@ test('Cosmic palette migration backs up stable sold and encounter records and pe
   await store.action('visit', { locationId: 'aetherion' });
   const original = store.snapshot();
   const horse = original.encounters.aetherion[0];
-  original.horses = [{ ...horse, id: 'owned-cosmic', specialSpawn: 'Lunar', notes: 'Preserve notes' }];
-  original.sold = [{ ...horse, id: 'sold-cosmic', specialSpawn: 'Solar', soldFor: 789 }];
+  const originalOwner = { id: original.keeperId, name: 'Horsekeeper' };
+  original.horses = [{ ...horse, originalOwner, id: 'owned-cosmic', specialSpawn: 'Lunar', notes: 'Preserve notes' }];
+  original.sold = [{ ...horse, originalOwner, id: 'sold-cosmic', specialSpawn: 'Solar', soldFor: 789 }];
   original.encounters.aetherion[0].mutations = [{ name: 'Astral' }];
   await writeFile(join(directory, 'player', 'save.json'), JSON.stringify(original));
   const migrated = await new GameStore(directory, catalog, defaults).init();

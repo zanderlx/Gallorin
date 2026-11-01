@@ -1,4 +1,5 @@
 import { horseCardRank } from '../public/horse-rank.js';
+import { mutationHairColor } from '../public/horse-hair-colors.js';
 // @ts-check
 import { createHash } from 'node:crypto';
 import { removeUnusedTraits } from '../public/unused-traits.js';
@@ -287,6 +288,16 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       eyeLayers: structuredClone(eye.layers || [])
     });
   }
+  for (const key of ['maneColor', 'tailColor']) {
+    if (!active(key)) continue;
+    if (mutationHairColor(horse, key)) throw new Error('Remove the hair color mutation before changing this override.');
+    if (rule(key).mode === 'clear') delete horse[key];
+    else {
+      const color = rule(key).value;
+      if (typeof color !== 'string' || !/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Enter a valid hex color.');
+      horse[key] = color.toUpperCase();
+    }
+  }
   if (active('personality')) {
     const personality = structuredClone(
       rule('personality').mode === 'reroll'
@@ -299,7 +310,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       personalitySystemId: personality.systemId || personality.id
     });
   }
-  for (const field of ['gender', 'age', 'origin', 'birthday', 'size']) {
+  for (const field of ['gender', 'age', 'origin', 'owner', 'birthday', 'size']) {
     if (!active(field)) continue;
     if (field === 'gender' && rule(field).mode === 'reroll') horse.gender = horse.gender === 'Male' ? 'Female' : 'Male';
     else if (field === 'size' && rule(field).mode === 'reroll') {
@@ -317,10 +328,10 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       const size = pickWeighted(choices, entry => entry.weight, rng).size;
       horse.size = size.name;
       horse.sizePercent = size.percent;
-    } else if (field === 'origin') {
+    } else if (field === 'origin' || field === 'owner') {
       if (typeof rule(field).value !== 'string' || !rule(field).value.trim() || rule(field).value.length > 100)
-        throw new Error('Origin must be 1–100 characters.');
-      horse.origin = rule(field).value.trim();
+        throw new Error((field === 'owner' ? 'Owner' : 'Origin') + ' must be 1–100 characters.');
+      horse[field] = rule(field).value.trim();
     } else updateHorseField(horse, field, rule(field).value, catalog, state);
   }
   if (active('daysOwned')) {

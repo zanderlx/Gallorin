@@ -5,7 +5,8 @@ import { horseCardRank } from './horse-rank.js';
 import { raritySettings } from './rarity-settings.js';
 import { horseTraits } from './horse-traits.js';
 import { escapeHTML as e, icon, number } from './ui.js';
-import { displayBirthday, horseAcquisitionDate, horseAgeLabel } from './dates.js';
+import { displayBirthday, horseAcquisitionDate } from './dates.js';
+import { horseOwner } from './horse-owner.js';
 
 export function profileContent(horse, state, { importPreview = false, catalog, overrideContent } = {}) {
   const rank = horseCardRank(horse, catalog);
@@ -15,7 +16,7 @@ export function profileContent(horse, state, { importPreview = false, catalog, o
   const header = `<div class="dialog-top">${sold ? '<span class="eyebrow">FROM THE ARCHIVES</span>' : ''}<button class="icon-button" data-action="close-profile" aria-label="Close horse profile">${icon('close')}</button></div>`;
   const info = `<div class="horse-name-row"><h2 id="profile-title" tabindex="0"><span class="horse-gender"><span class="horse-gender-label" role="img" aria-label="${horse.gender === 'Female' ? 'Female' : 'Male'}">${horseGenderIcon(horse.gender)}</span></span>${collected ? `<button class="horse-name-text" data-action="rename-horse" data-id="${horse.id}" aria-label="Rename horse">${e(horse.name || horse.species)}</button>` : e(horse.name || horse.species)}</h2></div><p class="muted horse-species-gender"><span>${e(horse.species)}</span></p>
   <dl class="horse-facts">${[
-    ['Age', horseAgeLabel(horse)],
+    ['Owner', horse.owner || (collected || sold || horse.originalOwner || importPreview ? horseOwner(horse) : 'None')],
     ['Origin', horse.origin],
     ['Size', `${horse.size} (${horse.sizePercent}%)`],
     ['Birthday', horseAcquisitionDate(horse) ? displayBirthday(horseAcquisitionDate(horse)) : 'Not caught yet'],

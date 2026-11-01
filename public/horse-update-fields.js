@@ -27,6 +27,7 @@ export const horseUpdateFields = [
   { key: 'birthday', label: 'Birthday', group: 'Identity', modes: ['keep', 'set'], type: 'date' },
   { key: 'daysOwned', label: 'Age in Days', group: 'Identity', modes: ['keep', 'set'], type: 'number' },
   { key: 'origin', label: 'Origin', group: 'Identity', modes: ['keep', 'set'], type: 'text' },
+  { key: 'owner', label: 'Owner', group: 'Identity', modes: ['keep', 'set'], type: 'text' },
   { key: 'size', label: 'Size', group: 'Identity', modes: ['keep', 'set', 'reroll'] },
   { key: 'personality', label: 'Personality', group: 'Personality & Notes', modes: ['keep', 'set', 'reroll'] },
   {
@@ -40,6 +41,8 @@ export const horseUpdateFields = [
   { key: 'favorite', label: 'Favorite', group: 'Identity', modes: ['keep', 'set'] },
   { key: 'palette', label: 'Palette', group: 'Appearance', modes: ['keep', 'set', 'reroll'] },
   { key: 'eye', label: 'Eye Color', group: 'Appearance', modes: ['keep', 'set', 'reroll'] },
+  { key: 'maneColor', label: 'Mane Color', group: 'Appearance', modes: ['keep', 'set', 'clear'], type: 'color' },
+  { key: 'tailColor', label: 'Tail Color', group: 'Appearance', modes: ['keep', 'set', 'clear'], type: 'color' },
   ...horseColorRegions.map(name => ({
     key: 'color:' + name,
     label: name,
@@ -76,7 +79,8 @@ export function traitCountRange(category, species, cosmic, available) {
   const max = horseTraitLimits[category] ?? 1;
   const required =
     ['Mane', 'Tail'].includes(category) ||
-    (category === 'Keratin' && ['unicorn', 'anticorn'].includes(species.name.toLowerCase())) ||
+    (category === 'Keratin' &&
+      ['caprine', 'bisorse', 'unicorn', 'anticorn', 'kirin'].includes(species.name.toLowerCase())) ||
     (cosmic && ['Pattern', 'Paint', 'Cosmetic'].includes(category));
   return { min: required ? Math.min(max, available) : 0, max: Math.min(max, available), rollMax: max };
 }

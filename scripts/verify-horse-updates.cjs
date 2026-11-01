@@ -48,6 +48,16 @@ app
     await action('save-traits', { id: target.id, traits: targetTraits });
     await action('horse-updates-enabled', { enabled: true });
     await action('save-profile', { name: 'Renderer Keeper', about: 'i<3horses', avatarSeed: 11 });
+    if (process.argv.includes('--hair-colors-only') && caught.state.horses[0].mutations.length) {
+      const result = await action('preview-horse-updates', {
+        allowDuplicates: false,
+        ids: [id],
+        rules: Object.fromEntries(
+          caught.state.horses[0].mutations.map((_, index) => [`mutation:${index}`, { mode: 'clear' }])
+        )
+      });
+      await action('apply-horse-updates', { token: result.preview.token });
+    }
     const win = new BrowserWindow({
       width: 1440,
       height: 1000,
@@ -69,6 +79,142 @@ app
       throw Error('Missing ' + selector + ': ' + error);
     }
     await waitFor('#collection-grid .horse-card');
+    if (process.argv.includes('--owners-only')) {
+      const openOwner = async () => {
+        await win.webContents.executeJavaScript(
+          `document.querySelector('#collection-grid [data-action=inspect]').click();document.querySelector('[data-profile-tab=overrides]').click();`
+        );
+        await waitFor('[data-key=owner]');
+        return win.webContents.executeJavaScript(`(()=>{
+          const row=document.querySelector('[data-key=owner]');row.closest('details').open=true;
+          return {original:row.querySelector('[data-current-value]').textContent.trim(),override:row.querySelector('[data-override-value]').textContent.trim()};
+        })()`);
+      };
+      const initial = await openOwner();
+      if (initial.original !== 'Renderer Keeper' || initial.override !== '—')
+        throw Error('Unexpected default owner columns: ' + JSON.stringify(initial));
+      await win.webContents.executeJavaScript(
+        `new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`
+      );
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await win.webContents.executeJavaScript(`(async()=>{
+        const row=document.querySelector('[data-key=owner]');
+        row.closest('details').open=true;
+        row.scrollIntoView({block:'center'});
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        if(!row.getBoundingClientRect().height)throw Error('Owner row is not visible');
+      })()`);
+      await new Promise(resolve => setTimeout(resolve, 350));
+      await writeFile(join(directory, 'owner-original.png'), (await win.webContents.capturePage()).toPNG());
+      await win.webContents.executeJavaScript(`(async()=>{
+        const form=document.querySelector('#horse-update-form'),row=form.querySelector('[data-key=owner]');
+        row.querySelector('[data-edit-override]').click();
+        const input=form.querySelector('.horse-override-dialog [data-value]');
+        input.value='Trading Override';input.dispatchEvent(new Event('input',{bubbles:true}));
+        form.querySelector('[data-save-override]').click();
+        row.closest('details').querySelector('[data-save-section]').click();
+        for(let i=0;i<100;i++) {
+          if(document.querySelector('[data-key=owner] .horse-override-badge'))return;
+          await new Promise(resolve=>setTimeout(resolve,50));
+        }
+        throw Error('Owner override was not saved');
+      })()`);
+      await action('save-profile', { name: 'Renamed Keeper', about: '', avatarSeed: 11 });
+      await win.reload();
+      await waitFor('#collection-grid .horse-card');
+      const renamed = await openOwner();
+      if (renamed.original !== 'Renamed Keeper' || renamed.override !== 'Trading Override')
+        throw Error('Rename changed the wrong owner columns: ' + JSON.stringify(renamed));
+      const restore = await action('preview-horse-updates', {
+        allowDuplicates: false,
+        ids: [id],
+        rules: { owner: { mode: 'restore' } }
+      });
+      await action('apply-horse-updates', { token: restore.preview.token });
+      await win.reload();
+      await waitFor('#collection-grid .horse-card');
+      const restored = await openOwner();
+      if (restored.original !== 'Renamed Keeper' || restored.override !== '—')
+        throw Error('Owner restore failed: ' + JSON.stringify(restored));
+      console.log('Owner override UI passed (muted, isolated): ' + directory);
+      win.destroy();
+      await backend.closeGameServer();
+      app.quit();
+      return;
+    }
+    if (process.argv.includes('--hair-colors-only')) {
+      const openOverrides = async () => {
+        await win.webContents.executeJavaScript(
+          `document.querySelector('#collection-grid [data-action=inspect]').click();document.querySelector('[data-profile-tab=overrides]').click();`
+        );
+        await waitFor('[data-key=maneColor]');
+      };
+      await openOverrides();
+      await win.webContents.executeJavaScript(`(async()=>{
+        const form=document.querySelector('#horse-update-form');
+        for(const key of ['maneColor','tailColor']) {
+          const row=form.querySelector('[data-key='+key+']');
+          if(!row.querySelector('[data-current-value] .horse-appearance-swatches'))throw Error('Missing original color swatch');
+          if(row.querySelector('[data-override-value]').textContent.trim()!=='—')throw Error('Unexpected default override');
+        }
+        const row=form.querySelector('[data-key=maneColor]');
+        row.closest('details').open=true;
+        row.querySelector('[data-edit-override]').click();
+        const dialog=form.querySelector('.horse-override-dialog');
+        const input=dialog.querySelector('[data-value]');input.value='#abcdef';input.dispatchEvent(new Event('input',{bubbles:true}));
+        form.querySelector('[data-save-override]').click();
+        row.closest('details').querySelector('[data-save-section]').click();
+        for(let i=0;i<100;i++) {
+          if(document.querySelector('[data-key=maneColor] [data-override-value]').textContent.includes('#ABCDEF'))return;
+          await new Promise(r=>setTimeout(r,50));
+        }
+        throw Error('Manual mane override was not saved');
+      })()`);
+      for (const name of ['Chimera Mane', 'Chimera Tail', 'Harlequin Mane', 'Harlequin Tail']) {
+        const mutation = caught.catalog.mutations.find(m => m.name === name);
+        const expected = caught.state.horses[0].palette.colors[name.startsWith('Chimera') ? 'Pattern' : 'Paint'];
+        const field = name.endsWith('Mane') ? 'maneColor' : 'tailColor';
+        await win.webContents.executeJavaScript(`(async()=>{
+          let form=document.querySelector('#horse-update-form');
+          const row=form.querySelector('[data-key="mutation:0"]');
+          row.closest('details').open=true;
+          row.querySelector('[data-edit-override]').click();
+          const select=form.querySelector('.horse-override-dialog [data-value]');
+          select.value=${JSON.stringify(mutation.id)};
+          select.dispatchEvent(new Event('change',{bubbles:true}));
+          form.querySelector('[data-save-override]').click();
+          if(!form.querySelector('[data-key=${field}] [data-override-value]').textContent.includes(${JSON.stringify(expected)}))throw Error('Draft mutation did not update hair color');
+          row.closest('details').querySelector('[data-save-section]').click();
+          for(let i=0;i<100;i++) {
+            form=document.querySelector('#horse-update-form');
+            if(form.querySelector('[data-key="mutation:0"] [data-mode]').value==='keep')break;
+            await new Promise(r=>setTimeout(r,50));
+          }
+          if(!form.querySelector('[data-key=${field}] [data-override-value]').textContent.includes(${JSON.stringify(expected)}))throw Error('Saved mutation did not update hair color');
+          const category=${JSON.stringify(field === 'maneColor' ? 'Mane' : 'Tail')};
+          const art=[...document.querySelectorAll('#profile [data-trait-category="'+category+'"],#profile [data-layer="'+category.toLowerCase()+'"]')];
+          if(!art.some(layer=>[...layer.querySelectorAll('[fill],[stop-color]')].some(node=>(node.getAttribute('fill')||node.getAttribute('stop-color')).toUpperCase()===${JSON.stringify(expected.toUpperCase())})))throw Error('Saved mutation did not recolor rendered '+category);
+        })()`);
+      }
+      const removed = await action('preview-horse-updates', {
+        allowDuplicates: false,
+        ids: [id],
+        rules: { 'mutation:0': { mode: 'clear' } }
+      });
+      await action('apply-horse-updates', { token: removed.preview.token });
+      await win.reload();
+      await waitFor('#collection-grid .horse-card');
+      await openOverrides();
+      const shown = await win.webContents.executeJavaScript(
+        `document.querySelector('[data-key=tailColor] [data-override-value]').textContent.trim()`
+      );
+      if (shown !== '—') throw Error('Removed mutation left a stale override');
+      console.log('Hair color override UI passed (muted, isolated): ' + directory);
+      win.destroy();
+      await backend.closeGameServer();
+      app.quit();
+      return;
+    }
     if (process.argv.includes('--appearance-only')) {
       await win.webContents.executeJavaScript(`(async()=>{
         document.querySelector('#collection-grid [data-action=inspect]').click();

@@ -115,6 +115,8 @@ export function readHorseDocument(document) {
     throw new Error('Choose a valid rarity from Common through Cosmic.');
   return {
     ...readHorseVersion(h),
+    ...(h.maneColor == null ? {} : { maneColor: color(h.maneColor) }),
+    ...(h.tailColor == null ? {} : { tailColor: color(h.tailColor) }),
     skills: readHorseSkills(h.skills),
     ...identifiers,
     ...(h.rarityTier === undefined ? {} : { rarityTier: h.rarityTier }),
@@ -126,6 +128,21 @@ export function readHorseDocument(document) {
     age: choice(h.age, ages, 'age'),
     gender: choice(h.gender, ['Female', 'Male'], 'gender'),
     origin: text(h.origin, 'Origin'),
+    ...(h.owner === undefined
+      ? {}
+      : {
+          owner: text(h.owner, 'Owner'),
+          overriddenFields: ['owner'],
+          overrideOriginals: { owner: { fields: {}, missing: ['owner'] } }
+        }),
+    ...(h.originalOwner === undefined
+      ? {}
+      : {
+          originalOwner: {
+            id: text(h.originalOwner?.id, 'Original owner identity', 100),
+            name: text(h.originalOwner?.name, 'Original owner name', 60)
+          }
+        }),
     size,
     sizePercent: sizes[size],
     birthday,

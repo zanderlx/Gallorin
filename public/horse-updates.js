@@ -1,4 +1,11 @@
 import { regularEyes, isCosmicPalette } from './cosmic-types.js';
+import {
+  isHairColorField,
+  originalHairColor,
+  hairColorOverride,
+  horseHairColor,
+  mutationHairColor
+} from './horse-hair-colors.js';
 import { raritySettings, rarityNames } from './rarity-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { horseOverrideValue, horseOverrideBadge } from './horse-override-markers.js';
@@ -7,6 +14,7 @@ import { localCalendarDate } from './dates.js';
 import { escapeHTML as e, icon, html, raw, setHTML } from './ui.js';
 import { horseUpdateFields, horseTraitLimits, traitChoices, traitCountRange } from './horse-update-fields.js';
 import { horseFieldOptions } from './horse-fields.js';
+import { originalHorseOwner } from './horse-owner.js';
 import { lockedCosmicLabel } from './horse-update-labels.js';
 
 const modeLabel = {
@@ -56,6 +64,8 @@ export function horseAppearanceChoices(key, catalog, horse, speciesId = horse.sp
   return html`${sorted(definitions).map(value => html`<label class="horse-appearance-choice ${key === 'eye' ? 'is-eye' : ''}"><input type="radio" data-appearance-choice name="horse-choice-${key}" value="${value.id}" ${selected === value.id ? raw('checked') : ''}><span><strong>${value.name}</strong>${appearanceSwatches(key, value)}</span></label>`)}`;
 }
 function overrideValueMarkup(key, value) {
+  if (isHairColorField(key) && /^#[0-9a-f]{6}$/i.test(value))
+    return html`<span class="horse-appearance-value is-eye"><span>${value}</span><span class="horse-appearance-swatches is-compact" aria-label="${key === 'maneColor' ? 'Mane' : 'Tail'} color"><span style="background:${value}"></span></span></span>`;
   if (key.startsWith('trait:') && Array.isArray(value))
     return html`${(traitChoices(value).length ? traitChoices(value) : ['—']).map(trait => html`<span class="horse-override-trait-line">${trait}</span>`)}`;
   if (['eye', 'palette'].includes(key) && value && typeof value === 'object')
@@ -194,6 +204,7 @@ export function speciesConfirmationContent(preview, catalog, horse) {
   return html`<div class="dialog-top"><h2 id="horse-species-confirm-title">Confirm Species Changes</h2><button type="button" class="icon-button" data-cancel-species-save aria-label="Cancel species save">${raw(icon('close'))}</button></div><p class="horse-species-description">Updating a species also updates species-specific traits. The amount of traits stay the same. Update the amount of traits in the Traits override section. Cosmic horses get the max amount of traits per category</p><div class="horse-species-change-table"><table><thead><tr><th>Field</th><th>Current</th><th>After Change</th></tr></thead><tbody>${rows.map(row => html`<tr><th>${row.label}</th><td>${cell(row, row.before)}</td><td>${cell(row, row.after)}</td></tr>`)}</tbody></table></div>`;
 }
 export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, onApplied }) {
+  const overrideValue = (horse, key) => horseOverrideValue(horse, key);
   let working = false,
     editing = null,
     baselines = new Map(),
@@ -254,7 +265,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     if (mode === 'set' && baselines.has(row.dataset.key))
       return JSON.stringify(committed.slice(1)) !== JSON.stringify(baselines.get(row.dataset.key).slice(1));
     if (mode === 'clear') {
-      const value = horseOverrideValue(selectedHorse(row.closest('form')), row.dataset.key);
+      const value = overrideValue(selectedHorse(row.closest('form')), row.dataset.key);
       return Array.isArray(value) ? value.length > 0 : !!value;
     }
     return true;
@@ -274,13 +285,17 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
   }
   function updateRow(row, form) {
     if (editing?.row === row) return;
-    const horse = selectedHorse(form);
+    const horse = isHairColorField(row.dataset.key) ? hairPreviewHorse(form) : selectedHorse(form);
     if (!horse) return;
     const key = row.dataset.key,
       mode = row.querySelector('[data-mode]').value;
-    const saved = horse.overriddenFields?.includes(key),
+    const saved =
+        horse.overriddenFields?.includes(key) ||
+        (key === 'owner' && !!horse.owner) ||
+        (isHairColorField(key) && !!hairColorOverride(horse, key)),
       input = row.querySelector('[data-value]');
-    let value = saved ? displayValue(key, horseOverrideValue(horse, key)) : '—';
+    let value = saved ? displayValue(key, overrideValue(horse, key)) : '—';
+    if (isHairColorField(key) && mode === 'keep') value = hairColorOverride(horse, key) || '—';
     if (mode === 'set')
       value = input.multiple
         ? [...input.selectedOptions].map(option => option.textContent).join(', ') || '—'
@@ -315,6 +330,25 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
         : remove.disabled && saved && !horse.overrideOriginals?.[key]
           ? 'Original value was not recorded for this older override'
           : 'Remove ' + row.querySelector('strong').textContent + ' override';
+    if (mutationHairColor(horse, key)) {
+      remove.disabled = true;
+      remove.title = 'Remove the mutation to remove its color override.';
+    }
+  }
+  function hairPreviewHorse(form) {
+    const horse = selectedHorse(form);
+    if (!horse) return horse;
+    const mutations = [...(horse.mutations || [])];
+    for (const row of form.querySelectorAll('[data-key^="mutation:"]')) {
+      const index = Number(row.dataset.key.split(':')[1]);
+      const mode = row.querySelector('[data-mode]').value;
+      if (mode === 'set')
+        mutations[index] = getCatalog().mutations.find(m => m.id === row.querySelector('[data-value]').value);
+      else if (mode === 'clear') mutations[index] = null;
+      else if (mode === 'restore') mutations[index] = horse.overrideOriginals?.[row.dataset.key]?.value;
+      else if (mode === 'reroll' && row.dataset.resolvedData) mutations[index] = JSON.parse(row.dataset.resolvedData);
+    }
+    return { ...horse, mutations: mutations.filter(Boolean) };
   }
   function finishEdit(form, save) {
     if (!editing) return;
@@ -333,6 +367,8 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     editing = null;
     updateRow(row, form);
     refreshTraits(form);
+    for (const colorRow of form.querySelectorAll('[data-key="maneColor"],[data-key="tailColor"]'))
+      updateRow(colorRow, form);
     row.querySelector('[data-edit-override]').focus();
   }
   function selectHorse(form, id) {
@@ -344,20 +380,29 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     form.querySelector('.horse-update-rules').hidden = false;
 
     for (const row of form.querySelectorAll('[data-key]')) {
-      const value = horseOverrideValue(horse, row.dataset.key),
+      const value = overrideValue(horse, row.dataset.key),
         input = row.querySelector('[data-value]');
       const original = horse.overrideOriginals?.[row.dataset.key];
       setHTML(
         row.querySelector('[data-current-value]'),
         overrideValueMarkup(
           row.dataset.key,
-          original ? original.value : horse.overriddenFields?.includes(row.dataset.key) ? 'Not recorded' : value
+          row.dataset.key === 'owner'
+            ? originalHorseOwner(horse)
+            : isHairColorField(row.dataset.key)
+              ? originalHairColor(horse)
+              : original
+                ? original.value
+                : horse.overriddenFields?.includes(row.dataset.key)
+                  ? 'Not recorded'
+                  : value
         )
       );
       row.querySelector('[data-mode]').value = 'keep';
       const protectedSlot =
         (row.dataset.key.startsWith('mutation:') && !!lockedCosmicLabel({ mutations: [value] })) ||
-        (row.dataset.key === 'palette' && horseCardRank(horse, getCatalog()).key === 'cosmic');
+        (row.dataset.key === 'palette' && horseCardRank(horse, getCatalog()).key === 'cosmic') ||
+        !!mutationHairColor(horse, row.dataset.key);
       row.querySelector('[data-edit-override]').disabled =
         protectedSlot || !horseUpdateFields.find(field => field.key === row.dataset.key).modes.includes('set');
       row.querySelector('[data-roll-override]').disabled ||= protectedSlot;
@@ -374,6 +419,12 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       delete row.dataset.resolvedValue;
       delete row.dataset.resolvedData;
       input.value = value && typeof value === 'object' ? value.id || '' : String(value ?? '');
+      if (isHairColorField(row.dataset.key)) {
+        input.value = horseHairColor(horse, row.dataset.key) || '#FFFFFF';
+        if (mutationHairColor(horse, row.dataset.key))
+          row.querySelector('[data-edit-override]').title =
+            'Remove the mutation before setting a manual color override.';
+      }
       if (row.dataset.key === 'species')
         input.value = horse.speciesId || getCatalog().species.find(s => s.name === horse.species)?.id || '';
       if (row.dataset.key.startsWith('skill:')) {
@@ -383,7 +434,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
     }
     refreshTraits(form);
     for (const row of form.querySelectorAll('[data-key^="trait:"]')) {
-      const chosen = horseOverrideValue(horse, row.dataset.key);
+      const chosen = overrideValue(horse, row.dataset.key);
       for (const option of row.querySelector('[data-value]').options) option.selected = chosen.includes(option.value);
     }
     refreshTraits(form);
@@ -460,7 +511,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
           }
       }
       for (const row of rows) {
-        const value = horseOverrideValue(proposed, row.dataset.key),
+        const value = overrideValue(proposed, row.dataset.key),
           input = row.querySelector('[data-value]');
         if (input.multiple) {
           for (const option of input.options) option.selected = value.includes(option.value);
@@ -808,7 +859,7 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
                     ? 'Maximum 4,000 characters.'
                     : ['birthday', 'daysOwned'].includes(field.key)
                       ? 'Choose acquisition date or age in days, not both. Dates cannot be in the future. Age: 0–365,000 whole days.'
-                      : field.key === 'origin'
+                      : ['origin', 'owner'].includes(field.key)
                         ? '1–100 characters.'
                         : field.type === 'color'
                           ? 'Choose a color; stored as a six-digit hex value.'
@@ -853,7 +904,11 @@ export function bindHorseUpdates({ root, getState, getCatalog, preview, apply, o
       const input = inputs.find(input => !input.checkValidity());
       const value = row.querySelector('[data-value]');
       let error = input ? input.validationMessage : '';
-      if (mode === 'set' && ['origin', 'birthday', 'daysOwned'].includes(row.dataset.key) && !value.value.trim())
+      if (
+        mode === 'set' &&
+        ['origin', 'owner', 'birthday', 'daysOwned'].includes(row.dataset.key) &&
+        !value.value.trim()
+      )
         error = 'Enter a value.';
       if (
         mode === 'set' &&
