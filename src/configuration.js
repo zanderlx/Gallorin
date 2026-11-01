@@ -165,8 +165,9 @@ export class ConfigurationFiles {
       throw new Error('Invalid config/index.json.');
     const catalog = normalizeCatalog(base);
     let needsSpeciesSpellingCleanup = false;
+    let needsCosmicEyeCleanup = false;
     for (const kind of registryKinds) {
-      const entries = await this.json(`${kind}.json`);
+      let entries = await this.json(`${kind}.json`);
       if (
         !Array.isArray(entries) ||
         entries.length > 10000 ||
@@ -175,6 +176,11 @@ export class ConfigurationFiles {
         new Set(entries.map(e => e.id)).size !== entries.length
       )
         throw new Error(`Invalid ${kind}.json registry.`);
+      if (kind === 'eyes') {
+        const normal = regularEyes(entries);
+        needsCosmicEyeCleanup = normal.length !== entries.length;
+        entries = normal;
+      }
       catalog[kind] = entries.map(entry => {
         if (kind === 'species' && entry.name === 'Friesan') {
           entry = { ...entry, name: 'Friesian' };
@@ -263,10 +269,11 @@ export class ConfigurationFiles {
       if (error.code !== 'ENOENT') throw error;
       catalog.rarities = structuredClone(defaultRaritySettings);
     }
-    return { catalog, zones, settings, needsPaletteCleanup, needsSpeciesSpellingCleanup };
+    return { catalog, zones, settings, needsPaletteCleanup, needsSpeciesSpellingCleanup, needsCosmicEyeCleanup };
   }
   documents({ catalog, zones, settings }) {
     const files = Object.fromEntries(registryKinds.map(kind => [`${kind}.json`, catalog[kind]]));
+    files['eyes.json'] = regularEyes(catalog.eyes);
     files['spawn-settings.json'] = settings;
     files['rarities.json'] = validateRaritySettings(catalog.rarities || defaultRaritySettings);
     files['index.json'] = { version: 1, zoneIds: zones.map(z => z.id) };

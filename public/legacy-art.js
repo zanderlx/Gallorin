@@ -1,4 +1,5 @@
 import { cosmicArtworkEye } from './cosmic-types.js';
+import { horseHairColor } from './horse-hair-colors.js';
 
 // Original, deliberately stylized placeholder artwork. Species anatomy is not simulated.
 export function legacyHorseHeadArt(horse, large = false) {
@@ -8,7 +9,8 @@ export function legacyHorseArt(horse, large = false) {
   const palette = horse.palette.colors;
   const coat = palette['Coat Top'];
   const bottom = palette['Coat Bottom'];
-  const hair = palette.Hair;
+  const hair = horseHairColor(horse, 'maneColor');
+  const tail = horseHairColor(horse, 'tailColor');
   // Cosmic artwork does not alter the saved/generated eye trait.
   const eye = cosmicArtworkEye(horse) || horse.eye.colors[0];
   const uid = `h${horse.id.replaceAll('-', '')}${large ? 'l' : ''}`;
@@ -18,6 +20,7 @@ export function legacyHorseArt(horse, large = false) {
     <radialGradient id="${uid}bg"><stop stop-color="${coat}" stop-opacity=".22"/><stop offset="1" stop-color="#181d1b"/></radialGradient>
     <linearGradient id="${uid}coat" x1=".2" x2=".8" y2="1"><stop stop-color="${coat}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>
     <linearGradient id="${uid}mane" x2="1" y2="1"><stop stop-color="${hair}"/><stop offset="1" stop-color="#282128"/></linearGradient>
+    <linearGradient id="${uid}tail" x2="1" y2="1"><stop stop-color="${tail}"/><stop offset="1" stop-color="#282128"/></linearGradient>
   </defs>
   <rect width="460" height="310" fill="#1a211f"/><rect width="460" height="310" fill="url(#${uid}bg)"/>
   <circle cx="245" cy="135" r="98" fill="none" stroke="${coat}" stroke-opacity=".12"/>
@@ -26,7 +29,7 @@ export function legacyHorseArt(horse, large = false) {
   <g stroke="${coat}" stroke-opacity=".14" fill="none"><path d="m30 275 10-110 7 110m-9-75-17-22m19 38 23-25m341 84-6-140m2 55 21-25m-20-3-13-24M75 290l3-57m302 57 9-61"/><path d="m34 160 6-10 7 10m345-25 6-10 6 10"/></g>
   <ellipse cx="234" cy="275" rx="120" ry="12" fill="#0b1210" opacity=".6"/>
   <g transform="translate(16 1)">
-  <path d="M161 153c-49-13-62 38-79 57-12 13-19 14-32 12 22 21 58 10 73-9 11-15 9-35 38-35Z" fill="url(#${uid}mane)"/>
+  <path d="M161 153c-49-13-62 38-79 57-12 13-19 14-32 12 22 21 58 10 73-9 11-15 9-35 38-35Z" fill="url(#${uid}tail)"/>
   <path d="m158 185 15 20-17 35 4 30-13 3-7-37 12-33-13-24m89 5 23 15 14 66-13 5-20-55-27-25" fill="${bottom}" stroke="#211d19" stroke-opacity=".22" stroke-width="2"/>
   <path d="M140 153c16-19 65-12 87-10 22 1 31-11 37-35l13-39 30 3c-15 33 5 56-4 87-5 18-18 33-40 39-24 5-48-6-66-1-9 14-15 26-24 40l-5 30-12 1-1-35 14-41c-33-4-41-24-29-39Z" fill="url(#${uid}coat)" stroke="#221c18" stroke-opacity=".3" stroke-width="1.5"/>
   <path d="M267 168q19 11 12 33l-3 31 14 30-11 6-19-30 1-28-10-22" fill="url(#${uid}coat)" stroke="#221c18" stroke-opacity=".22" stroke-width="1.5"/>

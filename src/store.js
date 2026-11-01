@@ -48,6 +48,7 @@ const upgradeBackupPrefixes = [
   'pre-horse-skills-',
   'pre-cosmic-palettes-',
   'pre-horse-updates-',
+  'pre-owner-identity-',
   'pre-sound-effects-'
 ];
 
@@ -101,6 +102,7 @@ export class GameStore {
       existingSave = false;
       this.state = {
         version: 1,
+        keeperId: randomUUID(),
         gold: this.defaults.startingGold,
         settings: structuredClone(this.defaults),
         horses: [],
@@ -136,9 +138,22 @@ export class GameStore {
     await this.addDefaultTraits();
     await this.removeUnusedSpeciesTraits();
     await this.upgradeHorses();
+    await this.initializeOwnerIdentity();
     await this.readConfiguration();
     await this.pruneOldBackups();
     return this;
+  }
+  async initializeOwnerIdentity() {
+    const legacyHorses = [...this.state.horses, ...this.state.sold].filter(horse => !horse.originalOwner);
+    if (this.state.keeperId && !legacyHorses.length) return;
+    const next = this.snapshot();
+    next.keeperId ??= randomUUID();
+    // Legacy stable/archive horses predate owner provenance; future imports always carry it.
+    for (const horse of [...next.horses, ...next.sold])
+      horse.originalOwner ??= { id: next.keeperId, name: next.keeper?.name || 'Horsekeeper' };
+    await copyFile(this.file, join(this.directory, 'backups', `pre-owner-identity-${Date.now()}-${randomUUID()}.json`));
+    await this.persist(next);
+    this.state = next;
   }
   // Retired categories are removed without changing other traits or spawn assignments.
   async removeUnusedSpeciesTraits() {
@@ -292,7 +307,11 @@ export class GameStore {
       .filter(z => z.custom || overrides.has(z.id))
       .map(z => structuredClone(z));
     this.configuration = configuration;
-    if (configuration.needsPaletteCleanup || configuration.needsSpeciesSpellingCleanup) {
+    if (
+      configuration.needsPaletteCleanup ||
+      configuration.needsSpeciesSpellingCleanup ||
+      configuration.needsCosmicEyeCleanup
+    ) {
       const next = this.snapshot();
       await copyFile(
         this.file,
@@ -499,6 +518,7 @@ export class GameStore {
           const caughtAt = new Date().toISOString();
           next.horses.push({
             ...horse,
+            originalOwner: { id: next.keeperId, name: next.keeper?.name || 'Horsekeeper' },
             birthday: localCalendarDate(caughtAt),
             personalityDescription: horse.personalityDescription ?? horse.personality.description ?? '',
             name: payload.name === undefined ? horse.name : validateHorseName(payload.name),
@@ -542,7 +562,13 @@ export class GameStore {
         if (!next.settings.ignoreStableLimit && next.horses.length >= next.settings.stableCapacity)
           throw new Error('Your stable is full. Adjust capacity in Game Settings.');
         const caughtAt = new Date().toISOString();
-        const imported = { ...horse, id: randomUUID(), birthday: localCalendarDate(caughtAt), caughtAt };
+        const imported = {
+          ...horse,
+          id: randomUUID(),
+          birthday: localCalendarDate(caughtAt),
+          caughtAt,
+          originalOwner: horse.originalOwner || { id: randomUUID(), name: 'Unknown' }
+        };
         upgradeHorse(imported);
         next.horses.push(imported);
       } else if (type === 'rename' || type === 'favorite') {
@@ -564,7 +590,12 @@ export class GameStore {
           throw new Error('Notes must be 4,000 characters or fewer.');
         horse.notes = payload.notes;
       } else if (type === 'save-profile') {
+        const previousName = next.keeper?.name || 'Horsekeeper';
         next.keeper = validateKeeper(payload);
+        for (const horse of horseRecords(next)) {
+          if (horse.originalOwner?.id === next.keeperId && horse.originalOwner.name === previousName)
+            horse.originalOwner.name = next.keeper.name;
+        }
         if (next.keeper.about.includes('i<3horses')) {
           next.settings.developerSettingsVisible = true;
           next.keeper.about = next.keeper.about.replace(/([ \t]?)i<3horses([ \t]?)/g, (_match, before, after) =>
@@ -574,6 +605,10 @@ export class GameStore {
       } else if (type === 'disable-developer-settings') {
         next.settings.developerSettingsVisible = false;
       } else if (type === 'delete-profile') {
+        const previousName = next.keeper?.name || 'Horsekeeper';
+        for (const horse of horseRecords(next))
+          if (horse.originalOwner?.id === next.keeperId && horse.originalOwner.name === previousName)
+            horse.originalOwner.name = 'Horsekeeper';
         delete next.keeper;
       } else if (type === 'delete-horse') {
         const exists = [...next.horses, ...next.sold, ...Object.values(next.encounters).flat()].some(

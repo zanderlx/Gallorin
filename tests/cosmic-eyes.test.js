@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import { GameStore } from '../src/store.js';
 import { spawnHorse } from '../src/spawning.js';
 import { regenerateHorse } from '../src/horse-regeneration.js';
-import { horseArt } from '../public/art.js';
-import { regularEyes, isCosmicEye, setCosmicEyeDefinitions, cosmicEyeColors } from '../public/cosmic-types.js';
+import { horseArt, legacyHorseArt, setProvidedHorseArtwork } from '../public/art.js';
+import { regularEyes, isCosmicEye, cosmicEyeColors, cosmicArtworkEye, withCosmicEyes } from '../public/cosmic-types.js';
 import { horseFieldOptions } from '../public/horse-fields.js';
 import { createDefinitionDocument, readDefinitionDocument } from '../public/definition-transfer.js';
 const base = JSON.parse(await readFile(new URL('../data/definitions/catalog.json', import.meta.url), 'utf8'));
@@ -17,7 +17,7 @@ async function fixture(t) {
   t.after(() => rm(dir, { recursive: true, force: true }));
   return { dir, store: await new GameStore(dir, base, defaults).init() };
 }
-test('Cosmic eye edits persist locally and update existing artwork without changing horse traits', async t => {
+test('Cosmic eye edits and imports retain fixed colors without changing horse traits', async t => {
   const { dir, store } = await fixture(t);
   const initial = store.getCatalog();
   const solar = initial.eyes.find(e => e.cosmicType === 'Solar');
@@ -33,20 +33,69 @@ test('Cosmic eye edits persist locally and update existing artwork without chang
     id: solar.id,
     values: { ...solar, colors: ['#123456'], description: 'Updated artwork' }
   });
-  const saved = JSON.parse(await readFile(join(dir, 'config/eyes.json'), 'utf8')).find(e => e.id === solar.id);
+  const diskEyes = JSON.parse(await readFile(join(dir, 'config/eyes.json'), 'utf8'));
+  assert.ok(diskEyes.every(eye => !isCosmicEye(eye)));
+  const saved = store.getCatalog().eyes.find(e => e.id === solar.id);
   assert.equal(saved.cosmicType, 'Solar');
-  assert.deepEqual(saved.colors, ['#123456']);
+  assert.deepEqual(saved.colors, [cosmicEyeColors.Solar]);
   const restarted = await new GameStore(dir, base, defaults).init();
-  assert.deepEqual(restarted.getCatalog().eyes.find(e => e.id === solar.id).colors, ['#123456']);
-  setCosmicEyeDefinitions(restarted.getCatalog().eyes);
-  try {
-    assert.match(horseArt(horse), /data-layer="eye"[^>]*>[\s\S]*?fill="#123456"/);
-    assert.deepEqual(horse, before);
-  } finally {
-    setCosmicEyeDefinitions([]);
-  }
+  assert.deepEqual(restarted.getCatalog().eyes.find(e => e.id === solar.id).colors, [cosmicEyeColors.Solar]);
+  assert.match(horseArt(horse), /data-layer="eye"[^>]*>[\s\S]*?fill="#FFDD00"/);
+  assert.deepEqual(horse, before);
   const document = createDefinitionDocument('eyes', saved);
   assert.equal(readDefinitionDocument('eyes', document, restarted.getCatalog()).id, solar.id);
+  document.definition.colors = ['#000000'];
+  assert.deepEqual(readDefinitionDocument('eyes', document, restarted.getCatalog()).colors, [cosmicEyeColors.Solar]);
+});
+
+test('old local overrides cannot change any Cosmic type after restart or in artwork', async t => {
+  const { dir, store } = await fixture(t);
+  const eyes = store.getCatalog().eyes.map(eye => (isCosmicEye(eye) ? { ...eye, colors: ['#123456'] } : eye));
+  await writeFile(join(dir, 'config/eyes.json'), JSON.stringify(eyes));
+  const restarted = await new GameStore(dir, base, defaults).init();
+  const cleaned = JSON.parse(await readFile(join(dir, 'config/eyes.json'), 'utf8'));
+  assert.deepEqual(cleaned, regularEyes(eyes));
+  for (const [type, color] of Object.entries(cosmicEyeColors)) {
+    assert.deepEqual(restarted.getCatalog().eyes.find(eye => eye.cosmicType === type).colors, [color]);
+    assert.deepEqual(withCosmicEyes(eyes).find(eye => eye.cosmicType === type).colors, [color]);
+    assert.equal(cosmicArtworkEye({ specialSpawn: type, eye: { colors: ['#123456'] } }), color);
+    assert.equal(cosmicArtworkEye({ mutations: [{ name: type }], eye: { colors: ['#123456'] } }), color);
+  }
+  assert.equal(cosmicArtworkEye({ mutations: [] }), null);
+});
+
+test('existing saved Cosmic horses use fixed colors in all artwork modes', async t => {
+  const { dir, store } = await fixture(t);
+  const catalog = store.getCatalog();
+  const oldHorse = spawnHorse(
+    catalog,
+    catalog.locations.find(zone => zone.id === 'aetherion'),
+    () => 0.5
+  );
+  const oldHorses = Object.keys(cosmicEyeColors).map(type => ({
+    ...structuredClone(oldHorse),
+    id: `old-${type}`,
+    specialSpawn: type,
+    eye: { ...oldHorse.eye, colors: ['#123456'] }
+  }));
+  const player = JSON.parse(await readFile(store.file, 'utf8'));
+  player.horses = oldHorses;
+  await writeFile(store.file, JSON.stringify(player));
+  const restarted = await new GameStore(dir, base, defaults).init();
+  assert.equal(restarted.snapshot().horses.length, oldHorses.length);
+  for (const horse of restarted.snapshot().horses) {
+    const color = cosmicEyeColors[horse.specialSpawn];
+    assert.ok(color);
+    assert.ok(legacyHorseArt(horse).includes(`fill="${color}"`));
+    for (const provided of [false, true]) {
+      setProvidedHorseArtwork(provided);
+      try {
+        assert.match(horseArt(horse), new RegExp(`data-layer="eye"[^>]*>[\\s\\S]*?(?:fill|stop-color)="${color}"`));
+      } finally {
+        setProvidedHorseArtwork(false);
+      }
+    }
+  }
 });
 test('normal spawn and regeneration eye pools exclude all Cosmic artwork entries', async t => {
   const { store } = await fixture(t);
@@ -66,7 +115,7 @@ test('normal spawn and regeneration eye pools exclude all Cosmic artwork entries
     assert.ok(!isCosmicEye(regenerated.horse.eye));
   }
 });
-test('older eye files gain editable Cosmic defaults without replacing normal entries or colors', async t => {
+test('older eye files gain fixed Cosmic defaults without replacing normal entries or colors', async t => {
   const { dir, store } = await fixture(t);
   const normal = regularEyes(store.getCatalog().eyes);
   await writeFile(join(dir, 'config/eyes.json'), JSON.stringify(normal));
@@ -86,7 +135,7 @@ test('Cosmic deletion is blocked and malformed edits do not overwrite files', as
   assert.equal(await readFile(path, 'utf8'), before);
   await store.action('save-definition', { kind: 'eyes', id: solar.id, values: { ...solar, colors: ['#123456'] } });
   await assert.rejects(store.action('delete-definition', { kind: 'eyes', id: solar.id }), /cannot be deleted/);
-  assert.deepEqual(store.getCatalog().eyes.find(e => e.cosmicType === 'Solar').colors, ['#123456']);
+  assert.deepEqual(store.getCatalog().eyes.find(e => e.cosmicType === 'Solar').colors, [cosmicEyeColors.Solar]);
 });
 
 test('Cosmic names and rarity stay fixed even when modified in a direct save request', async t => {

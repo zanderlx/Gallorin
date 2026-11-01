@@ -60,7 +60,7 @@ export function cosmicEyeSection(query = '', rarity = '', direction = 'asc', all
   const eyes = filterEyes(withCosmicEyes(allEyes).filter(isCosmicEye), query, rarity, 'name', direction);
   if (!eyes.length) return '';
   return String(
-    html`<section class="eye-rarity-section cosmic-eye-section"><h2>Cosmic</h2><p class="cosmic-eye-note">Artwork only. Generated Eye Color traits stay unchanged.</p><div class="eye-definition-grid">${raw(eyeCards(eyes, eyes, false))}</div></section>`
+    html`<section class="eye-rarity-section cosmic-eye-section"><h2>Cosmic</h2><p class="cosmic-eye-note">Fixed colors for each Cosmic type. Local settings and imports cannot change them. Generated Eye Color traits stay unchanged.</p><div class="eye-definition-grid">${raw(eyeCards(eyes, eyes, false))}</div></section>`
   );
 }
 
@@ -236,7 +236,7 @@ export function createEyeEditor(renderEditor, getEyes) {
           ...draft,
           name: draft.cosmicType,
           rarity: 'Cosmic',
-          colors: [draft.colors?.[0] || cosmicEyeColors[draft.cosmicType]]
+          colors: [cosmicEyeColors[draft.cosmicType]]
         };
       if (!draft?.id && !draft?.name)
         draft = { ...draft, name: 'Custom Color', rarity: 'Common', colors: [randomEyeColor()] };
@@ -258,7 +258,11 @@ export function createEyeEditor(renderEditor, getEyes) {
         'beforeend',
         `<div class="eye-add-tile" ${colors.children.length >= 6 ? 'hidden' : ''}><span class="eye-add-label" aria-hidden="true">Eye Color</span><div class="eye-add-actions"><button type="button" class="icon-button" data-eye-add="manual" title="Add a color (default: white)" aria-label="Add a color (default: white)">${icon('plus')}</button><button type="button" class="icon-button" data-eye-add="random" title="Add a random color" aria-label="Add a random color">${icon('refresh')}</button></div></div>`
       );
-      if (draft.cosmicType) colors.querySelector('.eye-add-tile')?.remove();
+      if (draft.cosmicType) {
+        colors.querySelector('.eye-add-tile')?.remove();
+        colors.querySelector('[type="color"]').disabled = true;
+        colors.querySelector('[data-color-hex]').readOnly = true;
+      }
       if (!draft?.id && !draft?.imported && !draft?.cosmicType) {
         const random = document.createElement('button');
         random.type = 'button';

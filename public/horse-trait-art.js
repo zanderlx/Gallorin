@@ -1,5 +1,6 @@
 import { keratinArt } from './horse-keratin-art.js';
 import { horseHairArt } from './horse-hair-art.js';
+import { horseHairColor } from './horse-hair-colors.js';
 import { html, raw } from './ui.js';
 
 export const traitArtCategories = ['Pattern', 'Paint', 'Tail', 'Mane', 'Ears', 'Keratin', 'Whiskers'];
@@ -357,7 +358,10 @@ export function horseTraitCategoryArt(horse, category, prefix) {
   const placements = markingPlacements(horse);
   const art = selectedArtTraits(horse, category).map(name =>
     traitArtwork(category, name, {
-      colors: horse.palette.colors,
+      colors:
+        category === 'Mane' || category === 'Tail'
+          ? { ...horse.palette.colors, Hair: horseHairColor(horse, category === 'Mane' ? 'maneColor' : 'tailColor') }
+          : horse.palette.colors,
       prefix,
       placement: placements.get(`${category}:${name}`)
     })
