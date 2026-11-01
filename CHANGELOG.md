@@ -6,6 +6,29 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.3.1] - 2026-11-01
+
+More reliable horse appearance and owner information when editing, renaming your profile, and trading horses.
+
+### Updated
+
+- **Horse Identity & Trading**
+  - Horse profiles show Owner in place of Age, using the correctly capitalized Display Name from My Profile for your original catches. Original owners have persistent identities: renaming your profile updates your original horses without renaming traded horses from someone with the same display name.
+  - Owner overrides are available under Identity, remain empty until set, and can be removed to restore the original owner. Horse exports and imports preserve original owner information and explicit Owner overrides.
+  - Existing stable and archived horses without owner information are assigned to your profile on upgrade, with a backup first. Future imports without owner information remain Unknown.
+
+- **Horse Appearance**
+  - Caprine, Bisorse, and Kirin join Unicorn and Anticorn in always receiving one random keratin trait when their species list provides one.
+  - Chimera Mane/Tail use the Pattern color; Harlequin Mane/Tail use the Paint color and take precedence when both affect the same part. Remove an active hair-color mutation before setting a manual color override. Separate Mane Color and Tail Color overrides apply across portraits and full-body artwork, can be restored, and survive horse exports and imports.
+
+### Fixed
+
+- **Cosmic Eyes**
+  - Cosmic artwork always uses its fixed type-specific eye color. Local settings and imports cannot replace these colors; generated Eye Color traits continue using the normal eye registry.
+
+- **Audio**
+  - The music play/pause button no longer also triggers the general button-click sound.
+
 ## [1.3.0] - The Lucky Horseshoe - 2026-10-31
 
 Build your Compendium, shape the Wilds, and give your horses a more personal look.

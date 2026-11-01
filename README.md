@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.3.0](docs/assets/gallorin-banner.svg)
+![Gallorin v1.3.1](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.3.0: The Lucky Horseshoe
+# Gallorin v1.3.1
 
 **Desktop horse collection game · Windows**
 
@@ -27,6 +27,7 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 - Customize species, categorized traits, palettes, eye colors, personalities, and rarity appearance through the Compendium.
 - Design zones with artwork presets, tint, species weights, palette filters, and bulk selection controls. Species can also have their own palette pools.
 - Inspect horse traits, mutations, notes, and skill XP. Enable Override Horse Data for section-based editing, rerolls, and restoration of recorded original values.
+- Track original horse owners across trades and profile-name changes, with optional Owner overrides. Mane and tail colors can be overridden separately; hair-color mutations take precedence.
 - Manage playlists and sound events with crossfades, independent music/effect volumes, and individual event levels.
 - Configure search cooldowns, spawning, economy, profiles, themes, and page text.
 - Keep saves local with exports, automatic backups, and hourly snapshots. Saved preferences override bundled defaults.
