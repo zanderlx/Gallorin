@@ -2449,8 +2449,32 @@ body::-webkit-scrollbar {
 .horse-folder-dialog {
   width: min(600px, calc(100vw - 32px));
 }
+.horse-folder-form-body {
+  display: grid;
+  gap: 20px;
+  padding: 22px;
+}
+.horse-folder-name {
+  display: grid;
+  gap: 8px;
+}
+.horse-folder-name input {
+  width: 100%;
+  min-width: 0;
+}
+.horse-folder-form-body > [role='status'] {
+  margin: 0;
+}
+.horse-folder-form-body > [role='status']:empty {
+  display: none;
+}
+.horse-folder-form-body .form-actions {
+  justify-content: flex-end;
+  margin-top: 0;
+}
 .horse-folder-dialog fieldset {
-  margin-top: 18px;
+  margin: 0;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;

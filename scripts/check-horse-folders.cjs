@@ -138,11 +138,33 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     select.dispatchEvent(new Event('change', { bubbles: true }));
     document.querySelector('[data-horse-folder-new]').click();
     const form = document.querySelector('.horse-folder-dialog form');
+    if (form.querySelector('[name=horseIds],fieldset')) throw Error('New Folder must only request a name');
     form.elements.name.value = 'Trail Friends';
-    form.querySelector('[name=horseIds]').checked = true;
+  });
+  for (const width of [1440, 480]) {
+    win.setSize(width, 1100);
+    await run(async () => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const dialog = document.querySelector('.horse-folder-dialog');
+      const title = dialog.querySelector('h2').getBoundingClientRect();
+      const input = dialog.querySelector('[name=name]').getBoundingClientRect();
+      const submit = dialog.querySelector('[type=submit]').getBoundingClientRect();
+      if (Math.abs(title.left - input.left) > 1 || Math.abs(input.right - submit.right) > 1)
+        throw Error('New Folder heading, field and actions are misaligned');
+      if (dialog.scrollWidth > dialog.clientWidth) throw Error('New Folder overflows horizontally');
+    });
+    await writeFile(join(directory, `new-folder-${width}.png`), (await win.webContents.capturePage()).toPNG());
+  }
+  win.setSize(1440, 1100);
+  await run(() => {
+    const form = document.querySelector('.horse-folder-dialog form');
     form.requestSubmit();
   });
   await wait(() => !!document.querySelector('[data-horse-folder-edit]') && !document.querySelector('dialog[open]'));
+  await run(() => {
+    const folder = document.querySelector('[data-horse-folder-edit]').closest('details');
+    if (folder.querySelector('.horse-card')) throw Error('New folders must start empty');
+  });
   for (const motion of ['no-preference', 'reduce']) {
     await win.webContents.debugger.attach('1.3');
     await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
@@ -167,6 +189,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     document.querySelector('[data-horse-folder-edit]').click();
     const form = document.querySelector('.horse-folder-dialog form');
     form.elements.name.value = 'Trail Companions';
+    form.querySelectorAll('[name=horseIds]')[0].checked = true;
     form.querySelectorAll('[name=horseIds]')[1].checked = true;
     form.requestSubmit();
   });
