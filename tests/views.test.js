@@ -683,6 +683,8 @@ test('Custom layout groups favorites, custom memberships and unfiled horses with
   assert.match(page, /data-music-group="favorites"/);
   assert.match(page, /data-music-group="trail"/);
   assert.match(page, /data-music-group="unfiled"/);
+  assert.match(page, /data-music-group="favorites" open>/);
+  assert.doesNotMatch(page, /data-music-group="(?:trail|unfiled)" open>/);
   assert.match(page, /&lt;Trail &amp; Friends&gt;/);
   assert.match(page, /data-horse-folder-new/);
   assert.match(page, /data-horse-folder-edit="trail"/);

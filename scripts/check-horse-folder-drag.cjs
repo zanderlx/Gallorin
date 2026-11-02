@@ -103,6 +103,7 @@ async function checkHorseDragging(win, action, ids, directory) {
 }
 function performDrop({ from, to, id, targetId, after }) {
   const source = document.querySelector(`[data-music-group="${from}"] [data-folder-horse="${id}"]`);
+  if (source) source.closest('details').open = true;
   const folder = document.querySelector(`[data-music-group="${to}"]`);
   const target = targetId ? folder.querySelector(`[data-folder-horse="${targetId}"]`) : folder.querySelector('summary');
   if (!source || !target) throw Error('Missing drag source or target');

@@ -67,6 +67,11 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     const direction = document.querySelector('[data-action=sort-direction]');
     if (!direction.disabled || !direction.hidden || getComputedStyle(direction).display !== 'none')
       throw Error('Custom must hide the automatic sort direction control');
+    if (
+      !document.querySelector('[data-music-group=favorites]').open ||
+      document.querySelector('[data-music-group=unfiled]').open
+    )
+      throw Error('Only Favorites should start expanded');
   });
   if (process.argv.includes('--drag-only')) {
     const { checkHorseDragging } = require('./check-horse-folder-drag.cjs');
@@ -195,7 +200,10 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await run(() => {
     const folder = document.querySelector('[data-horse-folder-edit]').closest('details');
     if (folder.querySelector('.horse-card')) throw Error('New folders must start empty');
+    if (folder.open) throw Error('New folders should start collapsed');
+    document.querySelector('[data-music-toggle-all]').click();
   });
+  await wait(() => [...document.querySelectorAll('[data-music-group]')].every(el => el.open && !el.dataset.expanding));
   for (const motion of ['no-preference', 'reduce']) {
     await win.webContents.debugger.attach('1.3');
     await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
