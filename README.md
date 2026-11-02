@@ -52,6 +52,8 @@ npm run desktop
 
 If dependencies are already installed, use just `npm run desktop`. Repeat `npm ci` when dependency files change.
 
+Development launches skip the splash and its delay. Use `npm run desktop -- --test-splash` to preview the splash.
+
 Refresh the app with **Ctrl+R** after UI changes. Restart `npm run desktop` after Electron or backend changes. This launches a development app with separate saves; it does not rebuild or update your installed copy.
 
 ## Browser play — optional
