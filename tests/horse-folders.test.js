@@ -75,3 +75,41 @@ test('manual orders ignore stale IDs and include newly added members', () => {
   assert.deepEqual(folderHorseIds(state, 'favorites'), ['b', 'a']);
   assert.deepEqual(folderHorseIds(state, 'unfiled'), ['d']);
 });
+
+test('swaps exchange exact positions within a folder without moving other horses', () => {
+  const state = fixture();
+  state.horseFolders[0].horseIds = ['a', 'b', 'c'];
+  const original = structuredClone(state.horses);
+  moveHorseInFolders(state, { id: 'a', fromFolder: 'one', toFolder: 'one', targetId: 'c', placement: 'swap' });
+  assert.deepEqual(folderHorseIds(state, 'one'), ['c', 'b', 'a']);
+  assert.deepEqual(state.horses, original);
+});
+
+test('cross-folder swaps exchange memberships and preserve all horse records', () => {
+  const state = fixture();
+  state.horseFolders[1].horseIds = ['d'];
+  moveHorseInFolders(state, { id: 'a', fromFolder: 'one', toFolder: 'two', targetId: 'd', placement: 'swap' });
+  assert.deepEqual(folderHorseIds(state, 'one'), ['c', 'd']);
+  assert.deepEqual(folderHorseIds(state, 'two'), ['a']);
+  assert.equal(state.horses.length, 4);
+  moveHorseInFolders(state, { id: 'd', fromFolder: 'one', toFolder: 'favorites', targetId: 'b', placement: 'swap' });
+  assert.deepEqual(folderHorseIds(state, 'one'), ['c', 'b']);
+  assert.deepEqual(folderHorseIds(state, 'favorites'), ['d']);
+  assert.equal(state.horses.find(h => h.id === 'b').favorite, false);
+});
+
+test('swaps with All Horses clear other memberships and reject missing targets atomically', () => {
+  const state = fixture();
+  moveHorseInFolders(state, {
+    id: 'b',
+    fromFolder: 'favorites',
+    toFolder: 'unfiled',
+    targetId: 'd',
+    placement: 'swap'
+  });
+  assert.deepEqual(folderHorseIds(state, 'favorites'), ['d']);
+  assert.deepEqual(folderHorseIds(state, 'unfiled'), ['b']);
+  const before = structuredClone(state);
+  assert.throws(() => moveHorseInFolders(state, { id: 'a', fromFolder: 'one', toFolder: 'one', placement: 'swap' }));
+  assert.deepEqual(state, before);
+});

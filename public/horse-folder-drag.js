@@ -2,6 +2,27 @@ export function bindHorseFolderDragging(root, services, signal) {
   let drag = null;
   let pending = false;
   const options = { signal };
+  const layoutRect = card => {
+    const rect = card.getBoundingClientRect();
+    const transform = getComputedStyle(card).transform;
+    const matrix = transform === 'none' ? null : new DOMMatrixReadOnly(transform);
+    const x = matrix?.m41 || 0,
+      y = matrix?.m42 || 0;
+    return {
+      left: rect.left - x,
+      right: rect.right - x,
+      top: rect.top - y,
+      bottom: rect.bottom - y,
+      width: rect.width,
+      height: rect.height
+    };
+  };
+  const restoreSwap = () => {
+    if (!drag?.swap) return;
+    drag.swap.marker.replaceWith(drag.swap.card);
+    drag.swap = null;
+    drag.placeholder.textContent = 'Drop here';
+  };
   const movePreview = change => {
     const cards = [...root.querySelectorAll('[data-folder-horse]')].filter(card => card !== drag?.source);
     const before = new Map(cards.map(card => [card, card.getBoundingClientRect()]));
@@ -24,6 +45,7 @@ export function bindHorseFolderDragging(root, services, signal) {
   const cleanup = keepOpen => {
     if (!drag) return;
     cancelAnimationFrame(drag.frame);
+    restoreSwap();
     drag.placeholder.remove();
     drag.source.classList.remove('horse-dragging');
     for (const [empty, hidden] of drag.emptyStates) empty.hidden = hidden;
@@ -43,6 +65,8 @@ export function bindHorseFolderDragging(root, services, signal) {
     });
   };
   const preview = event => {
+    const hovered = event.target.closest('[data-folder-horse]');
+    if (drag.swap?.card === hovered) return true;
     const folder = event.target.closest('[data-music-group]');
     if (!folder || !root.contains(folder)) return false;
     lift();
@@ -52,6 +76,20 @@ export function bindHorseFolderDragging(root, services, signal) {
     const grid = folder.querySelector('.horse-folder-body > .horse-grid');
     let card = event.target.closest('[data-folder-horse]');
     if (card === drag.source) return true;
+    if (card) {
+      movePreview(() => {
+        restoreSwap();
+        const marker = document.createComment('horse swap position');
+        card.before(marker);
+        drag.source.before(card);
+        marker.before(drag.placeholder);
+        drag.swap = { card, marker };
+        drag.placeholder.textContent = 'Swap here';
+      });
+      drag.destination = { toFolder: folder.dataset.musicGroup, targetId: card.dataset.folderHorse, placement: 'swap' };
+      return true;
+    }
+    if (drag.swap) movePreview(restoreSwap);
     // Grid gaps target the container, so resolve them to the nearest visible slot.
     if (!card && !event.target.closest('summary')) {
       let nearest = null,
@@ -62,7 +100,7 @@ export function bindHorseFolderDragging(root, services, signal) {
           (!candidate.hasAttribute('data-folder-horse') || candidate === drag.source)
         )
           continue;
-        const rect = candidate.getBoundingClientRect();
+        const rect = layoutRect(candidate);
         if (!rect.width || !rect.height) continue;
         const x = Math.max(rect.left - event.clientX, 0, event.clientX - rect.right);
         const y = Math.max(rect.top - event.clientY, 0, event.clientY - rect.bottom);
@@ -75,7 +113,7 @@ export function bindHorseFolderDragging(root, services, signal) {
       if (nearest === drag.placeholder) return true;
       card = nearest;
     }
-    const rect = card?.getBoundingClientRect();
+    const rect = card ? layoutRect(card) : null;
     const placement =
       rect && (event.clientY >= rect.bottom || (event.clientY > rect.top && event.clientX > rect.left + rect.width / 2))
         ? 'after'
@@ -124,6 +162,7 @@ export function bindHorseFolderDragging(root, services, signal) {
         emptyStates: new Map(),
         openStates: new Map(),
         destination: null,
+        swap: null,
         frame: 0
       };
       // Let the browser capture its drag image before taking the source out of the grid.

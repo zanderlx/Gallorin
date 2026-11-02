@@ -21,9 +21,9 @@ async function checkHorseDragging(win, action, ids, directory) {
     }
     throw Error('Drag save did not settle');
   };
-  const drop = async (from, to, id, targetId, after = false) => {
+  const drop = async (from, to, id, targetId, after = false, swap = false) => {
     await win.webContents.executeJavaScript(
-      '(' + performDrop.toString() + ')(' + JSON.stringify({ from, to, id, targetId, after }) + ')'
+      '(' + performDrop.toString() + ')(' + JSON.stringify({ from, to, id, targetId, after, swap }) + ')'
     );
     await settled();
     await run(() => {
@@ -77,6 +77,53 @@ async function checkHorseDragging(win, action, ids, directory) {
       if (window.horseDragCheck.folder.querySelector('.grid-empty').hidden)
         throw Error('Cancelled drag did not restore the empty-folder message');
     });
+    await expectOrder(trail, ids);
+    await win.webContents.executeJavaScript(
+      '(' +
+        performDrop.toString() +
+        ')(' +
+        JSON.stringify({ from: trail, to: trail, id: ids[2], targetId: ids[0], swap: true, previewOnly: true }) +
+        ')'
+    );
+    await run(() => {
+      const { source, folder, dataTransfer } = window.horseDragCheck;
+      const visible = [...folder.querySelector('.horse-grid').children].filter(
+        el => getComputedStyle(el).display !== 'none'
+      );
+      if (
+        !visible[0].classList.contains('horse-drop-placeholder') ||
+        visible[2].querySelector('.horse-card-open').textContent !== 'Willow'
+      )
+        throw Error('Hovered horse did not move to the picked-up horse slot');
+      visible
+        .filter(el => el.hasAttribute('data-folder-horse'))
+        .forEach(card => card.getAnimations().forEach(animation => animation.finish()));
+      const left = visible[1].getBoundingClientRect(),
+        right = visible[2].getBoundingClientRect();
+      folder.querySelector('.horse-grid').dispatchEvent(
+        new DragEvent('dragover', {
+          bubbles: true,
+          cancelable: true,
+          dataTransfer,
+          clientX: (left.right + right.left) / 2,
+          clientY: left.top + left.height / 2
+        })
+      );
+      const inserted = [...folder.querySelector('.horse-grid').children].filter(
+        el => getComputedStyle(el).display !== 'none'
+      );
+      if (
+        inserted[0].querySelector('.horse-card-open')?.textContent !== 'Willow' ||
+        !inserted[1].classList.contains('horse-drop-placeholder') ||
+        inserted[1].textContent !== 'Drop here'
+      )
+        throw Error('Leaving a swap for a gap did not restore insertion behavior');
+      source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+    });
+    await expectOrder(trail, ids);
+    await drop(trail, trail, ids[2], ids[0], false, true);
+    await expectOrder(trail, [ids[2], ids[1], ids[0]]);
+    await drop(trail, trail, ids[2], ids[0], false, true);
     await expectOrder(trail, ids);
     await win.webContents.executeJavaScript(
       '(' +
@@ -185,6 +232,12 @@ async function checkHorseDragging(win, action, ids, directory) {
   await drop(trail, meadow, ids[2]);
   await expectOrder(trail, [ids[1], ids[0]]);
   await expectOrder(meadow, [ids[2]]);
+  await drop(trail, meadow, ids[0], ids[2], false, true);
+  await expectOrder(trail, [ids[1], ids[2]]);
+  await expectOrder(meadow, [ids[0]]);
+  await drop(meadow, trail, ids[0], ids[2], false, true);
+  await expectOrder(trail, [ids[1], ids[0]]);
+  await expectOrder(meadow, [ids[2]]);
   await drop(trail, 'favorites', ids[0]);
   await expectOrder(trail, [ids[1]]);
   await drop('favorites', 'unfiled', ids[0]);
@@ -217,20 +270,31 @@ async function checkHorseDragging(win, action, ids, directory) {
   });
   await writeFile(join(directory, 'horse-drag.png'), (await win.webContents.capturePage()).toPNG());
 }
-function performDrop({ from, to, id, targetId, after, previewOnly }) {
+function performDrop({ from, to, id, targetId, after, previewOnly, swap }) {
   const source = document.querySelector(`[data-music-group="${from}"] [data-folder-horse="${id}"]`);
   if (source) source.closest('details').open = true;
   const folder = document.querySelector(`[data-music-group="${to}"]`);
-  const target = targetId ? folder.querySelector(`[data-folder-horse="${targetId}"]`) : folder.querySelector('summary');
+  const targetCard = targetId ? folder.querySelector(`[data-folder-horse="${targetId}"]`) : null;
+  const target = targetCard
+    ? swap
+      ? targetCard
+      : folder.querySelector('.horse-grid')
+    : folder.querySelector('summary');
   if (!source || !target) throw Error('Missing drag source or target');
   const dataTransfer = new DataTransfer();
   source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer }));
-  const rect = target.getBoundingClientRect();
+  const rect = (targetCard || target).getBoundingClientRect();
   const init = {
     bubbles: true,
     cancelable: true,
     dataTransfer,
-    clientX: rect.left + rect.width * (after ? 0.8 : 0.2),
+    clientX: swap
+      ? rect.left + rect.width / 2
+      : targetCard
+        ? after
+          ? rect.right + 2
+          : rect.left - 2
+        : rect.left + rect.width / 2,
     clientY: rect.top + rect.height / 2
   };
   target.dispatchEvent(new DragEvent('dragover', init));
