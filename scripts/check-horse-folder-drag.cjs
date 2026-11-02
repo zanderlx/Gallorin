@@ -78,10 +78,10 @@ async function checkHorseDragging(win, action, ids, directory) {
     );
     if (
       !document.querySelector('.horse-drag-image') ||
-      getComputedStyle(document.body).cursor !== 'none' ||
-      getComputedStyle(cards[0]).cursor !== 'none'
+      getComputedStyle(document.body).cursor !== 'grabbing' ||
+      getComputedStyle(cards[0]).cursor !== 'grabbing'
     )
-      throw Error('Pointer dragging must hide the cursor');
+      throw Error('Pointer dragging must show a grabbing hand cursor');
     if (document.querySelector('[title]')) throw Error('Tooltips must be suppressed during dragging');
     document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
     if (document.body.classList.contains('horse-drag-in-progress') || document.querySelector('.horse-drag-image'))
@@ -395,8 +395,8 @@ function performDrop({ from, to, id, targetId, after, previewOnly, overCard }) {
   target.dispatchEvent(new DragEvent('dragover', init));
   if (!folder.classList.contains('horse-drop-target')) throw Error('Drop target did not highlight');
   if (getComputedStyle(source).display !== 'none') throw Error('Picked-up horse still occupies its old slot');
-  if (document.querySelector('[title]') || getComputedStyle(document.body).cursor !== 'none')
-    throw Error('Dragging must hide cursor and tooltips');
+  if (document.querySelector('[title]') || getComputedStyle(document.body).cursor !== 'grabbing')
+    throw Error('Dragging must show a grabbing hand and hide tooltips');
   const image = document.querySelector('.horse-drag-image');
   if (
     !image ||

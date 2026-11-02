@@ -2490,7 +2490,7 @@ body::-webkit-scrollbar {
 }
 body.horse-drag-in-progress,
 body.horse-drag-in-progress * {
-  cursor: none !important;
+  cursor: grabbing !important;
 }
 body.horse-drag-in-progress [role='tooltip'],
 body.horse-drag-in-progress [data-tooltip]::before,
