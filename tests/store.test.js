@@ -787,15 +787,8 @@ test('dragged horse order and membership persist through restart and folder edit
   const folder = store.state.horseFolders[0];
   await store.action('move-horse-folder', { id: ids[2], fromFolder: folder.id, toFolder: folder.id, targetId: ids[0] });
   assert.deepEqual(store.state.horseFolders[0].horseIds, [ids[2], ids[0], ids[1]]);
-  await store.action('move-horse-folder', {
-    id: ids[2],
-    fromFolder: folder.id,
-    toFolder: folder.id,
-    targetId: ids[0],
-    placement: 'swap'
-  });
   await store.action('save-horse-folder', { id: folder.id, name: 'Trail Friends', horseIds: ids });
-  assert.deepEqual(store.state.horseFolders[0].horseIds, [ids[0], ids[2], ids[1]]);
+  assert.deepEqual(store.state.horseFolders[0].horseIds, [ids[2], ids[0], ids[1]]);
   await store.action('move-horse-folder', { id: ids[0], fromFolder: folder.id, toFolder: 'favorites' });
   const before = store.snapshot();
   await assert.rejects(store.action('move-horse-folder', { id: ids[0], fromFolder: folder.id, toFolder: 'unfiled' }));

@@ -11,44 +11,13 @@ export function moveHorseInFolders(state, payload) {
   if (!folderHorseIds(state, fromFolder).includes(id)) throw new Error('This horse is no longer in its source folder.');
   const destination = folderHorseIds(state, toFolder);
   if (targetId != null && !destination.includes(targetId)) throw new Error('The drop position is no longer available.');
-  if (!['before', 'after', 'swap'].includes(placement)) throw new Error('Choose a valid drop position.');
-  if (placement === 'swap' && targetId == null) throw new Error('Choose a horse to swap with.');
+  if (!['before', 'after'].includes(placement)) throw new Error('Choose a valid drop position.');
   if (fromFolder === toFolder && targetId === id) return;
   const writeOrder = (folderId, ids) => {
     const folder = folders.find(folder => folder.id === folderId);
     if (folder) folder.horseIds = ids;
     else (state.horseFolderOrder ??= {})[folderId] = ids;
   };
-  if (placement === 'swap') {
-    if (targetId === id) return;
-    const source = folderHorseIds(state, fromFolder);
-    if (fromFolder === toFolder) {
-      writeOrder(
-        fromFolder,
-        source.map(horseId => (horseId === id ? targetId : horseId === targetId ? id : horseId))
-      );
-    } else {
-      const replace = (ids, outgoing, incoming) =>
-        ids.filter(horseId => horseId !== incoming).map(horseId => (horseId === outgoing ? incoming : horseId));
-      writeOrder(fromFolder, replace(source, id, targetId));
-      writeOrder(toFolder, replace(destination, targetId, id));
-      const membership = (horse, from, to) => {
-        if (from === 'favorites') horse.favorite = false;
-        if (to === 'favorites') horse.favorite = true;
-        if (to === 'unfiled') {
-          horse.favorite = false;
-          for (const folder of folders) folder.horseIds = folder.horseIds.filter(horseId => horseId !== horse.id);
-        }
-      };
-      membership(horse, fromFolder, toFolder);
-      membership(
-        state.horses.find(h => h.id === targetId),
-        toFolder,
-        fromFolder
-      );
-    }
-    return;
-  }
   if (fromFolder !== toFolder) {
     writeOrder(
       fromFolder,

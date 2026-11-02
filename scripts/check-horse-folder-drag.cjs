@@ -21,9 +21,9 @@ async function checkHorseDragging(win, action, ids, directory) {
     }
     throw Error('Drag save did not settle');
   };
-  const drop = async (from, to, id, targetId, after = false, swap = false) => {
+  const drop = async (from, to, id, targetId, after = false, overCard = false) => {
     await win.webContents.executeJavaScript(
-      '(' + performDrop.toString() + ')(' + JSON.stringify({ from, to, id, targetId, after, swap }) + ')'
+      '(' + performDrop.toString() + ')(' + JSON.stringify({ from, to, id, targetId, after, overCard }) + ')'
     );
     await settled();
     await run(() => {
@@ -82,7 +82,7 @@ async function checkHorseDragging(win, action, ids, directory) {
       '(' +
         performDrop.toString() +
         ')(' +
-        JSON.stringify({ from: trail, to: trail, id: ids[2], targetId: ids[0], swap: true, previewOnly: true }) +
+        JSON.stringify({ from: trail, to: trail, id: ids[2], targetId: ids[0], overCard: true, previewOnly: true }) +
         ')'
     );
     await run(() => {
@@ -92,9 +92,10 @@ async function checkHorseDragging(win, action, ids, directory) {
       );
       if (
         !visible[0].classList.contains('horse-drop-placeholder') ||
-        visible[2].querySelector('.horse-card-open').textContent !== 'Willow'
+        visible[1].querySelector('.horse-card-open').textContent !== 'Willow' ||
+        visible[2].querySelector('.horse-card-open').textContent !== 'Ash'
       )
-        throw Error('Hovered horse did not move to the picked-up horse slot');
+        throw Error('Hovered horse and later cards must shift down in order');
       visible
         .filter(el => el.hasAttribute('data-folder-horse'))
         .forEach(card => card.getAnimations().forEach(animation => animation.finish()));
@@ -117,13 +118,13 @@ async function checkHorseDragging(win, action, ids, directory) {
         !inserted[1].classList.contains('horse-drop-placeholder') ||
         inserted[1].textContent !== 'Drop here'
       )
-        throw Error('Leaving a swap for a gap did not restore insertion behavior');
+        throw Error('Moving from a card into a gap did not preserve insertion behavior');
       source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
     });
     await expectOrder(trail, ids);
     await drop(trail, trail, ids[2], ids[0], false, true);
-    await expectOrder(trail, [ids[2], ids[1], ids[0]]);
-    await drop(trail, trail, ids[2], ids[0], false, true);
+    await expectOrder(trail, [ids[2], ids[0], ids[1]]);
+    await drop(trail, trail, ids[2], ids[1], true);
     await expectOrder(trail, ids);
     await win.webContents.executeJavaScript(
       '(' +
@@ -233,9 +234,9 @@ async function checkHorseDragging(win, action, ids, directory) {
   await expectOrder(trail, [ids[1], ids[0]]);
   await expectOrder(meadow, [ids[2]]);
   await drop(trail, meadow, ids[0], ids[2], false, true);
-  await expectOrder(trail, [ids[1], ids[2]]);
-  await expectOrder(meadow, [ids[0]]);
-  await drop(meadow, trail, ids[0], ids[2], false, true);
+  await expectOrder(trail, [ids[1]]);
+  await expectOrder(meadow, [ids[0], ids[2]]);
+  await drop(meadow, trail, ids[0]);
   await expectOrder(trail, [ids[1], ids[0]]);
   await expectOrder(meadow, [ids[2]]);
   await drop(trail, 'favorites', ids[0]);
@@ -270,13 +271,13 @@ async function checkHorseDragging(win, action, ids, directory) {
   });
   await writeFile(join(directory, 'horse-drag.png'), (await win.webContents.capturePage()).toPNG());
 }
-function performDrop({ from, to, id, targetId, after, previewOnly, swap }) {
+function performDrop({ from, to, id, targetId, after, previewOnly, overCard }) {
   const source = document.querySelector(`[data-music-group="${from}"] [data-folder-horse="${id}"]`);
   if (source) source.closest('details').open = true;
   const folder = document.querySelector(`[data-music-group="${to}"]`);
   const targetCard = targetId ? folder.querySelector(`[data-folder-horse="${targetId}"]`) : null;
   const target = targetCard
-    ? swap
+    ? overCard
       ? targetCard
       : folder.querySelector('.horse-grid')
     : folder.querySelector('summary');
@@ -288,7 +289,7 @@ function performDrop({ from, to, id, targetId, after, previewOnly, swap }) {
     bubbles: true,
     cancelable: true,
     dataTransfer,
-    clientX: swap
+    clientX: overCard
       ? rect.left + rect.width / 2
       : targetCard
         ? after
