@@ -777,3 +777,24 @@ test('custom horse folders persist membership, reject invalid edits, and preserv
   await reopened.action('sell', { id });
   assert.deepEqual(reopened.state.horseFolders[0].horseIds, []);
 });
+
+test('dragged horse order and membership persist through restart and folder editing', async t => {
+  const { directory, store } = await fixture(t);
+  await store.action('visit', { locationId: 'aetherion' });
+  const ids = store.state.encounters.aetherion.slice(0, 3).map(h => h.id);
+  for (const id of ids) await store.action('catch', { id });
+  await store.action('save-horse-folder', { name: 'Trail', horseIds: ids });
+  const folder = store.state.horseFolders[0];
+  await store.action('move-horse-folder', { id: ids[2], fromFolder: folder.id, toFolder: folder.id, targetId: ids[0] });
+  assert.deepEqual(store.state.horseFolders[0].horseIds, [ids[2], ids[0], ids[1]]);
+  await store.action('save-horse-folder', { id: folder.id, name: 'Trail Friends', horseIds: ids });
+  assert.deepEqual(store.state.horseFolders[0].horseIds, [ids[2], ids[0], ids[1]]);
+  await store.action('move-horse-folder', { id: ids[0], fromFolder: folder.id, toFolder: 'favorites' });
+  const before = store.snapshot();
+  await assert.rejects(store.action('move-horse-folder', { id: ids[0], fromFolder: folder.id, toFolder: 'unfiled' }));
+  assert.deepEqual(store.snapshot(), before);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.state.horseFolders, store.state.horseFolders);
+  assert.deepEqual(reopened.state.horseFolderOrder, store.state.horseFolderOrder);
+  assert.equal(reopened.state.horses.find(h => h.id === ids[0]).favorite, true);
+});

@@ -298,7 +298,12 @@ function render() {
       .closest('.stable-grid-slider')
       .style.setProperty('--grid-position', `${((stableGridColumns - 3) / 3) * 100}%`);
     $('#collection-grid').style.setProperty('--stable-grid-columns', stableGridColumns);
-    bindHorseFolders($('#collection-grid'), { getState: () => state, action, redraw: () => updateStableSort() });
+    $('[data-action="sort-direction"]').disabled = $('#horse-sort').value === 'custom';
+    bindHorseFolders($('#collection-grid'), {
+      getState: () => state,
+      action,
+      redraw: options => updateStableSort(undefined, options)
+    });
   }
   document.title = `Gallorin v${appVersion} · ${routeTitle(route, locationsFor(catalog, state))}`;
   attachSettingsNumbers(main);
@@ -525,7 +530,13 @@ function updateStableSort(direction = $('[data-action="sort-direction"]')?.datas
   grid.classList.toggle('stable-instant-update', !animate);
   const toggle = $('[data-action="sort-direction"]');
   toggle.dataset.direction = direction;
-  const label = direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending';
+  const custom = $('#horse-sort').value === 'custom';
+  toggle.disabled = custom;
+  const label = custom
+    ? 'Custom order. Drag horses to rearrange.'
+    : direction === 'asc'
+      ? 'Ascending order. Switch to descending'
+      : 'Descending order. Switch to ascending';
   toggle.setAttribute('aria-label', label);
   toggle.title = label;
   setHTML(
@@ -537,7 +548,7 @@ function updateStableSort(direction = $('[data-action="sort-direction"]')?.datas
   for (const folder of grid.querySelectorAll('[data-music-group]'))
     if (folderStates.has(folder.dataset.musicGroup)) folder.open = folderStates.get(folder.dataset.musicGroup);
   grid.classList.toggle('custom-horse-grid', $('#horse-sort').value === 'custom');
-  bindHorseFolders(grid, { getState: () => state, action, redraw: () => updateStableSort(direction) });
+  bindHorseFolders(grid, { getState: () => state, action, redraw: options => updateStableSort(direction, options) });
 }
 
 document.addEventListener('click', async event => {

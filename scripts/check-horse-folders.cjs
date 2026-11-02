@@ -65,6 +65,19 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     if (document.querySelector('[data-action=sort-direction]').dataset.direction !== 'asc')
       throw Error('Custom must start in ascending order');
   });
+  if (process.argv.includes('--drag-only')) {
+    const { checkHorseDragging } = require('./check-horse-folder-drag.cjs');
+    await checkHorseDragging(win, action, ids, directory);
+    win.destroy();
+    await backend.closeGameServer();
+    clearTimeout(deadline);
+    console.log(
+      'Horse drag ordering, cross-folder moves, filtered drops and reload checks passed (muted). Diagnostics: ' +
+        directory
+    );
+    app.exit(0);
+    return;
+  }
   if (process.argv.includes('--favorites-only')) {
     win.webContents.debugger.attach('1.3');
     for (const motion of ['no-preference', 'reduce']) {

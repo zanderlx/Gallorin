@@ -34,6 +34,7 @@ import { createEncounters } from './encounters.js';
 import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
 import { validateKeeper } from '../public/keeper.js';
+import { moveHorseInFolders } from './horse-folders.js';
 
 const snapshotIntervalMs = 60 * 60 * 1000;
 const backupsPerKind = 20;
@@ -572,6 +573,8 @@ export class GameStore {
         };
         upgradeHorse(imported);
         next.horses.push(imported);
+      } else if (type === 'move-horse-folder') {
+        moveHorseInFolders(next, payload);
       } else if (type === 'save-horse-folder') {
         const name = typeof payload.name === 'string' ? payload.name.trim() : '';
         if (!name || name.length > 80) throw new Error('Folder names must contain 1–80 characters.');
@@ -583,7 +586,10 @@ export class GameStore {
           throw new Error('A folder with that name already exists.');
         if (!Array.isArray(payload.horseIds) || payload.horseIds.some(id => !next.horses.some(h => h.id === id)))
           throw new Error('Choose horses from your stable.');
-        const values = { name, horseIds: [...new Set(payload.horseIds)] };
+        const horseIds = [
+          ...new Set([...(folder?.horseIds || []).filter(id => payload.horseIds.includes(id)), ...payload.horseIds])
+        ];
+        const values = { name, horseIds };
         if (folder) Object.assign(folder, values);
         else folders.push({ id: randomUUID(), ...values });
       } else if (type === 'delete-horse-folder') {

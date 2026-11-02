@@ -1,21 +1,24 @@
 import { html, raw, card, icon, setHTML } from './ui.js';
+import { folderHorseIds } from './horse-folder-order.js';
+import { bindHorseFolderDragging } from './horse-folder-drag.js';
 import { bindMusicDisclosures } from './music-disclosures.js';
 
 const bindings = new WeakMap();
 export function customHorseFolders(state, horses, catalog) {
   const folders = state.horseFolders || [];
-  const assigned = new Set(folders.flatMap(folder => folder.horseIds));
+  const matching = new Map(horses.map(horse => [horse.id, horse]));
   const groups = [
-    { id: 'favorites', name: 'Favorites', horses: horses.filter(h => h.favorite) },
-    ...folders.map(folder => ({
-      ...folder,
-      editable: true,
-      horses: horses.filter(h => folder.horseIds.includes(h.id))
-    })),
-    { id: 'unfiled', name: 'Unfiled', horses: horses.filter(h => !h.favorite && !assigned.has(h.id)) }
-  ];
+    { id: 'favorites', name: 'Favorites' },
+    ...folders.map(folder => ({ ...folder, editable: true })),
+    { id: 'unfiled', name: 'Unfiled' }
+  ].map(group => ({
+    ...group,
+    horses: folderHorseIds(state, group.id)
+      .filter(id => matching.has(id))
+      .map(id => matching.get(id))
+  }));
   return String(
-    html`<div class="horse-folders"><div class="horse-folder-toolbar"><button type="button" class="button secondary" data-music-toggle-all>Show All</button><button type="button" class="button primary" data-horse-folder-new>${raw(icon('plus'))} New Folder</button></div><div class="music-playlist-groups">${groups.map(group => html`<details class="music-group" data-music-group="${group.id}" open><summary><h2>${raw(icon(group.id === 'favorites' ? 'heart' : 'stable'))}${group.name}</h2><span class="music-group-count">${group.horses.length} horse${group.horses.length === 1 ? '' : 's'}</span><span class="music-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="horse-folder-body">${group.editable ? html`<div class="horse-folder-toolbar"><button type="button" class="button secondary" data-horse-folder-edit="${group.id}">Edit Folder & Horses</button><button type="button" class="button secondary" data-horse-folder-delete="${group.id}">${raw(icon('trash'))} Delete Folder</button></div>` : ''}<div class="horse-grid">${group.horses.length ? group.horses.map(h => raw(card(h, state, 'stable', catalog))) : html`<p class="grid-empty" role="status">${group.id === 'favorites' ? 'No favorite horses match. Use a horse’s heart to add it here.' : group.id === 'unfiled' ? 'No unfiled horses match.' : 'No horses match. Edit this folder to add horses.'}</p>`}</div></div></details>`)}</div></div>`
+    html`<div class="horse-folders"><div class="horse-folder-toolbar"><button type="button" class="button secondary" data-music-toggle-all>Show All</button><button type="button" class="button primary" data-horse-folder-new>${raw(icon('plus'))} New Folder</button></div><p class="horse-folder-hint">Drag horses to reorder them or move them to another folder.</p><p class="horse-folder-drop-status" role="status"></p><div class="music-playlist-groups">${groups.map(group => html`<details class="music-group" data-music-group="${group.id}" open><summary><h2>${raw(icon(group.id === 'favorites' ? 'heart' : 'stable'))}${group.name}</h2><span class="music-group-count">${group.horses.length} horse${group.horses.length === 1 ? '' : 's'}</span><span class="music-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="horse-folder-body">${group.editable ? html`<div class="horse-folder-toolbar"><button type="button" class="button secondary" data-horse-folder-edit="${group.id}">Edit Folder & Horses</button><button type="button" class="button secondary" data-horse-folder-delete="${group.id}">${raw(icon('trash'))} Delete Folder</button></div>` : ''}<div class="horse-grid">${group.horses.length ? group.horses.map(h => html`<div class="horse-folder-card" draggable="true" data-folder-horse="${h.id}">${raw(card(h, state, 'stable', catalog))}</div>`) : html`<p class="grid-empty" role="status">${group.id === 'favorites' ? 'No favorite horses match. Use a horse’s heart to add it here.' : group.id === 'unfiled' ? 'No unfiled horses match.' : 'No horses match. Edit this folder to add horses.'}</p>`}</div></div></details>`)}</div></div>`
   );
 }
 
@@ -25,6 +28,7 @@ export function bindHorseFolders(root, services) {
   bindings.set(root, controller);
   if (!root.querySelector('.horse-folders')) return;
   bindMusicDisclosures(root, controller.signal);
+  bindHorseFolderDragging(root, services, controller.signal);
   const edit = folder => {
     const dialog = document.createElement('dialog');
     dialog.className = 'horse-folder-dialog';
