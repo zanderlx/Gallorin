@@ -689,6 +689,8 @@ test('Custom layout groups favorites, custom memberships and unfiled horses with
   assert.match(page, /data-horse-folder-new/);
   assert.match(page, /data-horse-folder-edit="trail"/);
   assert.match(page, /data-horse-folder-delete="trail"/);
+  assert.match(page, /<span class="horse-folder-actions"><button[^>]+data-horse-folder-edit="trail"/);
+  assert.doesNotMatch(page, /Edit Folder &amp; Horses|Edit Folder & Horses/);
   assert.equal((page.match(/class="horse-card"/g) || []).length, 3);
   const unfiled = page.split('data-music-group="unfiled"')[1];
   assert.match(unfiled, />Moss</);
@@ -702,4 +704,7 @@ test('Custom layout groups favorites, custom memberships and unfiled horses with
   assert.equal((filtered.match(/class="horse-card"/g) || []).length, 1);
   assert.doesNotMatch(filtered, />Ash<|>Moss</);
   assert.match(collectionCards('all', { ...state, horses: [] }, '', 'custom'), /New Folder/);
+  const empty = collectionCards('all', { ...populated, horses: [] }, '', 'custom');
+  assert.equal((empty.match(/No horses in this folder/g) || []).length, 3);
+  assert.doesNotMatch(empty, /No horses match|No favorite horses match|Edit this folder to add horses/);
 });

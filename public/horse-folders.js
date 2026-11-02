@@ -18,7 +18,7 @@ export function customHorseFolders(state, horses, catalog) {
       .map(id => matching.get(id))
   }));
   return String(
-    html`<div class="horse-folders"><div class="horse-folder-toolbar"><button type="button" class="button secondary" data-music-toggle-all>Show All</button><button type="button" class="button primary" data-horse-folder-new>${raw(icon('plus'))} New Folder</button></div><p class="horse-folder-hint">Drag horses to reorder them or move them to another folder.</p><p class="horse-folder-drop-status" role="status"></p><div class="music-playlist-groups">${groups.map(group => html`<details class="music-group" data-music-group="${group.id}"${raw(group.id === 'favorites' ? ' open' : '')}><summary><h2>${raw(icon(group.id === 'favorites' ? 'heart' : 'stable'))}${group.name}</h2><span class="music-group-count">${group.horses.length} horse${group.horses.length === 1 ? '' : 's'}</span><span class="music-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="horse-folder-body">${group.editable ? html`<div class="horse-folder-toolbar"><button type="button" class="button secondary" data-horse-folder-edit="${group.id}">Edit Folder & Horses</button><button type="button" class="button secondary" data-horse-folder-delete="${group.id}">${raw(icon('trash'))} Delete Folder</button></div>` : ''}<div class="horse-grid">${group.horses.length ? group.horses.map(h => html`<div class="horse-folder-card" draggable="true" data-folder-horse="${h.id}">${raw(card(h, state, 'stable', catalog))}</div>`) : html`<p class="grid-empty" role="status">${group.id === 'favorites' ? 'No favorite horses match. Use a horse’s heart to add it here.' : group.id === 'unfiled' ? 'No horses match.' : 'No horses match. Edit this folder to add horses.'}</p>`}</div></div></details>`)}</div></div>`
+    html`<div class="horse-folders"><div class="horse-folder-toolbar"><button type="button" class="button secondary" data-music-toggle-all>Show All</button><button type="button" class="button primary" data-horse-folder-new>${raw(icon('plus'))} New Folder</button></div><p class="horse-folder-hint">Drag horses to reorder them or move them to another folder.</p><p class="horse-folder-drop-status" role="status"></p><div class="music-playlist-groups">${groups.map(group => html`<details class="music-group" data-music-group="${group.id}"${raw(group.id === 'favorites' ? ' open' : '')}><summary><h2>${raw(icon(group.id === 'favorites' ? 'heart' : 'stable'))}${group.name}</h2>${group.editable ? html`<span class="horse-folder-actions"><button type="button" class="icon-button" data-horse-folder-edit="${group.id}" title="Rename folder" aria-label="Rename ${group.name}">${raw(icon('edit'))}</button><button type="button" class="icon-button" data-horse-folder-delete="${group.id}" title="Delete folder" aria-label="Delete ${group.name}">${raw(icon('trash'))}</button></span>` : ''}<span class="music-group-count">${group.horses.length} horse${group.horses.length === 1 ? '' : 's'}</span><span class="music-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="horse-folder-body"><div class="horse-grid">${group.horses.length ? group.horses.map(h => html`<div class="horse-folder-card" draggable="true" data-folder-horse="${h.id}">${raw(card(h, state, 'stable', catalog))}</div>`) : html`<p class="grid-empty" role="status">No horses in this folder</p>`}</div></div></details>`)}</div></div>`
   );
 }
 
@@ -35,7 +35,7 @@ export function bindHorseFolders(root, services) {
     dialog.setAttribute('aria-labelledby', 'horse-folder-title');
     setHTML(
       dialog,
-      html`<form><div class="dialog-top"><h2 id="horse-folder-title">${folder ? 'Edit Folder & Horses' : 'New Folder'}</h2></div><div class="horse-folder-form-body"><label class="horse-folder-name">Folder name<input name="name" required maxlength="80" value="${folder?.name || ''}" autofocus></label>${folder ? html`<fieldset><legend>Horses in this folder</legend><p>A horse can belong to more than one folder.</p><div class="horse-folder-choices">${services.getState().horses.map(h => html`<label><input type="checkbox" name="horseIds" value="${h.id}" ${raw(folder.horseIds.includes(h.id) ? 'checked' : '')}>${h.name || h.species} · ${h.species}</label>`)}</div></fieldset>` : ''}<p role="status"></p><div class="form-actions"><button type="button" class="button secondary" data-folder-cancel>Cancel</button><button type="submit" class="button primary">${folder ? 'Save Folder' : 'Create Folder'}</button></div></div></form>`
+      html`<form><div class="dialog-top"><h2 id="horse-folder-title">${folder ? 'Rename Folder' : 'New Folder'}</h2></div><div class="horse-folder-form-body"><label class="horse-folder-name">Folder name<input name="name" required maxlength="80" value="${folder?.name || ''}" autofocus></label><p role="status"></p><div class="form-actions"><button type="button" class="button secondary" data-folder-cancel>Cancel</button><button type="submit" class="button primary">${folder ? 'Save Folder' : 'Create Folder'}</button></div></div></form>`
     );
     dialog.querySelector('[data-folder-cancel]').onclick = () => dialog.close();
     dialog.addEventListener('close', () => dialog.remove(), { once: true });
@@ -50,7 +50,7 @@ export function bindHorseFolders(root, services) {
         await services.action('save-horse-folder', {
           id: folder?.id,
           name: values.get('name'),
-          horseIds: values.getAll('horseIds')
+          horseIds: folder?.horseIds || []
         });
         dialog.close();
         services.redraw();
@@ -69,6 +69,8 @@ export function bindHorseFolders(root, services) {
         '[data-horse-folder-new],[data-horse-folder-edit],[data-horse-folder-delete]'
       );
       if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
       const folder = services
         .getState()
         .horseFolders?.find(
@@ -76,10 +78,11 @@ export function bindHorseFolders(root, services) {
         );
       if (button.hasAttribute('data-horse-folder-delete')) {
         const dialog = document.createElement('dialog');
+        dialog.className = 'horse-folder-dialog';
         dialog.setAttribute('aria-labelledby', 'delete-folder-title');
         setHTML(
           dialog,
-          html`<h2 id="delete-folder-title">Delete ${folder.name}?</h2><p>All horses stay in My Horses. Only this folder is removed.</p><p role="status"></p><div class="form-actions"><button type="button" class="button secondary" data-keep-folder autofocus>Keep Folder</button><button type="button" class="button primary" data-delete-folder>Delete Folder</button></div>`
+          html`<div class="dialog-top"><h2 id="delete-folder-title">Delete ${folder.name}?</h2></div><div class="horse-folder-form-body"><p>Only this folder is deleted. Your horses stay in Stables. Horses without another folder return to All Horses.</p><p role="status"></p><div class="form-actions"><button type="button" class="button secondary" data-keep-folder autofocus>Keep Folder</button><button type="button" class="button primary" data-delete-folder>Delete Folder</button></div></div>`
         );
         dialog.querySelector('[data-keep-folder]').onclick = () => dialog.close();
         dialog.querySelector('[data-delete-folder]').onclick = async event => {
@@ -98,6 +101,6 @@ export function bindHorseFolders(root, services) {
         dialog.showModal();
       } else edit(folder);
     },
-    { signal: controller.signal }
+    { signal: controller.signal, capture: true }
   );
 }

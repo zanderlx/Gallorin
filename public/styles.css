@@ -2446,6 +2446,34 @@ body::-webkit-scrollbar {
 .horse-folder-body {
   padding: 20px;
 }
+.horse-folders .music-group > summary h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.horse-folders .music-group > summary > .horse-folder-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  margin-left: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.horse-folders summary:hover > .horse-folder-actions,
+.horse-folders summary:focus-within > .horse-folder-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.horse-folder-actions .icon-button {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+}
+@media (hover: none) {
+  .horse-folders .music-group > summary > .horse-folder-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 .horse-folder-hint {
   color: var(--muted);
   font-size: 13px;
@@ -2511,25 +2539,4 @@ body::-webkit-scrollbar {
 .horse-folder-form-body .form-actions {
   justify-content: flex-end;
   margin-top: 0;
-}
-.horse-folder-dialog fieldset {
-  margin: 0;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-}
-.horse-folder-choices {
-  max-height: 40vh;
-  overflow-y: auto;
-}
-.horse-folder-choices label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px;
-}
-.horse-folder-choices input[type='checkbox'] {
-  width: auto;
-  flex-shrink: 0;
 }

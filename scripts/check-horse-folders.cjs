@@ -201,8 +201,14 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     const folder = document.querySelector('[data-horse-folder-edit]').closest('details');
     if (folder.querySelector('.horse-card')) throw Error('New folders must start empty');
     if (folder.open) throw Error('New folders should start collapsed');
-    document.querySelector('[data-music-toggle-all]').click();
   });
+  const current = await (await fetch(origin + '/api/state')).json();
+  const folderId = current.state.horseFolders[0].id;
+  const seeded = await action('save-horse-folder', { id: folderId, name: 'Trail Friends', horseIds: [ids[2], ids[0]] });
+  const horsesBefore = seeded.state.horses;
+  await win.loadURL(origin + '/?folder-check=seeded#stable/all');
+  await wait(() => !!document.querySelector('[data-horse-folder-edit]'));
+  await run(() => document.querySelector('[data-music-toggle-all]').click());
   await wait(() => [...document.querySelectorAll('[data-music-group]')].every(el => el.open && !el.dataset.expanding));
   for (const motion of ['no-preference', 'reduce']) {
     await win.webContents.debugger.attach('1.3');
@@ -234,8 +240,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     document.querySelector('[data-horse-folder-edit]').click();
     const form = document.querySelector('.horse-folder-dialog form');
     form.elements.name.value = 'Trail Companions';
-    form.querySelectorAll('[name=horseIds]')[0].checked = true;
-    form.querySelectorAll('[name=horseIds]')[1].checked = true;
+    if (form.querySelector('[name=horseIds],fieldset')) throw Error('Rename must only request a folder name');
     form.requestSubmit();
   });
   await wait(
@@ -246,7 +251,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await run(async () => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const folder = document.querySelector('[data-horse-folder-edit]').closest('details');
-    if (folder.querySelectorAll('.horse-card').length !== 2) throw Error('Edited membership did not render');
+    if (folder.querySelectorAll('.horse-card').length !== 2) throw Error('Renaming changed horse membership');
     if (folder.querySelector('.horse-folder-body').getBoundingClientRect().height < 100)
       throw Error('Open folder body is not visible');
   });
@@ -267,22 +272,66 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     if (document.querySelectorAll('#collection-grid .horse-card').length !== 1) throw Error('Folder search failed');
     search.value = '';
     search.dispatchEvent(new Event('input', { bubbles: true }));
-    document.querySelector('[data-horse-folder-edit]').click();
-    const form = document.querySelector('.horse-folder-dialog form');
-    form.querySelectorAll('[name=horseIds]').forEach(input => (input.checked = false));
-    form.requestSubmit();
+  });
+  const renamed = await (await fetch(origin + '/api/state')).json();
+  if (JSON.stringify(renamed.state.horseFolders[0].horseIds) !== JSON.stringify([ids[2], ids[0]]))
+    throw Error('Rename changed saved horse order');
+  const hoverPoint = await run(() => {
+    document.activeElement?.blur();
+    const summary = document.querySelector('[data-horse-folder-edit]').closest('summary');
+    const rect = summary.getBoundingClientRect();
+    return { x: Math.round(rect.right - 50), y: Math.round(rect.top + rect.height / 2) };
+  });
+  win.webContents.sendInputEvent({ type: 'mouseMove', x: 1, y: 1 });
+  await run(async () => {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    if (getComputedStyle(document.querySelector('.horse-folder-actions')).opacity !== '0')
+      throw Error('Folder actions should be hidden without hover or focus');
+  });
+  win.webContents.sendInputEvent({ type: 'mouseMove', ...hoverPoint });
+  await run(async () => {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const actions = document.querySelector('.horse-folder-actions');
+    if (getComputedStyle(actions).opacity !== '1') throw Error('Hovering the folder bar did not reveal actions');
+    const folder = actions.closest('details');
+    const wasOpen = folder.open;
+    actions.querySelector('[data-horse-folder-edit]').click();
+    if (folder.open !== wasOpen || folder.hasAttribute('data-expanding')) throw Error('Rename toggled the folder');
+  });
+  await writeFile(join(directory, 'rename-folder.png'), (await win.webContents.capturePage()).toPNG());
+  await run(() => document.querySelector('[data-folder-cancel]').click());
+  await wait(() => !document.querySelector('dialog[open]'));
+  await writeFile(join(directory, 'folder-hover.png'), (await win.webContents.capturePage()).toPNG());
+  await run(() => {
+    const folder = document.querySelector('[data-horse-folder-delete]').closest('details');
+    const wasOpen = folder.open;
+    document.querySelector('[data-horse-folder-delete]').click();
+    if (folder.open !== wasOpen || folder.hasAttribute('data-expanding')) throw Error('Delete toggled the folder');
+    if (!document.querySelector('dialog[open] [data-delete-folder]')) throw Error('Delete needs confirmation');
+    document.querySelector('[data-keep-folder]').click();
   });
   await wait(() => !document.querySelector('dialog[open]'));
   await run(() => {
-    const folder = document.querySelector('[data-horse-folder-edit]').closest('details');
-    if (folder.querySelector('.horse-card')) throw Error('Removing folder membership failed');
+    if (!document.querySelector('[data-horse-folder-edit]')) throw Error('Cancelling deletion removed the folder');
+    document.querySelector('[data-horse-folder-delete]').focus();
+    if (getComputedStyle(document.querySelector('.horse-folder-actions')).opacity !== '1')
+      throw Error('Keyboard focus should reveal folder actions');
     document.querySelector('[data-horse-folder-delete]').click();
-    document.querySelector('[data-delete-folder]').click();
   });
+  await writeFile(join(directory, 'delete-folder.png'), (await win.webContents.capturePage()).toPNG());
+  await run(() => document.querySelector('[data-delete-folder]').click());
   await wait(() => !document.querySelector('[data-horse-folder-edit]'));
   const saved = await (await fetch(origin + '/api/state')).json();
   if (saved.state.horses.length !== 3 || saved.state.horseFolders.length !== 0)
     throw Error('Folder deletion changed horses');
+  if (JSON.stringify(saved.state.horses) !== JSON.stringify(horsesBefore))
+    throw Error('Folder actions changed horse records');
+  await run(() => {
+    const returned = [...document.querySelectorAll('[data-music-group=unfiled] .horse-card-open')]
+      .map(button => button.textContent)
+      .sort();
+    if (returned.join(',') !== 'Moss,Willow') throw Error('Deleted folder horses did not return to All Horses');
+  });
   win.destroy();
   await backend.closeGameServer();
   clearTimeout(deadline);
