@@ -2427,3 +2427,42 @@ body::-webkit-scrollbar {
 #keeper-form .keeper-developer-toggle > span {
   flex: 0 1 auto;
 }
+/* Custom stable folders share the audio library's disclosure panels. */
+.horse-grid.custom-horse-grid {
+  display: block;
+}
+.horse-folder-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.horse-folder-body {
+  padding: 20px;
+}
+.horse-folder-body > .horse-grid {
+  grid-template-columns: repeat(min(var(--stable-grid-columns, 5), var(--stable-grid-limit, 5)), minmax(0, 1fr));
+}
+.horse-folder-dialog {
+  width: min(600px, calc(100vw - 32px));
+}
+.horse-folder-dialog fieldset {
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.horse-folder-choices {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.horse-folder-choices label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+}
+.horse-folder-choices input[type='checkbox'] {
+  width: auto;
+  flex-shrink: 0;
+}

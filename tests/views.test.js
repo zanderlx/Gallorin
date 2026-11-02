@@ -335,7 +335,7 @@ test('collection search, sorting and favorites work with complete saved records'
   assert.match(page, /id="horse-grid-size"/);
   assert.match(page, /type="range" min="3" max="6" step="1" value="5"/);
   assert.match(page, /title="Import Horse" aria-label="Import Horse">\s*<svg/);
-  assert.match(page, /<option value="favorites">Favorites<\/option>/);
+  assert.match(page, /<option value="custom">Custom<\/option>/);
   assert.doesNotMatch(
     page,
     /A place to call home|A growing collection|Explore the wilds|YOUR SANCTUARY|value="birthday"/
@@ -665,4 +665,31 @@ test('empty clearings show only the requested message without a stray changelog'
   const html = emptyState('No current horses in the area', '', null, null, 'leaf');
   assert.match(html, /No current horses in the area/);
   assert.doesNotMatch(html, /<p>|Changelog|sidebar-changelog|<\/span>/);
+});
+
+test('Custom layout groups favorites, custom memberships and unfiled horses with escaped folder names', () => {
+  const owned = horses.map((h, i) => ({
+    ...h,
+    name: ['Willow', 'Ash', 'Moss'][i],
+    favorite: i === 1,
+    caughtAt: new Date().toISOString()
+  }));
+  const populated = {
+    ...state,
+    horses: owned,
+    horseFolders: [{ id: 'trail', name: '<Trail & Friends>', horseIds: [owned[0].id, owned[1].id] }]
+  };
+  const page = collectionCards('all', populated, '', 'custom');
+  assert.match(page, /data-music-group="favorites"/);
+  assert.match(page, /data-music-group="trail"/);
+  assert.match(page, /data-music-group="unfiled"/);
+  assert.match(page, /&lt;Trail &amp; Friends&gt;/);
+  assert.match(page, /data-horse-folder-new/);
+  assert.match(page, /data-horse-folder-edit="trail"/);
+  assert.match(page, /data-horse-folder-delete="trail"/);
+  assert.equal((page.match(/class="horse-card"/g) || []).length, 4);
+  const filtered = collectionCards('all', populated, 'Willow', 'custom');
+  assert.equal((filtered.match(/class="horse-card"/g) || []).length, 1);
+  assert.doesNotMatch(filtered, />Ash<|>Moss</);
+  assert.match(collectionCards('all', { ...state, horses: [] }, '', 'custom'), /New Folder/);
 });

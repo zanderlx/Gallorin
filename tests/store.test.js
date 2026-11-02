@@ -740,3 +740,40 @@ test('artwork toggle saves independently of numeric game settings', async t => {
   assert.deepEqual(store.state.settings, { ...before, providedHorseArtwork: false });
   await assert.rejects(store.action('horse-artwork-preference', { providedHorseArtwork: 'true' }));
 });
+
+test('custom horse folders persist membership, reject invalid edits, and preserve horses on deletion', async t => {
+  const { directory, store } = await fixture(t);
+  await store.action('visit', { locationId: 'aetherion' });
+  const id = store.state.encounters.aetherion[0].id;
+  await store.action('catch', { id });
+  await store.action('favorite', { id });
+  await store.action('save-horse-folder', { name: ' Trail Friends ', horseIds: [id, id] });
+  const folder = store.state.horseFolders[0];
+  assert.equal(folder.name, 'Trail Friends');
+  assert.deepEqual(folder.horseIds, [id]);
+  const before = store.snapshot();
+  for (const payload of [
+    { name: '', horseIds: [] },
+    { name: 'Favorites', horseIds: [] },
+    { name: 'Unfiled', horseIds: [] },
+    { name: 'trail friends', horseIds: [] },
+    { name: 'a'.repeat(81), horseIds: [] },
+    { name: 'Invalid', horseIds: ['missing'] },
+    { name: 'Invalid', horseIds: 'not an array' },
+    { id: 'missing', name: 'Invalid', horseIds: [] }
+  ]) {
+    await assert.rejects(store.action('save-horse-folder', payload));
+    assert.deepEqual(store.snapshot(), before);
+  }
+  await store.action('save-horse-folder', { id: folder.id, name: 'Renamed', horseIds: [] });
+  await store.action('save-horse-folder', { name: 'Second', horseIds: [id] });
+  await store.action('save-horse-folder', { id: folder.id, name: 'Renamed', horseIds: [id] });
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.state.horseFolders, store.state.horseFolders);
+  await reopened.action('delete-horse-folder', { id: folder.id });
+  assert.equal(reopened.state.horseFolders.length, 1);
+  assert.deepEqual(reopened.state.horses, store.state.horses);
+  await assert.rejects(reopened.action('delete-horse-folder', { id: folder.id }), /Folder not found/);
+  await reopened.action('sell', { id });
+  assert.deepEqual(reopened.state.horseFolders[0].horseIds, []);
+});

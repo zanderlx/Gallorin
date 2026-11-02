@@ -1,4 +1,5 @@
 import { setProvidedHorseArtwork } from './art.js';
+import { bindHorseFolders } from './horse-folders.js';
 import { bindTextButtonSounds } from './button-sounds.js';
 import { regularEyes } from './cosmic-types.js';
 import { bindEncounterCooldown } from './encounter-cooldown.js';
@@ -527,6 +528,9 @@ function updateStableSort(direction = $('[data-action="sort-direction"]')?.datas
     catalog,
     direction
   );
+  const grid = $('#collection-grid');
+  grid.classList.toggle('custom-horse-grid', $('#horse-sort').value === 'custom');
+  bindHorseFolders(grid, { getState: () => state, action, redraw: () => updateStableSort(direction) });
 }
 
 document.addEventListener('click', async event => {
