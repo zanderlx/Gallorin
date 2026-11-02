@@ -99,10 +99,15 @@ export function bindHorseFolderDragging(root, services, signal) {
       card = nearest;
     }
     const rect = card ? layoutRect(card) : null;
+    const movingForward =
+      hovered &&
+      folder.dataset.musicGroup === drag.payload.fromFolder &&
+      Boolean(drag.source.compareDocumentPosition(hovered) & Node.DOCUMENT_POSITION_FOLLOWING);
     const placement =
-      !hovered &&
-      rect &&
-      (event.clientY >= rect.bottom || (event.clientY > rect.top && event.clientX > rect.left + rect.width / 2))
+      movingForward ||
+      (!hovered &&
+        rect &&
+        (event.clientY >= rect.bottom || (event.clientY > rect.top && event.clientX > rect.left + rect.width / 2)))
         ? 'after'
         : 'before';
     const next = card ? (placement === 'after' ? card.nextElementSibling : card) : null;

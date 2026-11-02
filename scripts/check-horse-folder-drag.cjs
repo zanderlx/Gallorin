@@ -176,6 +176,31 @@ async function checkHorseDragging(win, action, ids, directory) {
       '(' +
         performDrop.toString() +
         ')(' +
+        JSON.stringify({ from: trail, to: trail, id: ids[0], targetId: ids[1], overCard: true, previewOnly: true }) +
+        ')'
+    );
+    await run(() => {
+      const { source, folder, dataTransfer } = window.horseDragCheck;
+      const visible = [...folder.querySelector('.horse-grid').children].filter(
+        el => getComputedStyle(el).display !== 'none'
+      );
+      if (
+        visible[0].querySelector('.horse-card-open')?.textContent !== 'Ash' ||
+        !visible[1].classList.contains('horse-drop-placeholder') ||
+        visible[2].querySelector('.horse-card-open')?.textContent !== 'Moss'
+      )
+        throw Error('Hovering the next horse to the right must shift it into the vacated spot');
+      source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+    });
+    await expectOrder(trail, ids);
+    await drop(trail, trail, ids[0], ids[1], false, true);
+    await expectOrder(trail, [ids[1], ids[0], ids[2]]);
+    await drop(trail, trail, ids[0], ids[1], false, true);
+    await expectOrder(trail, ids);
+    await win.webContents.executeJavaScript(
+      '(' +
+        performDrop.toString() +
+        ')(' +
         JSON.stringify({ from: trail, to: trail, id: ids[2], targetId: ids[0], overCard: true, previewOnly: true }) +
         ')'
     );
