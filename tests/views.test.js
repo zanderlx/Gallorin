@@ -677,7 +677,7 @@ test('Custom layout groups favorites, custom memberships and unfiled horses with
   const populated = {
     ...state,
     horses: owned,
-    horseFolders: [{ id: 'trail', name: '<Trail & Friends>', horseIds: [owned[0].id, owned[1].id] }]
+    horseFolders: [{ id: 'trail', name: '<Trail & Friends>', horseIds: [owned[0].id] }]
   };
   const page = collectionCards('all', populated, '', 'custom');
   assert.match(page, /data-music-group="favorites"/);
@@ -687,7 +687,15 @@ test('Custom layout groups favorites, custom memberships and unfiled horses with
   assert.match(page, /data-horse-folder-new/);
   assert.match(page, /data-horse-folder-edit="trail"/);
   assert.match(page, /data-horse-folder-delete="trail"/);
-  assert.equal((page.match(/class="horse-card"/g) || []).length, 4);
+  assert.equal((page.match(/class="horse-card"/g) || []).length, 3);
+  const unfiled = page.split('data-music-group="unfiled"')[1];
+  assert.match(unfiled, />Moss</);
+  assert.doesNotMatch(unfiled, />Ash<|>Willow</);
+  const afterFolderRemoval = collectionCards('all', { ...populated, horseFolders: [] }, '', 'custom').split(
+    'data-music-group="unfiled"'
+  )[1];
+  assert.match(afterFolderRemoval, />Willow</);
+  assert.doesNotMatch(afterFolderRemoval, />Ash</);
   const filtered = collectionCards('all', populated, 'Willow', 'custom');
   assert.equal((filtered.match(/class="horse-card"/g) || []).length, 1);
   assert.doesNotMatch(filtered, />Ash<|>Moss</);
