@@ -2434,6 +2434,9 @@ body::-webkit-scrollbar {
 .horse-grid.custom-horse-grid {
   display: block;
 }
+.horse-folders details[data-expanding='false'] > summary > .music-chevron {
+  transform: rotate(0deg);
+}
 .horse-folder-toolbar {
   display: flex;
   flex-wrap: wrap;

@@ -4,6 +4,18 @@ const { mkdtemp, writeFile } = require('node:fs/promises');
 const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const { pathToFileURL } = require('node:url');
+function verifyFolderArrows(open) {
+  for (const folder of document.querySelectorAll('[data-music-group]')) {
+    const arrow = folder.querySelector('summary > .music-chevron');
+    if (!arrow.querySelector('svg path')) throw Error('Folder arrow must use the audio library SVG chevron');
+    // Finish only the arrow transition to inspect its target during the disclosure animation.
+    getComputedStyle(arrow).transform;
+    arrow.getAnimations().forEach(animation => animation.finish());
+    const transform = getComputedStyle(arrow).transform;
+    const rotation = transform === 'none' ? 1 : new DOMMatrixReadOnly(transform).a;
+    if (Math.abs(rotation - (open ? -1 : 1)) > 0.01) throw Error('Folder arrow points in the wrong direction');
+  }
+}
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('mute-audio');
 app.on('window-all-closed', () => {});
@@ -175,10 +187,16 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     });
     await win.webContents.debugger.detach();
     await run(() => document.querySelector('[data-music-toggle-all]').click());
+    await win.webContents.executeJavaScript('(' + verifyFolderArrows.toString() + ')(false)');
     await wait(() =>
       [...document.querySelectorAll('[data-music-group]')].every(el => !el.open && !el.dataset.expanding)
     );
+    await writeFile(
+      join(directory, `folder-arrows-closed-${motion}.png`),
+      (await win.webContents.capturePage()).toPNG()
+    );
     await run(() => document.querySelector('[data-music-toggle-all]').click());
+    await win.webContents.executeJavaScript('(' + verifyFolderArrows.toString() + ')(true)');
     await wait(() =>
       [...document.querySelectorAll('[data-music-group]')].every(el => el.open && !el.dataset.expanding)
     );
