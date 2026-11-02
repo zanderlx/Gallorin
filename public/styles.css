@@ -2492,6 +2492,29 @@ body::-webkit-scrollbar {
 .horse-folder-card.horse-dragging {
   display: none;
 }
+.horse-drag-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 1;
+  background: var(--panel);
+  border-radius: 7px;
+  box-shadow: 0 12px 30px #0007;
+}
+.horse-drag-image > .horse-card {
+  height: 100%;
+  opacity: 1;
+  animation: none;
+  transform: none;
+}
+.horse-native-drag-image {
+  position: fixed;
+  top: -10px;
+  left: -10px;
+  pointer-events: none;
+}
 .horse-folders .horse-drop-target {
   outline: 2px solid var(--gold);
   outline-offset: -2px;

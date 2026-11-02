@@ -1,3 +1,5 @@
+import { createHorseDragImage } from './horse-drag-image.js';
+
 export function bindHorseFolderDragging(root, services, signal) {
   let drag = null;
   let pending = false;
@@ -39,6 +41,7 @@ export function bindHorseFolderDragging(root, services, signal) {
   const cleanup = keepOpen => {
     if (!drag) return;
     cancelAnimationFrame(drag.frame);
+    drag.image.remove();
     drag.placeholder.remove();
     drag.source.classList.remove('horse-dragging');
     for (const [empty, hidden] of drag.emptyStates) empty.hidden = hidden;
@@ -142,9 +145,10 @@ export function bindHorseFolderDragging(root, services, signal) {
         emptyStates: new Map(),
         openStates: new Map(),
         destination: null,
+        image: createHorseDragImage(root, source, event),
         frame: 0
       };
-      // Let the browser capture its drag image before taking the source out of the grid.
+      // Wait until the native drag starts before taking its source out of the grid.
       drag.frame = requestAnimationFrame(lift);
       root.classList.add('stable-instant-update');
       root.classList.add('horse-drag-active');
@@ -160,6 +164,13 @@ export function bindHorseFolderDragging(root, services, signal) {
       event.dataTransfer.dropEffect = 'move';
     },
     options
+  );
+  document.addEventListener(
+    'dragover',
+    event => {
+      if (drag && !pending) drag.image.move(event);
+    },
+    { ...options, capture: true }
   );
   root.addEventListener(
     'dragleave',
@@ -193,6 +204,7 @@ export function bindHorseFolderDragging(root, services, signal) {
         };
       }
       const payload = { ...drag.payload, ...drag.destination };
+      drag.image.remove();
       pending = true;
       root.inert = true;
       root.setAttribute('aria-busy', 'true');

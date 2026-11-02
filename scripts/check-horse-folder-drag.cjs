@@ -28,6 +28,8 @@ async function checkHorseDragging(win, action, ids, directory) {
     await settled();
     await run(() => {
       if (document.querySelector('.horse-folder-drop-status').textContent) throw Error('Drag failed');
+      if (document.querySelector('.horse-drag-image,.horse-native-drag-image'))
+        throw Error('Drop left a floating drag image behind');
       if ([...document.querySelectorAll('.horse-card')].some(card => getComputedStyle(card).animationName !== 'none'))
         throw Error('Drag replayed card entrance animation');
     });
@@ -63,6 +65,19 @@ async function checkHorseDragging(win, action, ids, directory) {
         .forEach(card => card.getAnimations().forEach(animation => animation.finish()));
     });
     await run(async () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await run(() => {
+      const placeholder = document.querySelector('.horse-drop-placeholder');
+      const rect = placeholder.getBoundingClientRect();
+      placeholder.dispatchEvent(
+        new DragEvent('dragover', {
+          bubbles: true,
+          cancelable: true,
+          dataTransfer: window.horseDragCheck.dataTransfer,
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.top + rect.height / 2
+        })
+      );
+    });
     // Hidden Chromium windows may return the preceding compositor frame on the first capture.
     await win.webContents.capturePage();
     await new Promise(resolve => setTimeout(resolve, 150));
@@ -70,7 +85,7 @@ async function checkHorseDragging(win, action, ids, directory) {
     await run(() => {
       const { source, dataTransfer } = window.horseDragCheck;
       source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
-      if (document.querySelector('.horse-drop-placeholder,.horse-dragging'))
+      if (document.querySelector('.horse-drop-placeholder,.horse-dragging,.horse-drag-image,.horse-native-drag-image'))
         throw Error('Cancelled drag left a preview behind');
       if (getComputedStyle(source).display === 'none') throw Error('Cancelled drag did not restore its horse');
       if (window.horseDragCheck.folder.open) throw Error('Cancelled drag left its destination expanded');
@@ -301,6 +316,16 @@ function performDrop({ from, to, id, targetId, after, previewOnly, overCard }) {
   target.dispatchEvent(new DragEvent('dragover', init));
   if (!folder.classList.contains('horse-drop-target')) throw Error('Drop target did not highlight');
   if (getComputedStyle(source).display !== 'none') throw Error('Picked-up horse still occupies its old slot');
+  const image = document.querySelector('.horse-drag-image');
+  if (
+    !image ||
+    getComputedStyle(image).opacity !== '1' ||
+    getComputedStyle(image.querySelector('.horse-card')).opacity !== '1'
+  )
+    throw Error('Floating horse preview must be fully opaque');
+  if (getComputedStyle(image).pointerEvents !== 'none') throw Error('Drag preview blocks its drop targets');
+  if (Math.abs(image.getBoundingClientRect().left - init.clientX) > 1)
+    throw Error('Drag preview did not follow the cursor');
   const placeholder = document.querySelector('.horse-drop-placeholder');
   if (placeholder?.closest('details') !== folder) throw Error('Drop placeholder is not in the destination folder');
   if (previewOnly) {
