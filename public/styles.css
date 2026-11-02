@@ -669,6 +669,9 @@ main {
 .horse-card:nth-child(3) {
   animation-delay: 0.09s;
 }
+.stable-instant-update .horse-card {
+  animation: none;
+}
 .horse-card:hover {
   border-color: #8b7050;
   transform: translateY(-3px);

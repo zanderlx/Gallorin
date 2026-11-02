@@ -47,6 +47,91 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   };
   await win.loadURL(origin + '/#stable/all');
   await wait(() => !!document.querySelector('#horse-sort'));
+  if (process.argv.includes('--favorites-only')) {
+    win.webContents.debugger.attach('1.3');
+    for (const motion of ['no-preference', 'reduce']) {
+      await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-reduced-motion', value: motion }]
+      });
+      for (const sort of ['recent', 'custom']) {
+        await win.webContents.executeJavaScript(
+          `document.querySelector('#horse-sort').value = ${JSON.stringify(sort)}`
+        );
+        await run(() => {
+          const select = document.querySelector('#horse-sort');
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          const favorites = document.querySelector('[data-music-group=favorites]');
+          if (favorites) favorites.open = false;
+          document.querySelectorAll('.horse-card').forEach(card => card.getAnimations().forEach(a => a.finish()));
+          const button = document.querySelector('[data-action=favorite][aria-pressed=false]');
+          window.favoriteCheck = {
+            id: button.dataset.id,
+            toolbar: document.querySelector('.collection-toolbar'),
+            grid: document.querySelector('#collection-grid'),
+            music: document.querySelector('.music-player')
+          };
+          button.click();
+        });
+        await wait(() => {
+          const selector = `[data-action=favorite][data-id="${window.favoriteCheck.id}"]`;
+          return document.querySelector(selector)?.getAttribute('aria-pressed') === 'true';
+        });
+        await run(() => {
+          const before = window.favoriteCheck;
+          if (
+            document.querySelector('.collection-toolbar') !== before.toolbar ||
+            document.querySelector('#collection-grid') !== before.grid ||
+            document.querySelector('.music-player') !== before.music
+          )
+            throw Error('Favoriting rebuilt the page');
+          if (
+            [...before.grid.querySelectorAll('.horse-card')].some(
+              card => getComputedStyle(card).animationName !== 'none'
+            )
+          )
+            throw Error('Favoriting replayed an entrance animation');
+          const favorites = document.querySelector('[data-music-group=favorites]');
+          if (favorites) {
+            if (favorites.open) throw Error('Favoriting reset the collapsed folder');
+            if (document.querySelector(`[data-music-group=unfiled] [data-action=favorite][data-id="${before.id}"]`))
+              throw Error('Favorited horse remained in Unfiled');
+          }
+          document.querySelector(`[data-action=favorite][data-id="${before.id}"]`).click();
+        });
+        await wait(
+          () =>
+            document
+              .querySelector(`[data-action=favorite][data-id="${window.favoriteCheck.id}"]`)
+              ?.getAttribute('aria-pressed') === 'false'
+        );
+        await run(() => {
+          if (
+            [...document.querySelectorAll('#collection-grid .horse-card')].some(
+              card => getComputedStyle(card).animationName !== 'none'
+            )
+          )
+            throw Error('Unfavoriting replayed an entrance animation');
+          if (
+            document.querySelector('#horse-sort').value === 'custom' &&
+            !document.querySelector(
+              `[data-music-group=unfiled] [data-action=favorite][data-id="${window.favoriteCheck.id}"]`
+            )
+          )
+            throw Error('Unfavorited horse did not return to Unfiled');
+        });
+      }
+    }
+    win.webContents.debugger.detach();
+    win.destroy();
+    await backend.closeGameServer();
+    clearTimeout(deadline);
+    console.log(
+      'Favorite updates passed without page rebuilds or entrance animations (muted, normal and reduced motion). Diagnostics: ' +
+        directory
+    );
+    app.exit(0);
+    return;
+  }
   await run(() => {
     const select = document.querySelector('#horse-sort');
     select.value = 'custom';
