@@ -335,7 +335,7 @@ test('collection search, sorting and favorites work with complete saved records'
   assert.match(page, /id="horse-grid-size"/);
   assert.match(page, /type="range" min="3" max="6" step="1" value="5"/);
   assert.match(page, /title="Import Horse" aria-label="Import Horse">\s*<svg/);
-  assert.match(page, /<option value="custom">Custom<\/option>/);
+  assert.match(page, /<option value="custom" selected>Custom<\/option>/);
   assert.doesNotMatch(
     page,
     /A place to call home|A growing collection|Explore the wilds|YOUR SANCTUARY|value="birthday"/
@@ -346,7 +346,7 @@ test('collection search, sorting and favorites work with complete saved records'
   const descending = collectionCards('all', populated, '', 'name', undefined, 'desc');
   assert.ok(descending.indexOf('>Willow<') < descending.indexOf('>Ash<'));
   assert.match(page, /Sort By/);
-  assert.match(page, /data-action="sort-direction" data-direction="desc"/);
+  assert.match(page, /data-action="sort-direction" data-direction="asc"/);
 });
 test('breadcrumb sections match sidebar group names and icons for every route', () => {
   for (const group of groups)

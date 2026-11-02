@@ -298,6 +298,7 @@ function render() {
       .closest('.stable-grid-slider')
       .style.setProperty('--grid-position', `${((stableGridColumns - 3) / 3) * 100}%`);
     $('#collection-grid').style.setProperty('--stable-grid-columns', stableGridColumns);
+    bindHorseFolders($('#collection-grid'), { getState: () => state, action, redraw: () => updateStableSort() });
   }
   document.title = `Gallorin v${appVersion} · ${routeTitle(route, locationsFor(catalog, state))}`;
   attachSettingsNumbers(main);

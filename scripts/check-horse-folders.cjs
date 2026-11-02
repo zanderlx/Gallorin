@@ -47,6 +47,12 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   };
   await win.loadURL(origin + '/#stable/all');
   await wait(() => !!document.querySelector('#horse-sort'));
+  await run(() => {
+    if (document.querySelector('#horse-sort').value !== 'custom' || !document.querySelector('.horse-folders'))
+      throw Error('My Horses must open with the Custom folder layout');
+    if (document.querySelector('[data-action=sort-direction]').dataset.direction !== 'asc')
+      throw Error('Custom must start in ascending order');
+  });
   if (process.argv.includes('--favorites-only')) {
     win.webContents.debugger.attach('1.3');
     for (const motion of ['no-preference', 'reduce']) {
@@ -133,9 +139,6 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     return;
   }
   await run(() => {
-    const select = document.querySelector('#horse-sort');
-    select.value = 'custom';
-    select.dispatchEvent(new Event('change', { bubbles: true }));
     document.querySelector('[data-horse-folder-new]').click();
     const form = document.querySelector('.horse-folder-dialog form');
     if (form.querySelector('[name=horseIds],fieldset')) throw Error('New Folder must only request a name');
