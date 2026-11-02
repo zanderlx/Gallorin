@@ -93,6 +93,43 @@ async function checkHorseDragging(win, action, ids, directory) {
       const { source, dataTransfer } = window.horseDragCheck;
       source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
     });
+    await win.webContents.executeJavaScript(
+      '(' +
+        performDrop.toString() +
+        ')(' +
+        JSON.stringify({ from: trail, to: trail, id: ids[2], targetId: ids[2], previewOnly: true }) +
+        ')'
+    );
+    await run(() => {
+      const { source, folder, dataTransfer } = window.horseDragCheck;
+      const grid = folder.querySelector('.horse-grid');
+      const cards = [...grid.querySelectorAll('[data-folder-horse]')].filter(card => card !== source);
+      cards.forEach(card => card.getAnimations().forEach(animation => animation.finish()));
+      const [left, right] = cards.map(card => card.getBoundingClientRect());
+      const init = {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: (left.right + right.left) / 2,
+        clientY: left.top + left.height / 2
+      };
+      for (let repeat = 0; repeat < 10; repeat++) {
+        grid.dispatchEvent(new DragEvent('dragover', init));
+        const visible = [...grid.children].filter(el => getComputedStyle(el).display !== 'none');
+        if (
+          visible[0] !== cards[0] ||
+          !visible[1].classList.contains('horse-drop-placeholder') ||
+          visible[2] !== cards[1]
+        )
+          throw Error('Dragging in the gap must stay between the two horses');
+      }
+      grid.dispatchEvent(new DragEvent('drop', init));
+      source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+    });
+    await settled();
+    await expectOrder(trail, [ids[0], ids[2], ids[1]]);
+    await drop(trail, trail, ids[2], ids[1], true);
+    await expectOrder(trail, ids);
   }
   win.webContents.debugger.detach();
   await win.webContents.executeJavaScript(

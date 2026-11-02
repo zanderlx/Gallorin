@@ -49,11 +49,35 @@ export function bindHorseFolderDragging(root, services, signal) {
     root.querySelectorAll('.horse-drop-target').forEach(el => el.classList.remove('horse-drop-target'));
     folder.classList.add('horse-drop-target');
     if (event.target.closest('.horse-drop-placeholder')) return true;
-    const card = event.target.closest('[data-folder-horse]');
-    if (card === drag.source) return true;
     const grid = folder.querySelector('.horse-folder-body > .horse-grid');
+    let card = event.target.closest('[data-folder-horse]');
+    if (card === drag.source) return true;
+    // Grid gaps target the container, so resolve them to the nearest visible slot.
+    if (!card && !event.target.closest('summary')) {
+      let nearest = null,
+        distance = Infinity;
+      for (const candidate of grid.children) {
+        if (
+          candidate !== drag.placeholder &&
+          (!candidate.hasAttribute('data-folder-horse') || candidate === drag.source)
+        )
+          continue;
+        const rect = candidate.getBoundingClientRect();
+        if (!rect.width || !rect.height) continue;
+        const x = Math.max(rect.left - event.clientX, 0, event.clientX - rect.right);
+        const y = Math.max(rect.top - event.clientY, 0, event.clientY - rect.bottom);
+        const squared = x * x + y * y;
+        if (squared < distance || (squared === distance && candidate === drag.placeholder)) {
+          nearest = candidate;
+          distance = squared;
+        }
+      }
+      if (nearest === drag.placeholder) return true;
+      card = nearest;
+    }
+    const rect = card?.getBoundingClientRect();
     const placement =
-      card && event.clientX > card.getBoundingClientRect().left + card.getBoundingClientRect().width / 2
+      rect && (event.clientY >= rect.bottom || (event.clientY > rect.top && event.clientX > rect.left + rect.width / 2))
         ? 'after'
         : 'before';
     const next = card ? (placement === 'after' ? card.nextElementSibling : card) : null;
