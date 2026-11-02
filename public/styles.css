@@ -2490,26 +2490,25 @@ body::-webkit-scrollbar {
   height: 100%;
 }
 .horse-folder-card.horse-dragging {
-  opacity: 0.45;
+  display: none;
 }
 .horse-folders .horse-drop-target {
   outline: 2px solid var(--gold);
   outline-offset: -2px;
 }
-.horse-folder-card[data-drop-side]::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--gold);
-  pointer-events: none;
+.horse-drop-placeholder {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border: 2px dashed var(--gold);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--gold) 8%, var(--panel));
+  color: var(--gold);
+  font-size: 13px;
 }
-.horse-folder-card[data-drop-side='before']::after {
-  left: -9px;
-}
-.horse-folder-card[data-drop-side='after']::after {
-  right: -9px;
+.horse-drag-active .horse-folder-card > .horse-card {
+  animation: none;
+  transform: none;
 }
 .horse-folder-body > .horse-grid {
   grid-template-columns: repeat(min(var(--stable-grid-columns, 5), var(--stable-grid-limit, 5)), minmax(0, 1fr));

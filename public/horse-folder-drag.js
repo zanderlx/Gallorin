@@ -1,40 +1,111 @@
 export function bindHorseFolderDragging(root, services, signal) {
-  let dragged = null;
+  let drag = null;
   let pending = false;
   const options = { signal };
-  const clear = () => {
+  const movePreview = change => {
+    const cards = [...root.querySelectorAll('[data-folder-horse]')].filter(card => card !== drag?.source);
+    const before = new Map(cards.map(card => [card, card.getBoundingClientRect()]));
+    cards.forEach(card => card.getAnimations().forEach(animation => animation.cancel()));
+    change();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (const card of cards) {
+      const previous = before.get(card),
+        next = card.getBoundingClientRect();
+      if (!previous.width || !next.width) continue;
+      const x = previous.left - next.left,
+        y = previous.top - next.top;
+      if (x || y)
+        card.animate([{ transform: `translate(${x}px, ${y}px)` }, { transform: 'none' }], {
+          duration: 160,
+          easing: 'ease-out'
+        });
+    }
+  };
+  const cleanup = keepOpen => {
+    if (!drag) return;
+    cancelAnimationFrame(drag.frame);
+    drag.placeholder.remove();
+    drag.source.classList.remove('horse-dragging');
+    for (const [empty, hidden] of drag.emptyStates) empty.hidden = hidden;
+    for (const [folder, open] of drag.openStates) if (folder !== keepOpen) folder.open = open;
+    root.querySelectorAll('.horse-drop-target').forEach(el => el.classList.remove('horse-drop-target'));
     root
-      .querySelectorAll('.horse-drop-target,.horse-dragging')
-      .forEach(el => el.classList.remove('horse-drop-target', 'horse-dragging'));
-    root.querySelectorAll('[data-drop-side]').forEach(el => el.removeAttribute('data-drop-side'));
+      .querySelectorAll('[data-folder-horse]')
+      .forEach(card => card.getAnimations().forEach(animation => animation.cancel()));
+    root.classList.remove('horse-drag-active');
+    drag = null;
   };
-  const position = event => {
+  const lift = () => {
+    if (!drag || drag.source.classList.contains('horse-dragging')) return;
+    movePreview(() => {
+      drag.source.before(drag.placeholder);
+      drag.source.classList.add('horse-dragging');
+    });
+  };
+  const preview = event => {
     const folder = event.target.closest('[data-music-group]');
-    if (!folder || !root.contains(folder)) return null;
+    if (!folder || !root.contains(folder)) return false;
+    lift();
+    root.querySelectorAll('.horse-drop-target').forEach(el => el.classList.remove('horse-drop-target'));
+    folder.classList.add('horse-drop-target');
+    if (event.target.closest('.horse-drop-placeholder')) return true;
     const card = event.target.closest('[data-folder-horse]');
-    return {
-      folder,
-      card,
-      placement:
-        card && event.clientX > card.getBoundingClientRect().left + card.getBoundingClientRect().width / 2
-          ? 'after'
-          : 'before'
-    };
+    if (card === drag.source) return true;
+    const grid = folder.querySelector('.horse-folder-body > .horse-grid');
+    const placement =
+      card && event.clientX > card.getBoundingClientRect().left + card.getBoundingClientRect().width / 2
+        ? 'after'
+        : 'before';
+    const next = card ? (placement === 'after' ? card.nextElementSibling : card) : null;
+    if (
+      next !== drag.placeholder &&
+      !(drag.placeholder.parentElement === grid && drag.placeholder.nextElementSibling === next)
+    ) {
+      movePreview(() => {
+        if (!drag.openStates.has(folder)) drag.openStates.set(folder, folder.open);
+        folder.open = true;
+        for (const empty of grid.querySelectorAll('.grid-empty')) {
+          if (!drag.emptyStates.has(empty)) drag.emptyStates.set(empty, empty.hidden);
+          empty.hidden = true;
+        }
+        grid.insertBefore(drag.placeholder, next);
+      });
+    }
+    drag.destination = { toFolder: folder.dataset.musicGroup, targetId: card?.dataset.folderHorse, placement };
+    return true;
   };
-  // Images must not start their own native drag instead of the horse drag.
   root.querySelectorAll('.horse-folder-card img').forEach(img => (img.draggable = false));
   root.addEventListener(
     'dragstart',
     event => {
-      const card = event.target.closest('[data-folder-horse]');
-      if (!card || pending) {
+      const source = event.target.closest('[data-folder-horse]');
+      if (!source || pending) {
         event.preventDefault();
         return;
       }
-      dragged = { id: card.dataset.folderHorse, fromFolder: card.closest('[data-music-group]').dataset.musicGroup };
+      cleanup();
+      const placeholder = document.createElement('div');
+      placeholder.className = 'horse-drop-placeholder';
+      placeholder.setAttribute('aria-hidden', 'true');
+      placeholder.textContent = 'Drop here';
+      placeholder.style.minHeight = source.getBoundingClientRect().height + 'px';
+      const fromFolder = source.closest('[data-music-group]').dataset.musicGroup;
+      const payload = { id: source.dataset.folderHorse, fromFolder };
       event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('application/x-gallorin-horse', JSON.stringify(dragged));
-      card.classList.add('horse-dragging');
+      event.dataTransfer.setData('application/x-gallorin-horse', JSON.stringify(payload));
+      drag = {
+        source,
+        placeholder,
+        payload,
+        emptyStates: new Map(),
+        openStates: new Map(),
+        destination: null,
+        frame: 0
+      };
+      // Let the browser capture its drag image before taking the source out of the grid.
+      drag.frame = requestAnimationFrame(lift);
+      root.classList.add('stable-instant-update');
+      root.classList.add('horse-drag-active');
       root.querySelector('.horse-folder-drop-status').textContent = '';
     },
     options
@@ -42,55 +113,53 @@ export function bindHorseFolderDragging(root, services, signal) {
   root.addEventListener(
     'dragover',
     event => {
-      if (!dragged || pending) return;
-      const target = position(event);
-      if (!target) return;
+      if (!drag || pending || !preview(event)) return;
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
-      root.querySelectorAll('.horse-drop-target').forEach(el => el.classList.remove('horse-drop-target'));
-      root.querySelectorAll('[data-drop-side]').forEach(el => el.removeAttribute('data-drop-side'));
-      target.folder.classList.add('horse-drop-target');
-      if (target.card) target.card.dataset.dropSide = target.placement;
     },
     options
   );
   root.addEventListener(
     'dragleave',
     event => {
-      if (!root.contains(event.relatedTarget)) clear();
+      if (!root.contains(event.relatedTarget))
+        root.querySelectorAll('.horse-drop-target').forEach(el => el.classList.remove('horse-drop-target'));
     },
     options
   );
   root.addEventListener(
     'dragend',
     () => {
-      dragged = null;
-      clear();
+      if (!pending) cleanup();
     },
     options
   );
   root.addEventListener(
     'drop',
     async event => {
-      if (!dragged || pending) return;
-      const target = position(event);
-      if (!target) return;
+      if (!drag || pending) return;
+      const folder = event.target.closest('[data-music-group]');
+      if (!folder || !root.contains(folder)) return;
       event.preventDefault();
-      const payload = {
-        ...dragged,
-        toFolder: target.folder.dataset.musicGroup,
-        targetId: target.card?.dataset.folderHorse,
-        placement: target.placement
-      };
-      dragged = null;
-      clear();
+      if (!drag.destination || drag.destination.toFolder !== folder.dataset.musicGroup) preview(event);
+      if (!drag.destination) {
+        const next = drag.source.nextElementSibling;
+        drag.destination = {
+          toFolder: drag.payload.fromFolder,
+          targetId: next?.dataset.folderHorse,
+          placement: 'before'
+        };
+      }
+      const payload = { ...drag.payload, ...drag.destination };
       pending = true;
       root.inert = true;
       root.setAttribute('aria-busy', 'true');
       try {
         await services.action('move-horse-folder', payload);
+        cleanup(folder);
         services.redraw({ animate: false });
       } catch (error) {
+        cleanup();
         root.querySelector('.horse-folder-drop-status').textContent = error.message;
       } finally {
         pending = false;
@@ -100,5 +169,5 @@ export function bindHorseFolderDragging(root, services, signal) {
     },
     options
   );
-  signal?.addEventListener('abort', clear, { once: true });
+  signal?.addEventListener('abort', () => cleanup(), { once: true });
 }

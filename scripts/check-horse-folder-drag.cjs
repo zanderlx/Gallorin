@@ -5,6 +5,8 @@ async function checkHorseDragging(win, action, ids, directory) {
   await action('save-horse-folder', { name: 'Trail', horseIds: ids });
   const created = await action('save-horse-folder', { name: 'Meadow', horseIds: [] });
   const [trail, meadow] = created.state.horseFolders.map(folder => folder.id);
+  const temporary = await action('save-horse-folder', { name: 'Temporary', horseIds: [] });
+  const temporaryId = temporary.state.horseFolders.at(-1).id;
   const run = fn => win.webContents.executeJavaScript('(' + fn.toString() + ')()');
   const settled = async () => {
     for (let i = 0; i < 150; i++) {
@@ -39,7 +41,84 @@ async function checkHorseDragging(win, action, ids, directory) {
   };
   win.reload();
   await settled();
-  // Native drag events exercise the application's real drag handlers and API persistence.
+  win.webContents.debugger.attach('1.3');
+  for (const motion of ['no-preference', 'reduce']) {
+    await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
+      features: [{ name: 'prefers-reduced-motion', value: motion }]
+    });
+    await win.webContents.executeJavaScript(
+      '(' +
+        performDrop.toString() +
+        ')(' +
+        JSON.stringify({ from: trail, to: meadow, id: ids[2], previewOnly: true }) +
+        ')'
+    );
+    await run(() => {
+      const placeholder = document.querySelector('.horse-drop-placeholder');
+      if (!placeholder || placeholder.getBoundingClientRect().height < 100)
+        throw Error('Live drop slot is not visible');
+      placeholder.scrollIntoView({ block: 'center', behavior: 'instant' });
+      document
+        .querySelectorAll('[data-folder-horse]')
+        .forEach(card => card.getAnimations().forEach(animation => animation.finish()));
+    });
+    await run(async () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Hidden Chromium windows may return the preceding compositor frame on the first capture.
+    await win.webContents.capturePage();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    await writeFile(join(directory, 'horse-preview-' + motion + '.png'), (await win.webContents.capturePage()).toPNG());
+    await run(() => {
+      const { source, dataTransfer } = window.horseDragCheck;
+      source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+      if (document.querySelector('.horse-drop-placeholder,.horse-dragging'))
+        throw Error('Cancelled drag left a preview behind');
+      if (getComputedStyle(source).display === 'none') throw Error('Cancelled drag did not restore its horse');
+      if (window.horseDragCheck.folder.open) throw Error('Cancelled drag left its destination expanded');
+      if (window.horseDragCheck.folder.querySelector('.grid-empty').hidden)
+        throw Error('Cancelled drag did not restore the empty-folder message');
+    });
+    await expectOrder(trail, ids);
+    await win.webContents.executeJavaScript(
+      '(' +
+        performDrop.toString() +
+        ')(' +
+        JSON.stringify({ from: trail, to: trail, id: ids[2], targetId: ids[0], previewOnly: true }) +
+        ')'
+    );
+    await run(() => {
+      const grid = window.horseDragCheck.folder.querySelector('.horse-grid');
+      const visible = [...grid.children].filter(el => getComputedStyle(el).display !== 'none');
+      if (!visible[0].classList.contains('horse-drop-placeholder') || visible.length !== 3)
+        throw Error('Live reorder did not shift the remaining horses around the drop slot');
+      const { source, dataTransfer } = window.horseDragCheck;
+      source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+    });
+  }
+  win.webContents.debugger.detach();
+  await win.webContents.executeJavaScript(
+    '(' +
+      performDrop.toString() +
+      ')(' +
+      JSON.stringify({ from: trail, to: temporaryId, id: ids[2], previewOnly: true }) +
+      ')'
+  );
+  await action('delete-horse-folder', { id: temporaryId });
+  await run(() => {
+    const { source, target, init, dataTransfer } = window.horseDragCheck;
+    target.dispatchEvent(new DragEvent('drop', init));
+    source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
+  });
+  await settled();
+  await run(() => {
+    if (!document.querySelector('.horse-folder-drop-status').textContent)
+      throw Error('Failed save needs an error message');
+    if (document.querySelector('.horse-drop-placeholder,.horse-dragging'))
+      throw Error('Failed drop did not restore the original layout');
+  });
+  await expectOrder(trail, ids);
+  win.reload();
+  await settled();
+  // Drag events exercise the application's real handlers and API persistence.
   await drop(trail, trail, ids[2], ids[0]);
   await expectOrder(trail, [ids[2], ids[0], ids[1]]);
   await run(() => {
@@ -101,7 +180,7 @@ async function checkHorseDragging(win, action, ids, directory) {
   });
   await writeFile(join(directory, 'horse-drag.png'), (await win.webContents.capturePage()).toPNG());
 }
-function performDrop({ from, to, id, targetId, after }) {
+function performDrop({ from, to, id, targetId, after, previewOnly }) {
   const source = document.querySelector(`[data-music-group="${from}"] [data-folder-horse="${id}"]`);
   if (source) source.closest('details').open = true;
   const folder = document.querySelector(`[data-music-group="${to}"]`);
@@ -119,7 +198,16 @@ function performDrop({ from, to, id, targetId, after }) {
   };
   target.dispatchEvent(new DragEvent('dragover', init));
   if (!folder.classList.contains('horse-drop-target')) throw Error('Drop target did not highlight');
+  if (getComputedStyle(source).display !== 'none') throw Error('Picked-up horse still occupies its old slot');
+  const placeholder = document.querySelector('.horse-drop-placeholder');
+  if (placeholder?.closest('details') !== folder) throw Error('Drop placeholder is not in the destination folder');
+  if (previewOnly) {
+    window.horseDragCheck = { source, target, folder, dataTransfer, init };
+    return;
+  }
   target.dispatchEvent(new DragEvent('drop', init));
+  if (getComputedStyle(source).display !== 'none' || !document.querySelector('.horse-drop-placeholder'))
+    throw Error('Picked-up horse flashed back while saving the drop');
   source.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer }));
 }
 module.exports = { checkHorseDragging };
