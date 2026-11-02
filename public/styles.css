@@ -2485,6 +2485,17 @@ body::-webkit-scrollbar {
   min-width: 0;
   position: relative;
   cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+body.horse-drag-in-progress,
+body.horse-drag-in-progress * {
+  cursor: none !important;
+}
+body.horse-drag-in-progress [role='tooltip'],
+body.horse-drag-in-progress [data-tooltip]::before,
+body.horse-drag-in-progress [data-tooltip]::after {
+  display: none !important;
 }
 .horse-folder-card > .horse-card {
   height: 100%;

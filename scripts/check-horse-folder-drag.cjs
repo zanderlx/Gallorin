@@ -43,6 +43,85 @@ async function checkHorseDragging(win, action, ids, directory) {
   };
   win.reload();
   await settled();
+  await run(async () => {
+    const folder = [...document.querySelectorAll('[data-music-group]')].find(
+      el => el.querySelectorAll('[data-folder-horse]').length === 3
+    );
+    folder.open = true;
+    folder.scrollIntoView({ block: 'center', behavior: 'instant' });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const cards = folder.querySelectorAll('[data-folder-horse]');
+    const source = cards[2],
+      rect = source.getBoundingClientRect(),
+      target = cards[0].getBoundingClientRect();
+    const title = source.querySelector('[title]').getAttribute('title');
+    if (source.draggable) throw Error('Horse gestures must avoid native OS drag cursors');
+    source.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        button: 0,
+        buttons: 1,
+        pointerId: 7,
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2
+      })
+    );
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        bubbles: true,
+        cancelable: true,
+        buttons: 1,
+        pointerId: 7,
+        clientX: target.left + target.width / 2,
+        clientY: target.top + target.height / 2
+      })
+    );
+    if (
+      !document.querySelector('.horse-drag-image') ||
+      getComputedStyle(document.body).cursor !== 'none' ||
+      getComputedStyle(cards[0]).cursor !== 'none'
+    )
+      throw Error('Pointer dragging must hide the cursor');
+    if (document.querySelector('[title]')) throw Error('Tooltips must be suppressed during dragging');
+    document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+    if (document.body.classList.contains('horse-drag-in-progress') || document.querySelector('.horse-drag-image'))
+      throw Error('Cancelling pointer dragging did not restore normal cursor behavior');
+    if (source.querySelector('[title]')?.getAttribute('title') !== title)
+      throw Error('Cancelling did not restore tooltips');
+    source.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        button: 0,
+        buttons: 1,
+        pointerId: 8,
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2
+      })
+    );
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        bubbles: true,
+        cancelable: true,
+        buttons: 1,
+        pointerId: 8,
+        clientX: target.left + target.width / 2,
+        clientY: target.top + target.height / 2
+      })
+    );
+    document.dispatchEvent(
+      new PointerEvent('pointerup', {
+        bubbles: true,
+        button: 0,
+        pointerId: 8,
+        clientX: target.left + target.width / 2,
+        clientY: target.top + target.height / 2
+      })
+    );
+  });
+  await settled();
+  await expectOrder(trail, [ids[2], ids[0], ids[1]]);
+  await drop(trail, trail, ids[2], ids[1], true);
+  await expectOrder(trail, ids);
   win.webContents.debugger.attach('1.3');
   for (const motion of ['no-preference', 'reduce']) {
     await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
@@ -316,6 +395,8 @@ function performDrop({ from, to, id, targetId, after, previewOnly, overCard }) {
   target.dispatchEvent(new DragEvent('dragover', init));
   if (!folder.classList.contains('horse-drop-target')) throw Error('Drop target did not highlight');
   if (getComputedStyle(source).display !== 'none') throw Error('Picked-up horse still occupies its old slot');
+  if (document.querySelector('[title]') || getComputedStyle(document.body).cursor !== 'none')
+    throw Error('Dragging must hide cursor and tooltips');
   const image = document.querySelector('.horse-drag-image');
   if (
     !image ||

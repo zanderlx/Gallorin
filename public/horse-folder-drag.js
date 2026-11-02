@@ -1,4 +1,5 @@
 import { createHorseDragImage } from './horse-drag-image.js';
+import { bindHorsePointerDragging } from './horse-pointer-drag.js';
 
 export function bindHorseFolderDragging(root, services, signal) {
   let drag = null;
@@ -42,6 +43,9 @@ export function bindHorseFolderDragging(root, services, signal) {
     if (!drag) return;
     cancelAnimationFrame(drag.frame);
     drag.image.remove();
+    for (const [element, title] of drag.titles)
+      if (element.isConnected && !element.hasAttribute('title')) element.setAttribute('title', title);
+    document.body.classList.remove('horse-drag-in-progress');
     drag.placeholder.remove();
     drag.source.classList.remove('horse-dragging');
     for (const [empty, hidden] of drag.emptyStates) empty.hidden = hidden;
@@ -120,6 +124,7 @@ export function bindHorseFolderDragging(root, services, signal) {
     return true;
   };
   root.querySelectorAll('.horse-folder-card img').forEach(img => (img.draggable = false));
+  bindHorsePointerDragging(root, signal);
   root.addEventListener(
     'dragstart',
     event => {
@@ -138,10 +143,16 @@ export function bindHorseFolderDragging(root, services, signal) {
       const payload = { id: source.dataset.folderHorse, fromFolder };
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('application/x-gallorin-horse', JSON.stringify(payload));
+      const titles = new Map(
+        [...document.querySelectorAll('[title]')].map(element => [element, element.getAttribute('title')])
+      );
+      titles.forEach((title, element) => element.removeAttribute('title'));
+      document.body.classList.add('horse-drag-in-progress');
       drag = {
         source,
         placeholder,
         payload,
+        titles,
         emptyStates: new Map(),
         openStates: new Map(),
         destination: null,
