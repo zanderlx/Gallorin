@@ -299,6 +299,7 @@ function render() {
       .style.setProperty('--grid-position', `${((stableGridColumns - 3) / 3) * 100}%`);
     $('#collection-grid').style.setProperty('--stable-grid-columns', stableGridColumns);
     $('[data-action="sort-direction"]').disabled = $('#horse-sort').value === 'custom';
+    $('[data-action="sort-direction"]').hidden = $('#horse-sort').value === 'custom';
     bindHorseFolders($('#collection-grid'), {
       getState: () => state,
       action,
@@ -521,6 +522,8 @@ function askToDelete(type, payload, name, detail, verb = type === 'delete-profil
 }
 function updateStableSort(direction = $('[data-action="sort-direction"]')?.dataset.direction, { animate = true } = {}) {
   const grid = $('#collection-grid');
+  const custom = $('#horse-sort').value === 'custom';
+  if (custom) direction = 'asc';
   const folderStates = new Map(
     [...grid.querySelectorAll('[data-music-group]')].map(folder => [
       folder.dataset.musicGroup,
@@ -530,8 +533,8 @@ function updateStableSort(direction = $('[data-action="sort-direction"]')?.datas
   grid.classList.toggle('stable-instant-update', !animate);
   const toggle = $('[data-action="sort-direction"]');
   toggle.dataset.direction = direction;
-  const custom = $('#horse-sort').value === 'custom';
   toggle.disabled = custom;
+  toggle.hidden = custom;
   const label = custom
     ? 'Custom order. Drag horses to rearrange.'
     : direction === 'asc'
@@ -608,6 +611,7 @@ document.addEventListener('click', async event => {
     return;
   }
   if (intent === 'sort-direction') {
+    if ($('#horse-sort')?.value === 'custom') return;
     updateStableSort(button.dataset.direction === 'asc' ? 'desc' : 'asc');
     return;
   }

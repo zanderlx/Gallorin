@@ -64,6 +64,9 @@ const deadline = setTimeout(() => app.exit(1), 60000);
       throw Error('My Horses must open with the Custom folder layout');
     if (document.querySelector('[data-action=sort-direction]').dataset.direction !== 'asc')
       throw Error('Custom must start in ascending order');
+    const direction = document.querySelector('[data-action=sort-direction]');
+    if (!direction.disabled || !direction.hidden || getComputedStyle(direction).display !== 'none')
+      throw Error('Custom must hide the automatic sort direction control');
   });
   if (process.argv.includes('--drag-only')) {
     const { checkHorseDragging } = require('./check-horse-folder-drag.cjs');

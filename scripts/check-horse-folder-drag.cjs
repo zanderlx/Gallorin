@@ -42,6 +42,27 @@ async function checkHorseDragging(win, action, ids, directory) {
   // Native drag events exercise the application's real drag handlers and API persistence.
   await drop(trail, trail, ids[2], ids[0]);
   await expectOrder(trail, [ids[2], ids[0], ids[1]]);
+  await run(() => {
+    const select = document.querySelector('#horse-sort');
+    const direction = document.querySelector('[data-action=sort-direction]');
+    select.value = 'name';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    if (direction.hidden || direction.disabled) throw Error('Name sort needs an active direction control');
+    const names = () => [...document.querySelectorAll('.horse-card-open')].map(button => button.textContent);
+    if (names().join(',') !== 'Ash,Moss,Willow') throw Error('Name ascending order failed');
+    direction.click();
+    if (names().join(',') !== 'Willow,Moss,Ash') throw Error('Name descending order failed');
+    select.value = 'custom';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    if (!direction.hidden || !direction.disabled || direction.dataset.direction !== 'asc')
+      throw Error('Switching from descending to Custom left automatic sorting active');
+    const grid = document.querySelector('#collection-grid');
+    const markup = grid.innerHTML;
+    direction.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    if (grid.innerHTML !== markup || direction.dataset.direction !== 'asc')
+      throw Error('Custom accepted a stray sort direction event');
+  });
+  await expectOrder(trail, [ids[2], ids[0], ids[1]]);
   await drop(trail, trail, ids[0], ids[1], true);
   await expectOrder(trail, [ids[2], ids[1], ids[0]]);
   await win.webContents.executeJavaScript(`document.querySelector('[data-music-group="${meadow}"]').open = false`);
