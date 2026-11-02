@@ -881,7 +881,6 @@ document.addEventListener('click', async event => {
           preventScroll: true
         });
       }
-      notify(findHorse(id).favorite ? 'A special place in your heart.' : 'Removed from favorites.');
     } else if (intent === 'open-local-save') {
       await window.desktopMenu.openLocalSave();
     } else if (intent === 'backup') {
