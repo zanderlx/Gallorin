@@ -34,6 +34,7 @@ import { createEncounters } from './encounters.js';
 import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
 import { validateKeeper } from '../public/keeper.js';
+import { moveHorseInFolders } from './horse-folders.js';
 
 const snapshotIntervalMs = 60 * 60 * 1000;
 const backupsPerKind = 20;
@@ -526,6 +527,7 @@ export class GameStore {
           });
         } else {
           next.horses = next.horses.filter(h => h.id !== horse.id);
+          for (const folder of next.horseFolders || []) folder.horseIds = folder.horseIds.filter(id => id !== horse.id);
           const salePricing = horseSalePrice(horse, next.settings);
           if (!Number.isSafeInteger(next.gold + salePricing.total))
             throw new Error('This sale would exceed the supported gold balance.');
@@ -571,6 +573,28 @@ export class GameStore {
         };
         upgradeHorse(imported);
         next.horses.push(imported);
+      } else if (type === 'move-horse-folder') {
+        moveHorseInFolders(next, payload);
+      } else if (type === 'save-horse-folder') {
+        const name = typeof payload.name === 'string' ? payload.name.trim() : '';
+        if (!name || name.length > 80) throw new Error('Folder names must contain 1–80 characters.');
+        if (['favorites', 'unfiled'].includes(name.toLowerCase())) throw new Error('Choose a different folder name.');
+        const folders = (next.horseFolders ??= []);
+        const folder = payload.id ? folders.find(folder => folder.id === payload.id) : null;
+        if (payload.id && !folder) throw new Error('Folder not found.');
+        if (folders.some(folder => folder.id !== payload.id && folder.name.toLowerCase() === name.toLowerCase()))
+          throw new Error('A folder with that name already exists.');
+        if (!Array.isArray(payload.horseIds) || payload.horseIds.some(id => !next.horses.some(h => h.id === id)))
+          throw new Error('Choose horses from your stable.');
+        const horseIds = [
+          ...new Set([...(folder?.horseIds || []).filter(id => payload.horseIds.includes(id)), ...payload.horseIds])
+        ];
+        const values = { name, horseIds };
+        if (folder) Object.assign(folder, values);
+        else folders.push({ id: randomUUID(), ...values });
+      } else if (type === 'delete-horse-folder') {
+        if (!next.horseFolders?.some(folder => folder.id === payload.id)) throw new Error('Folder not found.');
+        next.horseFolders = next.horseFolders.filter(folder => folder.id !== payload.id);
       } else if (type === 'rename' || type === 'favorite') {
         const horse = next.horses.find(h => h.id === payload.id);
         if (!horse) throw new Error('Horse not found in your stable.');
@@ -616,6 +640,7 @@ export class GameStore {
         );
         if (!exists) throw new Error('Horse not found.');
         next.horses = next.horses.filter(h => h.id !== payload.id);
+        for (const folder of next.horseFolders || []) folder.horseIds = folder.horseIds.filter(id => id !== payload.id);
         next.sold = next.sold.filter(h => h.id !== payload.id);
         for (const key of Object.keys(next.encounters))
           next.encounters[key] = next.encounters[key].filter(h => h.id !== payload.id);

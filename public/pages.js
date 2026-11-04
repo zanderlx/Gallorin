@@ -1,5 +1,6 @@
 import { gameSettingsPage } from './game-settings.js';
 import { horseCardRank } from './horse-rank.js';
+import { customHorseFolders } from './horse-folders.js';
 import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';
 import { zoneAtmosphere, atmosphereStyle, zoneTags } from './zones.js';
 
@@ -21,10 +22,13 @@ export function wildPage(location, state, locations = [location], catalog) {
 }
 export function stablePage(kind, state, catalog) {
   const sold = kind === 'sold';
+  const defaultSort = sold ? 'recent' : 'custom';
+  const direction = sold ? 'desc' : 'asc';
+  const directionLabel = sold ? 'Descending order. Switch to ascending' : 'Custom order. Drag horses to rearrange.';
   return `${sold ? heading('', 'Horse management', 'A complete record of the companions you have sold.') : `<div class="page-heading stable-heading"><h1>My Horses</h1><button type="button" class="button secondary stable-import" data-action="import-horse" title="Import Horse" aria-label="Import Horse">${icon('download')}</button></div>`}
 
-  <div class="collection-toolbar"><label class="search-field">${icon('search')}<input id="horse-search" type="search" placeholder="Search name, species, or personality…" aria-label="Search horses"></label><label class="sort-field stable-grid-control">Grid Size<span class="stable-grid-slider"><input id="horse-grid-size" type="range" min="3" max="6" step="1" value="5" aria-label="Horses per row" aria-valuetext="5 horses per row"><span class="stable-grid-nodes"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><output id="horse-grid-value" for="horse-grid-size">5</output></span></span></label><div class="stable-sort-controls"><label class="sort-field">Sort By <select id="horse-sort"><option value="recent">Newest first</option><option value="name">Name</option><option value="species">Species</option><option value="rarity">Rarity</option><option value="favorites">Favorites</option></select></label><button type="button" class="icon-button sort-direction" data-action="sort-direction" data-direction="desc" aria-label="Descending order. Switch to ascending" title="Descending order. Switch to ascending">${icon('arrow')}</button></div></div>
-  <div id="collection-grid" class="horse-grid">${collectionCards(kind, state, '', 'recent', catalog)}</div>
+  <div class="collection-toolbar"><label class="search-field">${icon('search')}<input id="horse-search" type="search" placeholder="Search name, species, or personality…" aria-label="Search horses"></label><label class="sort-field stable-grid-control">Grid Size<span class="stable-grid-slider"><input id="horse-grid-size" type="range" min="3" max="6" step="1" value="5" aria-label="Horses per row" aria-valuetext="5 horses per row"><span class="stable-grid-nodes"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><output id="horse-grid-value" for="horse-grid-size">5</output></span></span></label><div class="stable-sort-controls"><label class="sort-field">Sort By <select id="horse-sort"><option value="recent"${sold ? ' selected' : ''}>Newest first</option><option value="name">Name</option><option value="species">Species</option><option value="rarity">Rarity</option><option value="custom"${sold ? '' : ' selected'}>Custom</option></select></label><button type="button" class="icon-button sort-direction" data-action="sort-direction" data-direction="${direction}" aria-label="${directionLabel}" title="${directionLabel}"${sold ? '' : ' hidden disabled'}>${icon('arrow')}</button></div></div>
+  <div id="collection-grid" class="horse-grid${sold ? '' : ' custom-horse-grid'}">${collectionCards(kind, state, '', defaultSort, catalog)}</div>
   `;
 }
 export function collectionCards(
@@ -50,12 +54,13 @@ export function collectionCards(
         ? Number(!!b.favorite) - Number(!!a.favorite) || (b.caughtAt || '').localeCompare(a.caughtAt || '')
         : sort === 'recent'
           ? (b.soldAt || b.caughtAt).localeCompare(a.soldAt || a.caughtAt)
-          : String(sort === 'name' ? a.name || a.species : a[sort]).localeCompare(
-              String(sort === 'name' ? b.name || b.species : b[sort])
+          : String(['name', 'custom'].includes(sort) ? a.name || a.species : a[sort]).localeCompare(
+              String(['name', 'custom'].includes(sort) ? b.name || b.species : b[sort])
             )
   );
   const defaultDirection = ['recent', 'rarity', 'favorites'].includes(sort) ? 'desc' : 'asc';
   if (direction !== defaultDirection) horses.reverse();
+  if (sort === 'custom' && kind !== 'sold') return customHorseFolders(state, horses, catalog);
   if (favorites && !horses.length)
     return `<div class="grid-empty" role="status"><p>${query ? 'No favorite horses match your search.' : 'No favorite horses yet. Use the heart on a horse card to add one.'}</p></div>`;
   return horses.length

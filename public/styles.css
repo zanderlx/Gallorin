@@ -669,6 +669,9 @@ main {
 .horse-card:nth-child(3) {
   animation-delay: 0.09s;
 }
+.stable-instant-update .horse-card {
+  animation: none;
+}
 .horse-card:hover {
   border-color: #8b7050;
   transform: translateY(-3px);
@@ -2426,4 +2429,147 @@ body::-webkit-scrollbar {
 }
 #keeper-form .keeper-developer-toggle > span {
   flex: 0 1 auto;
+}
+/* Custom stable folders share the audio library's disclosure panels. */
+.horse-grid.custom-horse-grid {
+  display: block;
+}
+.horse-folders details[data-expanding='false'] > summary > .music-chevron {
+  transform: rotate(0deg);
+}
+.horse-folder-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.horse-folder-body {
+  padding: 20px;
+}
+.horse-folders .music-group > summary h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.horse-folders .music-group > summary > .horse-folder-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  margin-left: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.horse-folders summary:hover > .horse-folder-actions,
+.horse-folders summary:focus-within > .horse-folder-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.horse-folder-actions .icon-button {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+}
+@media (hover: none) {
+  .horse-folders .music-group > summary > .horse-folder-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+.horse-folder-hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+.horse-folder-drop-status:empty {
+  display: none;
+}
+.horse-folder-card {
+  min-width: 0;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+body.horse-drag-in-progress,
+body.horse-drag-in-progress * {
+  cursor: grabbing !important;
+}
+body.horse-drag-in-progress [role='tooltip'],
+body.horse-drag-in-progress [data-tooltip]::before,
+body.horse-drag-in-progress [data-tooltip]::after {
+  display: none !important;
+}
+.horse-folder-card > .horse-card {
+  height: 100%;
+}
+.horse-folder-card.horse-dragging {
+  display: none;
+}
+.horse-drag-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 1;
+  background: var(--panel);
+  border-radius: 7px;
+  box-shadow: 0 12px 30px #0007;
+}
+.horse-drag-image > .horse-card {
+  height: 100%;
+  opacity: 1;
+  animation: none;
+  transform: none;
+}
+.horse-native-drag-image {
+  position: fixed;
+  top: -10px;
+  left: -10px;
+  pointer-events: none;
+}
+.horse-folders .horse-drop-target {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+.horse-drop-placeholder {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border: 2px dashed var(--gold);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--gold) 8%, var(--panel));
+  color: var(--gold);
+  font-size: 13px;
+}
+.horse-drag-active .horse-folder-card > .horse-card {
+  animation: none;
+  transform: none;
+}
+.horse-folder-body > .horse-grid {
+  grid-template-columns: repeat(min(var(--stable-grid-columns, 5), var(--stable-grid-limit, 5)), minmax(0, 1fr));
+}
+.horse-folder-dialog {
+  width: min(600px, calc(100vw - 32px));
+}
+.horse-folder-form-body {
+  display: grid;
+  gap: 20px;
+  padding: 22px;
+}
+.horse-folder-name {
+  display: grid;
+  gap: 8px;
+}
+.horse-folder-name input {
+  width: 100%;
+  min-width: 0;
+}
+.horse-folder-form-body > [role='status'] {
+  margin: 0;
+}
+.horse-folder-form-body > [role='status']:empty {
+  display: none;
+}
+.horse-folder-form-body .form-actions {
+  justify-content: flex-end;
+  margin-top: 0;
 }

@@ -1,4 +1,5 @@
 import { setProvidedHorseArtwork } from './art.js';
+import { bindHorseFolders } from './horse-folders.js';
 import { bindTextButtonSounds } from './button-sounds.js';
 import { regularEyes } from './cosmic-types.js';
 import { bindEncounterCooldown } from './encounter-cooldown.js';
@@ -297,6 +298,13 @@ function render() {
       .closest('.stable-grid-slider')
       .style.setProperty('--grid-position', `${((stableGridColumns - 3) / 3) * 100}%`);
     $('#collection-grid').style.setProperty('--stable-grid-columns', stableGridColumns);
+    $('[data-action="sort-direction"]').disabled = $('#horse-sort').value === 'custom';
+    $('[data-action="sort-direction"]').hidden = $('#horse-sort').value === 'custom';
+    bindHorseFolders($('#collection-grid'), {
+      getState: () => state,
+      action,
+      redraw: options => updateStableSort(undefined, options)
+    });
   }
   document.title = `Gallorin v${appVersion} · ${routeTitle(route, locationsFor(catalog, state))}`;
   attachSettingsNumbers(main);
@@ -512,21 +520,38 @@ function askToDelete(type, payload, name, detail, verb = type === 'delete-profil
   confirmation.innerHTML = `<div class="dialog-top"><h2 id="confirm-title">${verb} ${e(name)}?</h2></div><p class="delete-warning">${e(detail)} This is saved immediately. The previous save is kept in your backup folder.</p><div class="form-actions"><button class="button secondary" data-action="cancel-delete" autofocus>${verb === 'Release' ? 'No' : 'Keep It'}</button><button class="button primary" data-action="confirm-delete">${verb === 'Release' ? 'Yes' : `Confirm ${verb}`}</button></div>`;
   confirmation.showModal();
 }
-function updateStableSort(direction = $('[data-action="sort-direction"]')?.dataset.direction) {
+function updateStableSort(direction = $('[data-action="sort-direction"]')?.dataset.direction, { animate = true } = {}) {
+  const grid = $('#collection-grid');
+  const custom = $('#horse-sort').value === 'custom';
+  if (custom) direction = 'asc';
+  const folderStates = new Map(
+    [...grid.querySelectorAll('[data-music-group]')].map(folder => [
+      folder.dataset.musicGroup,
+      folder.dataset.expanding ? folder.dataset.expanding === 'true' : folder.open
+    ])
+  );
+  grid.classList.toggle('stable-instant-update', !animate);
   const toggle = $('[data-action="sort-direction"]');
   toggle.dataset.direction = direction;
-  const label = direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending';
+  toggle.disabled = custom;
+  toggle.hidden = custom;
+  const label = custom
+    ? 'Custom order. Drag horses to rearrange.'
+    : direction === 'asc'
+      ? 'Ascending order. Switch to descending'
+      : 'Descending order. Switch to ascending';
   toggle.setAttribute('aria-label', label);
   toggle.title = label;
-  // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
-  $('#collection-grid').innerHTML = collectionCards(
-    route.split('/')[1],
-    state,
-    $('#horse-search').value,
-    $('#horse-sort').value,
-    catalog,
-    direction
+  setHTML(
+    grid,
+    raw(
+      collectionCards(route.split('/')[1], state, $('#horse-search').value, $('#horse-sort').value, catalog, direction)
+    )
   );
+  for (const folder of grid.querySelectorAll('[data-music-group]'))
+    if (folderStates.has(folder.dataset.musicGroup)) folder.open = folderStates.get(folder.dataset.musicGroup);
+  grid.classList.toggle('custom-horse-grid', $('#horse-sort').value === 'custom');
+  bindHorseFolders(grid, { getState: () => state, action, redraw: options => updateStableSort(direction, options) });
 }
 
 document.addEventListener('click', async event => {
@@ -586,6 +611,7 @@ document.addEventListener('click', async event => {
     return;
   }
   if (intent === 'sort-direction') {
+    if ($('#horse-sort')?.value === 'custom') return;
     updateStableSort(button.dataset.direction === 'asc' ? 'desc' : 'asc');
     return;
   }
@@ -856,21 +882,21 @@ document.addEventListener('click', async event => {
       render();
       main.focus({ preventScroll: true });
     } else if (intent === 'favorite') {
-      const search = $('#horse-search')?.value || '';
-      const sort = $('#horse-sort')?.value || 'recent';
-      const direction = $('[data-action="sort-direction"]')?.dataset.direction;
+      const folderId = button.closest('[data-music-group]')?.dataset.musicGroup;
       await action('favorite', { id });
-      render();
-      if ($('#horse-search')) {
-        $('#horse-search').value = search;
-        $('#horse-sort').value = sort;
-        updateStableSort(direction);
-      }
+      if ($('#collection-grid')) updateStableSort(undefined, { animate: false });
       if (profile.open) {
         inspect(id);
         profile.querySelector('[data-action="favorite"]')?.focus();
-      } else main.querySelector(`[data-action="favorite"][data-id="${id}"]`)?.focus({ preventScroll: true });
-      notify(findHorse(id).favorite ? 'A special place in your heart.' : 'Removed from favorites.');
+      } else {
+        const folder = [...main.querySelectorAll('[data-music-group]')].find(
+          folder => folder.dataset.musicGroup === folderId
+        );
+        const selector = `[data-action="favorite"][data-id="${id}"]`;
+        (folder?.querySelector(selector) || main.querySelector(selector) || folder?.querySelector('summary'))?.focus({
+          preventScroll: true
+        });
+      }
     } else if (intent === 'open-local-save') {
       await window.desktopMenu.openLocalSave();
     } else if (intent === 'backup') {

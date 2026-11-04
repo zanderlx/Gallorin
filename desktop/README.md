@@ -59,9 +59,9 @@ Release downloads/installations require an actual published newer version to tes
 
 ## Isolated desktop smoke test
 
-Set `AETHERION_TEST_DATA` to a new temporary directory, then run `npx electron . --smoke-test`. It uses that directory exclusively, skips migration/update dialogs, validates renderer startup and Node isolation, captures the game and splash, drains saves, and exits. Never point this variable at real player data.
+Set `AETHERION_TEST_DATA` to a new temporary directory, then run `npx electron . --smoke-test`. It uses that directory exclusively, skips migration/update dialogs, validates renderer startup and Node isolation, captures the game, drains saves, and exits. Add `--test-splash` to exercise and capture the splash too. Never point this variable at real player data.
 
-Desktop startup now opens a woodland start menu after the splash. Play enters the game; Exit Game closes it. Settings > Audio adjusts saved menu-music volume, with a mute button on the menu. Music starts at the title screen and continues during gameplay. Escape opens the themed menu and audio settings. Audio preferences are stored in the edition's Chromium storage.
+The installed app opens a woodland start menu after the splash. `npm run desktop` skips the splash and its delay; use `npm run desktop -- --test-splash` to preview it during development. Play enters the game; Exit Game closes it. Settings > Audio adjusts saved menu-music volume, with a mute button on the menu. Music starts at the title screen and continues during gameplay. Escape opens the themed menu and audio settings. Audio preferences are stored in the edition's Chromium storage.
 
 ## Logo artwork
 

@@ -18,8 +18,8 @@ if (smoke) {
   app.commandLine.appendSwitch('mute-audio');
   app.on('browser-window-created', (_event, window) => window.webContents.setAudioMuted(true));
 }
-// Keep the cinematic splash for players; automated tests opt in only when testing it.
-const showSplash = !smoke || process.argv.includes('--test-splash');
+// Development and smoke runs skip the reveal unless explicitly testing it.
+const showSplash = (app.isPackaged && !smoke) || process.argv.includes('--test-splash');
 if (smoke && !process.env.AETHERION_TEST_DATA)
   throw new Error('Smoke testing requires an isolated AETHERION_TEST_DATA directory.');
 if (process.env.AETHERION_SOFTWARE_RENDERING === '1') app.disableHardwareAcceleration();

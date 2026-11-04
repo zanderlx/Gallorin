@@ -335,7 +335,7 @@ test('collection search, sorting and favorites work with complete saved records'
   assert.match(page, /id="horse-grid-size"/);
   assert.match(page, /type="range" min="3" max="6" step="1" value="5"/);
   assert.match(page, /title="Import Horse" aria-label="Import Horse">\s*<svg/);
-  assert.match(page, /<option value="favorites">Favorites<\/option>/);
+  assert.match(page, /<option value="custom" selected>Custom<\/option>/);
   assert.doesNotMatch(
     page,
     /A place to call home|A growing collection|Explore the wilds|YOUR SANCTUARY|value="birthday"/
@@ -346,7 +346,7 @@ test('collection search, sorting and favorites work with complete saved records'
   const descending = collectionCards('all', populated, '', 'name', undefined, 'desc');
   assert.ok(descending.indexOf('>Willow<') < descending.indexOf('>Ash<'));
   assert.match(page, /Sort By/);
-  assert.match(page, /data-action="sort-direction" data-direction="desc"/);
+  assert.match(page, /data-action="sort-direction" data-direction="asc"/);
 });
 test('breadcrumb sections match sidebar group names and icons for every route', () => {
   for (const group of groups)
@@ -665,4 +665,46 @@ test('empty clearings show only the requested message without a stray changelog'
   const html = emptyState('No current horses in the area', '', null, null, 'leaf');
   assert.match(html, /No current horses in the area/);
   assert.doesNotMatch(html, /<p>|Changelog|sidebar-changelog|<\/span>/);
+});
+
+test('Custom layout groups favorites, custom memberships and unfiled horses with escaped folder names', () => {
+  const owned = horses.map((h, i) => ({
+    ...h,
+    name: ['Willow', 'Ash', 'Moss'][i],
+    favorite: i === 1,
+    caughtAt: new Date().toISOString()
+  }));
+  const populated = {
+    ...state,
+    horses: owned,
+    horseFolders: [{ id: 'trail', name: '<Trail & Friends>', horseIds: [owned[0].id] }]
+  };
+  const page = collectionCards('all', populated, '', 'custom');
+  assert.match(page, /data-music-group="favorites"/);
+  assert.match(page, /data-music-group="trail"/);
+  assert.match(page, /data-music-group="unfiled"/);
+  assert.match(page, /data-music-group="favorites" open>/);
+  assert.doesNotMatch(page, /data-music-group="(?:trail|unfiled)" open>/);
+  assert.match(page, /&lt;Trail &amp; Friends&gt;/);
+  assert.match(page, /data-horse-folder-new/);
+  assert.match(page, /data-horse-folder-edit="trail"/);
+  assert.match(page, /data-horse-folder-delete="trail"/);
+  assert.match(page, /<span class="horse-folder-actions"><button[^>]+data-horse-folder-edit="trail"/);
+  assert.doesNotMatch(page, /Edit Folder &amp; Horses|Edit Folder & Horses/);
+  assert.equal((page.match(/class="horse-card"/g) || []).length, 3);
+  const unfiled = page.split('data-music-group="unfiled"')[1];
+  assert.match(unfiled, />Moss</);
+  assert.doesNotMatch(unfiled, />Ash<|>Willow</);
+  const afterFolderRemoval = collectionCards('all', { ...populated, horseFolders: [] }, '', 'custom').split(
+    'data-music-group="unfiled"'
+  )[1];
+  assert.match(afterFolderRemoval, />Willow</);
+  assert.doesNotMatch(afterFolderRemoval, />Ash</);
+  const filtered = collectionCards('all', populated, 'Willow', 'custom');
+  assert.equal((filtered.match(/class="horse-card"/g) || []).length, 1);
+  assert.doesNotMatch(filtered, />Ash<|>Moss</);
+  assert.match(collectionCards('all', { ...state, horses: [] }, '', 'custom'), /New Folder/);
+  const empty = collectionCards('all', { ...populated, horses: [] }, '', 'custom');
+  assert.equal((empty.match(/No horses in this folder/g) || []).length, 3);
+  assert.doesNotMatch(empty, /No horses match|No favorite horses match|Edit this folder to add horses/);
 });
