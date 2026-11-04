@@ -34,12 +34,24 @@ export function createHorseDragImage(root, source, event) {
   event.dataTransfer.setDragImage(nativeImage, 0, 0);
   const offsetX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
   const offsetY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+  const grabbedInside =
+    event.clientX >= rect.left &&
+    event.clientX <= rect.right &&
+    event.clientY >= rect.top &&
+    event.clientY <= rect.bottom;
   const move = event => {
     image.style.transform = `translate(${event.clientX - offsetX}px, ${event.clientY - offsetY}px)`;
   };
   move(event);
   return {
     move,
+    center: event =>
+      grabbedInside
+        ? {
+            x: event.clientX - offsetX + rect.width / 2,
+            y: event.clientY - offsetY + rect.height / 2
+          }
+        : null,
     remove: () => {
       image.remove();
       nativeImage.remove();

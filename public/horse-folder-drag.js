@@ -70,9 +70,25 @@ export function bindHorseFolderDragging(root, services, signal) {
     lift();
     root.querySelectorAll('.horse-drop-target').forEach(el => el.classList.remove('horse-drop-target'));
     folder.classList.add('horse-drop-target');
-    if (event.target.closest('.horse-drop-placeholder')) return true;
     const grid = folder.querySelector('.horse-folder-body > .horse-grid');
-    const hovered = event.target.closest('[data-folder-horse]');
+    // Use the held card's center for same-folder reordering, even if the grab point is still over a gap.
+    const center =
+      folder.dataset.musicGroup === drag.payload.fromFolder && !event.target.closest('summary')
+        ? drag.image.center(event)
+        : null;
+    const slot =
+      center &&
+      [...grid.children].find(candidate => {
+        if (
+          candidate === drag.source ||
+          (!candidate.hasAttribute('data-folder-horse') && candidate !== drag.placeholder)
+        )
+          return false;
+        const rect = layoutRect(candidate);
+        return center.x >= rect.left && center.x < rect.right && center.y >= rect.top && center.y < rect.bottom;
+      });
+    if (slot === drag.placeholder || (!slot && event.target.closest('.horse-drop-placeholder'))) return true;
+    const hovered = slot || event.target.closest('[data-folder-horse]');
     let card = hovered;
     if (card === drag.source) return true;
     // Grid gaps target the container, so resolve them to the nearest visible slot.

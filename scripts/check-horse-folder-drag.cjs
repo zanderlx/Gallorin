@@ -123,6 +123,33 @@ async function checkHorseDragging(win, action, ids, directory) {
   await drop(trail, trail, ids[2], ids[1], true);
   await expectOrder(trail, ids);
   win.webContents.debugger.attach('1.3');
+  const { startX, endX, y } = await run(() => {
+    const folder = [...document.querySelectorAll('[data-music-group]')].find(
+      el => el.querySelectorAll('[data-folder-horse]').length === 3
+    );
+    folder.open = true;
+    folder.scrollIntoView({ block: 'center', behavior: 'instant' });
+    const [first, second] = [...folder.querySelectorAll('[data-folder-horse]')].map(card =>
+      card.getBoundingClientRect()
+    );
+    return { startX: first.left + 2, endX: second.left - 2, y: first.top + first.height / 2 };
+  });
+  const mouse = (type, x, buttons) =>
+    win.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
+      type,
+      x,
+      y,
+      button: type === 'mouseMoved' ? 'none' : 'left',
+      buttons,
+      clickCount: 1
+    });
+  await mouse('mousePressed', startX, 1);
+  await mouse('mouseMoved', endX, 1);
+  await mouse('mouseReleased', endX, 0);
+  await settled();
+  await expectOrder(trail, [ids[1], ids[0], ids[2]]);
+  await drop(trail, trail, ids[0], ids[1], false, true);
+  await expectOrder(trail, ids);
   for (const motion of ['no-preference', 'reduce']) {
     await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
       features: [{ name: 'prefers-reduced-motion', value: motion }]
