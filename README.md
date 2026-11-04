@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.3.1](docs/assets/gallorin-banner.svg)
+![Gallorin v1.3.2](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.3.1
+# Gallorin v1.3.2
 
 **Desktop horse collection game · Windows**
 
@@ -23,6 +23,7 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 ## Features
 
 - Explore zones and tame, rename, favorite, sell, import, and export horses.
+- My Horses opens in the Custom layout with Favorites expanded. Organize horses in folders, drag cards to save their order or move them between folders, and find horses outside those folders in All Horses.
 - View full-body artwork and portraits, with provided SVG artwork enabled by default and optional trait-based artwork.
 - Customize species, categorized traits, palettes, eye colors, personalities, and rarity appearance through the Compendium.
 - Design zones with artwork presets, tint, species weights, palette filters, and bulk selection controls. Species can also have their own palette pools.

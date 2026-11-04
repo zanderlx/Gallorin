@@ -6,6 +6,22 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.3.2] - Unreleased
+
+Give your horses a place of their own with custom stable folders and saved card ordering.
+
+### Added
+
+- **My Horses**
+  - Create, rename, and delete folders in the Custom layout. Deleting a folder keeps its horses in your stable.
+  - Drag horse cards within a folder to save their order, or drag them into another folder to move them. Neighboring cards shift as you drag to preview the new position.
+
+### Updated
+
+- **Stable Layout**
+  - My Horses opens in the Custom layout with Favorites expanded.
+  - Horses outside Favorites and custom folders appear in All Horses. Favoriting and unfavoriting update the stable in place.
+
 ## [1.3.1] - 2026-11-01
 
 More reliable horse appearance and owner information when editing, renaming your profile, and trading horses.
