@@ -118,7 +118,7 @@ export function bindHorseFolderDragging(root, services, signal) {
     const movingForward =
       hovered &&
       folder.dataset.musicGroup === drag.payload.fromFolder &&
-      Boolean(drag.source.compareDocumentPosition(hovered) & Node.DOCUMENT_POSITION_FOLLOWING);
+      Boolean(drag.placeholder.compareDocumentPosition(hovered) & Node.DOCUMENT_POSITION_FOLLOWING);
     const placement =
       movingForward ||
       (!hovered &&

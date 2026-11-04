@@ -150,6 +150,17 @@ async function checkHorseDragging(win, action, ids, directory) {
   await expectOrder(trail, [ids[1], ids[0], ids[2]]);
   await drop(trail, trail, ids[0], ids[1], false, true);
   await expectOrder(trail, ids);
+  await mouse('mousePressed', startX, 1);
+  await mouse('mouseMoved', endX, 1);
+  await run(() => {
+    document
+      .querySelectorAll('[data-folder-horse]')
+      .forEach(card => card.getAnimations().forEach(animation => animation.finish()));
+  });
+  await mouse('mouseMoved', startX, 1);
+  await mouse('mouseReleased', startX, 0);
+  await settled();
+  await expectOrder(trail, ids);
   for (const motion of ['no-preference', 'reduce']) {
     await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
       features: [{ name: 'prefers-reduced-motion', value: motion }]
