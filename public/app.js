@@ -1,3 +1,4 @@
+import { traitGalleryPage, bindTraitGallery } from './trait-gallery.js';
 import { setProvidedHorseArtwork } from './art.js';
 import { bindHorseFolders } from './horse-folders.js';
 import { bindTextButtonSounds } from './button-sounds.js';
@@ -256,6 +257,7 @@ function pageContent(pageRoute, pageState = state) {
   else if (section === 'stable') return stablePage(page, state, catalog);
   else if (route === 'dev/settings' || route === 'dev/economy') return settingsPage(state, catalog);
   else if (route === 'dev/saves') return savesPage(state);
+  else if (route === 'dev/trait-gallery') return traitGalleryPage();
   else if (route === 'dev/music') return musicPlayer.page();
   else if (route === 'dev/profile') return keeperPage(state);
   else if (route === 'dev/locations' || route === 'dev/atmospheres') return zoneEditorPage(catalog, state);
@@ -282,6 +284,7 @@ function render() {
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
   updateEncounterCooldown();
+  if (route === 'dev/trait-gallery') bindTraitGallery(main, catalog);
   if (route === 'dev/music') musicPlayer.bind(main);
   void musicPlayer.route(route).then(() => {
     if (route === 'dev/music') {
@@ -352,6 +355,7 @@ async function navigate({ initializeNavigation = false } = {}) {
   if (confirmation.open) confirmation.close();
   horseDialogs.close();
   horseArtViewer.close();
+  document.querySelector('.trait-gallery-dialog')?.close();
   eyeEditor.dialog.close();
   mutationEditor.dialog.close();
   paletteEditor.dialog.close();
