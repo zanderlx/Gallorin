@@ -1,8 +1,8 @@
 # Deployment checks
 
-1. Work on a categorized task branch and open a PR into main.
+1. Group app changes for the next release on one branch named `dev/gallorin-<version>` and open one PR into main. Workflow-only updates use the protected-main PR process separately from app releases.
 2. Review the proposed changes with the owner. For app updates, also review the prepared version, README/banner, and changelog.
-3. Required validation builds Windows, checks versions/assets, runs unit tests, and smoke-tests both motion settings using temporary saves.
+3. Required validation runs code, workflow, unit, and version checks on Linux. The tagged release builds the Windows installer and runs asset checks and packaged smoke tests in both motion modes using temporary saves.
 4. Merge only after Required validation passes and the owner authorizes it.
 5. With release authorization, tag the merged commit gallorin-v<major.minor.patch>.
 6. Download Gallorin-Windows from the tagged workflow. Review saves, imports, music, and updating.
@@ -15,7 +15,7 @@ Workflow changes take effect only after they are pushed and merged. Required val
 ## Local testing
 
 - Start with focused tests and a manual check of the behavior being changed.
-- Run the full unit suite with npm test before requesting a merge; it is inexpensive.
+- Use `node --test tests/<file>.test.js` for a targeted check. The PR runs the full unit suite before merge.
 - Run broader integration checks when changes affect saves, navigation, audio, spawning, or other shared systems.
 - Reserve the complete packaged walkthrough for a final local check when relevant, and mandatory CI validation. Do not repeat it after every small edit.
 - Automated desktop checks always use isolated temporary saves.
@@ -23,24 +23,9 @@ Workflow changes take effect only after they are pushed and merged. Required val
 
 ## CI triggers
 
-- PRs targeting main run full Windows validation. New commits to an open PR rerun it automatically.
-- Merges/pushes to main run full validation of the integrated result.
-- Pushing a task branch without a PR no longer starts a duplicate build. Open a PR or manually dispatch Validate changes when CI testing is needed.
-- Release tags still run the full packaged release validation and require owner approval before publication.
-
-## Branch names and PR scope
-
-| Prefix | Purpose |
-| --- | --- |
-| feature/ | New game or app feature |
-| bugfix/ | Normal app bug fix |
-| hotfix/ | Urgent production fix, still reviewed through a PR |
-| docs/ | Documentation-only work |
-| refactor/ | Restructuring without behavior changes |
-| test/ | Automated test changes only |
-| chore/ | Workflows, builds, dependencies, and other maintenance |
-
-Separate unrelated app work from technical maintenance into different PRs. Keep the tests and documentation required by a feature with that feature. Use descriptive names; ticket IDs are optional. Completed PR branches are deleted after merge.
+- PRs targeting main run Required validation. New commits cancel superseded runs.
+- Use manual dispatch to run the same checks before opening a PR.
+- The release tag starts the Windows build. Publication uses the validated installer from that run after owner approval.
 
 ## Owner-only settings and agent credentials
 
@@ -48,7 +33,7 @@ Agents never change these. The owner applies them in this order.
 
 ### 1. Protect release tags
 
-GitHub → Settings → Rules → Rulesets → New ruleset → New tag ruleset:
+GitHub â†’ Settings â†’ Rules â†’ Rulesets â†’ New ruleset â†’ New tag ruleset:
 
 - Name `release-tags`, Enforcement status **Active**.
 - Target tags: Include by pattern `gallorin-v*`.
@@ -59,9 +44,9 @@ GitHub → Settings → Rules → Rulesets → New ruleset → New tag ruleset:
 
 Workflow changes must be merged before this switch: afterwards, agents cannot push changes under `.github/workflows/`, so the owner pushes those.
 
-GitHub → profile → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token:
+GitHub â†’ profile â†’ Settings â†’ Developer settings â†’ Personal access tokens â†’ Fine-grained tokens â†’ Generate new token:
 
-- Resource owner `zanderlx`; Repository access **Only select repositories** → `Gallorin`; expiration 90 days.
+- Resource owner `zanderlx`; Repository access **Only select repositories** â†’ `Gallorin`; expiration 90 days.
 - Repository permissions: **Contents** read and write, **Pull requests** read and write, **Metadata** read-only (automatic).
 - Leave everything else at **No access**, especially Workflows, Actions, Deployments, Environments, Administration, and Secrets.
 
@@ -77,7 +62,7 @@ Then configure each agent to export it as `GH_TOKEN` (used by `gh`) and to push 
 
 Verify from the agent's shell:
 
-- `gh auth status` reports a fine-grained token (`github_pat_…`), not the keyring `gho_…` login.
+- `gh auth status` reports a fine-grained token (`github_pat_â€¦`), not the keyring `gho_â€¦` login.
 - A test branch that only edits a workflow file is rejected on push (missing workflow permission). Delete the test branch afterwards.
 - `gh api -X POST repos/zanderlx/Gallorin/actions/runs/<id>/pending_deployments` is refused.
 
