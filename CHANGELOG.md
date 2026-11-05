@@ -6,6 +6,18 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.3.3] - 2026-11-05
+
+Explore horse artwork and colors in the Compendium's Trait Gallery.
+
+### Added
+
+- **Trait Gallery**
+  - Browse every species through searchable horse cards, with alphabetical sorting in either direction.
+  - Open a species preview with Mane, Tail, Pattern, Paint, Cosmetic, Keratin, Ears, and Whiskers controls. Select traits from alphabetical dropdowns or cycle through available artwork with arrows. Every category starts at None; options awaiting artwork are disabled.
+  - Ghoulsteed is currently the only species with its own supplied artwork, including its base, Tattered Mane, and Abyssal Rifts, with original shading and default colors. Other species share the default horse base as a placeholder while their species-specific artwork is being added.
+  - Experiment with Coat Top, Coat Bottom, Hair, Hoof, Nose, Sock, Keratin, Paint, and Pattern colors through color pickers and uppercase hex inputs. Changes affect the gallery preview.
+
 ## [1.3.2] - 2026-11-04
 
 Give your horses a place of their own with custom stable folders and saved card ordering.

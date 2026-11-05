@@ -134,6 +134,7 @@ groups.push(
     title: 'Compendium',
     icon: 'book',
     items: [
+      ['dev/trait-gallery', 'Trait Gallery'],
       ['dev/species', 'Species'],
       ['dev/colors', 'Palettes'],
       ['dev/eyes', 'Eye Colors'],

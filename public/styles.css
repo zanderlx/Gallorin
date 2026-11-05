@@ -2573,3 +2573,239 @@ body.horse-drag-in-progress [data-tooltip]::after {
   justify-content: flex-end;
   margin-top: 0;
 }
+.trait-gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.trait-gallery-card {
+  cursor: pointer;
+  padding: 12px;
+  color: inherit;
+  text-align: center;
+  transition:
+    transform 0.15s,
+    border-color 0.15s;
+}
+.trait-gallery-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent, #d7bc82);
+}
+.trait-gallery-card h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+.trait-gallery-card .horse-art {
+  width: 100%;
+  aspect-ratio: 1.5;
+}
+.trait-gallery-dialog {
+  width: min(1400px, 95vw);
+  max-width: 95vw;
+  max-height: 92vh;
+  overflow: auto;
+}
+.trait-gallery-layout {
+  display: grid;
+  grid-template-columns: clamp(190px, 18vw, 260px) minmax(0, 1fr) clamp(190px, 18vw, 260px);
+  gap: 24px;
+  padding: 20px;
+}
+.trait-gallery-controls {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+.trait-gallery-trait > span:first-child {
+  display: block;
+  margin-bottom: 5px;
+}
+.trait-gallery-trait > span:last-child {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 5px;
+}
+.trait-gallery-trait select {
+  min-width: 0;
+  width: 100%;
+}
+.trait-gallery-colors {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  padding-bottom: 8px;
+  gap: 8px;
+}
+.trait-gallery-colors label {
+  min-width: 0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.trait-gallery-colors label span {
+  display: block;
+  height: 1.5em;
+  white-space: nowrap;
+}
+.trait-gallery-colors input {
+  width: 100%;
+  min-width: 0;
+  padding: 3px;
+}
+.trait-gallery-colors input[type='color'] {
+  height: 36px;
+  cursor: pointer;
+}
+.trait-gallery-colors input[type='text'] {
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 8px 2px;
+}
+.trait-gallery-colors input[aria-invalid='true'] {
+  outline: 2px solid #e07878;
+}
+.trait-gallery-preview .horse-art {
+  width: 100%;
+  max-height: 56vh;
+}
+@media (max-width: 1100px) {
+  .trait-gallery-layout {
+    grid-template-columns: 1fr;
+  }
+  .trait-gallery-preview {
+    grid-row: 1;
+  }
+  .trait-gallery-colors {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.trait-gallery-trait > span:first-child {
+  text-align: center;
+  font-size: 1rem;
+}
+.trait-gallery-trait [data-gallery-cycle] {
+  font-size: 2rem;
+  width: 42px;
+  height: 44px;
+  line-height: 1;
+}
+.trait-gallery-preview [data-gallery-art] {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 0;
+  padding: 32px 32px 0;
+  margin-bottom: 4px;
+}
+.trait-gallery-preview .horse-art {
+  display: block;
+  height: clamp(390px, 56vh, 640px);
+  max-height: none;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.trait-gallery-colors input[type='color'] {
+  height: 54px;
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.trait-gallery-colors input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.trait-gallery-colors input[type='color']::-webkit-color-swatch {
+  border: 0;
+  border-radius: 5px;
+}
+
+.trait-gallery-colors {
+  gap: 5px;
+}
+.trait-gallery-colors label {
+  font-size: clamp(0.75rem, 1vw, 0.95rem);
+}
+.trait-gallery-colors input[type='color'] {
+  height: 36px;
+}
+.trait-gallery-colors input[type='text'] {
+  font-size: 0.875rem;
+  padding: 6px 0;
+}
+
+.trait-gallery-dialog .dialog-top {
+  position: relative;
+  justify-content: center;
+}
+.trait-gallery-dialog .dialog-top h2 {
+  width: 100%;
+  text-align: center;
+}
+.trait-gallery-dialog [data-gallery-close] {
+  position: absolute;
+  right: 16px;
+}
+.trait-gallery-trait [data-gallery-cycle] {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+}
+.trait-gallery-trait select {
+  text-align: center;
+  text-align-last: center;
+}
+.trait-gallery-trait select option {
+  text-align: left;
+}
+
+.trait-gallery-dialog .trait-gallery-trait select:not([multiple]) {
+  text-align: left;
+  text-align-last: left;
+  padding: 10px 28px 10px 12px;
+  background-position: right 8px center;
+}
+.trait-gallery-dialog .trait-gallery-trait select option {
+  text-align: left;
+  text-align-last: left;
+}
+.trait-gallery-dialog .trait-gallery-trait [data-gallery-cycle] {
+  padding: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+}
+.trait-gallery-trait [data-gallery-cycle] svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.trait-gallery-layout > .trait-gallery-colors {
+  grid-column: 1 / -1;
+  width: min(820px, 100%);
+  justify-self: center;
+  margin-top: 12px;
+}
+.trait-gallery-preview {
+  align-self: end;
+}
+.trait-gallery-preview [data-gallery-art] {
+  padding-bottom: 0;
+}
+
+.trait-gallery-dialog .trait-gallery-trait select option:disabled {
+  color: var(--muted);
+}
+
+.collection-toolbar.trait-gallery-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 480px) 44px;
+  justify-content: start;
+  align-items: center;
+  gap: 12px;
+}
+.trait-gallery-toolbar .search-field {
+  flex: 1;
+  max-width: 480px;
+}
+.trait-gallery-toolbar [data-gallery-order] {
+  flex-shrink: 0;
+}
