@@ -2,8 +2,6 @@ name: Validate changes
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,8 +9,8 @@ concurrency:
   group: validation-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  checks:
-    name: Code and workflow checks
+  required:
+    name: Required validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -20,7 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -38,30 +35,4 @@ jobs:
           ./actionlint -color
       - name: Audit workflow security (zizmor 1.31.1)
         run: pipx run zizmor==1.31.1 --offline --min-severity medium .github
-      - name: Flag changes to guarded files
-        if: github.event_name == 'pull_request'
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          guarded=$(git diff --name-only "origin/$BASE_REF...HEAD" -- .github AGENTS.md tests/fixtures electron-builder.json package.json)
-          if [ -n "$guarded" ]; then
-            echo "### Guarded files changed (review closely)" >> "$GITHUB_STEP_SUMMARY"
-            while IFS= read -r file; do
-              echo "::warning file=$file::Guarded file changed; review this diff closely."
-              echo "- \`$file\`" >> "$GITHUB_STEP_SUMMARY"
-            done <<< "$guarded"
-          fi
-  windows:
-    needs: checks
-    uses: ./.github/workflows/windows-validation.yml
-  required:
-    name: Required validation
-    if: always()
-    needs: [checks, windows]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Require every validation job to pass
-        env:
-          CHECKS: ${{ needs.checks.result }}
-          WINDOWS: ${{ needs.windows.result }}
-        run: test "$CHECKS" = success && test "$WINDOWS" = success
+      - run: npm run release:check

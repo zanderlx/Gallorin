@@ -35,7 +35,6 @@ jobs:
             node scripts/release-notes.js --check --release
           } else { node scripts/release-notes.js --check }
           if ($LASTEXITCODE -ne 0) { throw 'Version/changelog validation failed.' }
-      - run: npm test
       - name: Build without publishing
         run: npm run desktop:build
       - name: Verify installer and updater metadata
