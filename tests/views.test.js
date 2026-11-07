@@ -99,7 +99,7 @@ test('zone tags render as safe text without icons and can be removed', () => {
   assert.doesNotMatch(landing, /data-action="delete-zone"/);
   assert.doesNotMatch(editor, /data-action="delete-zone"/);
   assert.match(String(zoneEditorForm(catalog, locationsFor(catalog, state)[0])), /data-action="delete-zone"/);
-  assert.match(landing, />Zone Settings<\/h1>/);
+  assert.match(landing, />Zone Manager<\/h1>/);
   assert.doesNotMatch(landing, /id="zone-form"|id="definition-form"|zone-atmospheres/);
   assert.match(landing, /hero zone-preview/);
   assert.doesNotMatch(
@@ -248,7 +248,7 @@ test('developer settings expose separate encounter, economy, and zone destinatio
     new Map([
       ['dev/settings', 'Encounter & Stable Settings'],
       ['dev/economy', 'Economy Settings'],
-      ['dev/locations', 'Zone Settings']
+      ['dev/zone-settings', 'Zone Settings']
     ])
   );
   assert.equal(groups.flatMap(group => group.items).filter(([path]) => path === 'dev/locations').length, 1);
@@ -258,8 +258,16 @@ test('developer settings expose separate encounter, economy, and zone destinatio
     assert.ok(nav.includes(`href="#${route}" aria-current="page"`));
     assert.ok(nav.includes(label.replace('&', '&amp;')));
   }
+  const compendium = groups.find(group => group.title === 'Compendium');
+  assert.ok(compendium.items.some(([route, label]) => route === 'dev/locations' && label === 'Zones'));
+  const pending = plannedPage('dev/zone-settings', state);
+  assert.match(pending, />Zone Settings<\/h1>/);
+  assert.match(pending, /Pending/);
+  assert.match(pending, /Zone overrides/);
+  assert.doesNotMatch(pending, /new-zone|edit-zone|<form/);
   const hidden = sidebar('wilds/aetherion', state, new Set(), catalog);
   for (const [route] of developer.items) assert.ok(!hidden.includes(`href="#${route}"`));
+  assert.ok(hidden.includes('href="#dev/locations"'));
 });
 
 test('encounter and economy pages keep their forms and controls separate', () => {

@@ -49,7 +49,7 @@ test('location music uses zone-specific choices and keeps music through configur
   assert.equal(musicContext('stable/all'), 'stable/all');
   assert.equal(musicContext('town/gacha'), 'town/gacha');
   assert.equal(musicContext('dev/music'), null);
-  for (const route of ['dev/settings', 'dev/economy', 'dev/locations'])
+  for (const route of ['dev/settings', 'dev/economy', 'dev/zone-settings'])
     assert.equal(musicContext(route, { assignments: { compendium: ['zone-song'] } }), null);
   assert.equal(selectedMusic({ assignments: { default: 'a', stable: 'b' } }, 'stable'), 'b');
   assert.equal(selectedMusic({ assignments: { default: 'a' } }, 'town'), 'a');

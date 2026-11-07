@@ -135,6 +135,13 @@ export function savesPage(state) {
 `;
 }
 const planned = {
+  'dev/zone-settings': [
+    'DEVELOPER SETTINGS',
+    'Zone Settings',
+    'Pending',
+    'Zone overrides and additional developer controls are planned.',
+    'settings'
+  ],
   'town/gacha': [
     'A little luck, a little magic',
     'The gacha machine',

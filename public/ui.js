@@ -132,7 +132,7 @@ const workbench = groups.find(g => g.title === 'Developer Settings');
 workbench.items = [
   ['dev/settings', 'Encounter & Stable Settings'],
   ['dev/economy', 'Economy Settings'],
-  ['dev/locations', 'Zone Settings']
+  ['dev/zone-settings', 'Zone Settings']
 ];
 groups.push(
   {
@@ -146,6 +146,7 @@ groups.push(
       ['dev/personalities', 'Personalities'],
       ['dev/mutations', 'Mutations'],
       ['dev/rarities', 'Rarities'],
+      ['dev/locations', 'Zones'],
       ['dev/items', 'Items & Potions'],
       ['dev/themes', 'Item Themes']
     ]
