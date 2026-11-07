@@ -1,4 +1,5 @@
 import { gameSettingsPage } from './game-settings.js';
+export { economySettingsPage } from './game-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { customHorseFolders } from './horse-folders.js';
 import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';
@@ -134,6 +135,13 @@ export function savesPage(state) {
 `;
 }
 const planned = {
+  'dev/zone-settings': [
+    'DEVELOPER SETTINGS',
+    'Zone Settings',
+    'Pending',
+    'Zone overrides and additional developer controls are planned.',
+    'settings'
+  ],
   'town/gacha': [
     'A little luck, a little magic',
     'The gacha machine',

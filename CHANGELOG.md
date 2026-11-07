@@ -6,6 +6,40 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.3.4] - 2026-11-07
+
+Explore updated Ghoulsteed artwork with zoom, pan, and an experimental 3D preview.
+
+### Added
+
+- **Trait Gallery**
+  - Zoom from 10% to 300% using the slider, buttons, or Ctrl + mouse wheel. Drag the 2D artwork to pan, use Fit to include extended artwork, and Reset to restore the default framing.
+  - Enable Experimental 3D test to explore an approximate relief generated from the supplied artwork. Left-drag rotates freely, right-drag moves the model, Rotate starts a slow automatic turn, and Side view restores the position and angle. This experimental preview mirrors the unseen side and approximates depth and additional legs.
+  - Preview the Ghoulsteed's Ancient Lupine Tail with its existing mane and pattern artwork.
+
+### Updated
+
+- **Developer Settings & Navigation**
+  - Separate Encounter & Stable Settings from Economy Settings, including sale history. Reserve Zone Settings for future developer overrides while keeping the existing zone editor in Compendium → Zones.
+
+- **Horse Traits**
+  - Ghoulsteed horses receive a keratin trait when their species definition provides eligible options.
+
+- **Ghoulsteed Artwork**
+  - Import the updated supplied base SVGs with lighter original colors and shading.
+  - Keep species previews consistently framed while changing traits, with controls on the left, colors below, and themed zoom controls centered above the artwork.
+  - Keep base ribs and teeth visible when Keratin is None while coloring them through the Keratin palette channel. List selectable traits from the species definitions.
+  - Render patterns below the mane and tail, and keep the mane's pattern artwork independent from the body's pattern selection.
+
+### Fixed
+
+- **Wilds Layout**
+  - Avoid unnecessary scrolling when encounter cards already fit the available space.
+
+- **Hair Color Mutations**
+  - Allow only one Chimera or Harlequin color mutation per mane and per tail during spawning, rerolls, and horse edits, including when duplicate mutations are enabled. A mane mutation and a tail mutation can still be combined independently.
+  - Preserve existing horses with conflicting legacy mutations during unrelated edits, retaining the established color precedence.
+
 ## [1.3.3] - 2026-11-05
 
 Explore horse artwork and colors in the Compendium's Trait Gallery.

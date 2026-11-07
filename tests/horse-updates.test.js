@@ -24,6 +24,62 @@ async function fixture(t, rng = () => 0.5) {
 const preview = (store, ids, rules, allowDuplicates = false) =>
   store.previewHorseUpdates({ ids, rules, allowDuplicates });
 
+test('mutation updates reject same-region hair conflicts and allow mixed pairs', async t => {
+  const { store, horse } = await fixture(t);
+  const c = store.getCatalog();
+  const state = store.snapshot();
+  const mutation = name => c.mutations.find(m => m.name === name);
+  const current = { ...horse, mutations: [], overriddenFields: [], overrideOriginals: {} };
+  for (const part of ['Mane', 'Tail']) {
+    for (const first of ['Chimera', 'Harlequin']) {
+      const other = first === 'Chimera' ? 'Harlequin' : 'Chimera';
+      const saved = { ...current, mutations: [mutation(`${first} ${part}`)] };
+      for (const allowDuplicates of [false, true]) {
+        for (const name of [`${other} ${part}`, `${first} ${part}`]) {
+          assert.throws(
+            () =>
+              regenerateHorse(saved, { 'mutation:1': { mode: 'set', value: mutation(name).id } }, c, state, {
+                allowDuplicates
+              }),
+            /one Chimera or Harlequin|Duplicate mutations/
+          );
+        }
+        const otherPart = part === 'Mane' ? 'Tail' : 'Mane';
+        const updated = regenerateHorse(
+          saved,
+          { 'mutation:1': { mode: 'set', value: mutation(`${other} ${otherPart}`).id } },
+          c,
+          state,
+          { allowDuplicates }
+        ).horse;
+        assert.equal(updated.mutations.length, 2);
+      }
+    }
+  }
+  const hairOnly = { ...c, mutations: c.mutations.filter(m => /^(Chimera|Harlequin) (Mane|Tail)$/.test(m.name)) };
+  for (const allowDuplicates of [false, true]) {
+    const rerolled = regenerateHorse(current, { mutations: { mode: 'reroll' } }, hairOnly, state, {
+      rng: () => 0,
+      allowDuplicates
+    }).horse;
+    assert.equal(rerolled.mutations.length, 2);
+    assert.equal(new Set(rerolled.mutations.map(m => m.name.split(' ').at(-1))).size, 2);
+    const single = { ...current, mutations: [mutation('Chimera Mane')] };
+    const slot = regenerateHorse(single, { 'mutation:1': { mode: 'reroll' } }, hairOnly, state, {
+      rng: () => 0,
+      allowDuplicates
+    }).horse;
+    assert.equal(slot.mutations[1].name.endsWith('Tail'), true);
+  }
+  const legacy = { ...current, mutations: [mutation('Chimera Mane'), mutation('Harlequin Mane')] };
+  assert.equal(
+    regenerateHorse(legacy, { name: { mode: 'set', value: 'Preserved' } }, c, state).horse.mutations.length,
+    2
+  );
+  const repaired = regenerateHorse(legacy, { 'mutation:1': { mode: 'clear' } }, c, state).horse;
+  assert.equal(repaired.mutations.length, 1);
+});
+
 test('hair color fields save, restore, transfer, and follow added and removed mutations', async t => {
   const { store, horse } = await fixture(t);
   const current = { ...horse, mutations: [], overriddenFields: [], overrideOriginals: {} };

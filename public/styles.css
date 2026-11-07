@@ -2605,7 +2605,7 @@ body.horse-drag-in-progress [data-tooltip]::after {
 }
 .trait-gallery-layout {
   display: grid;
-  grid-template-columns: clamp(190px, 18vw, 260px) minmax(0, 1fr) clamp(190px, 18vw, 260px);
+  grid-template-columns: clamp(190px, 18vw, 260px) minmax(0, 1fr);
   gap: 24px;
   padding: 20px;
 }
@@ -2690,14 +2690,16 @@ body.horse-drag-in-progress [data-tooltip]::after {
 .trait-gallery-preview [data-gallery-art] {
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   min-height: 0;
-  padding: 32px 32px 0;
+  height: 100%;
+  padding: 12px;
   margin-bottom: 4px;
 }
 .trait-gallery-preview .horse-art {
   display: block;
-  height: clamp(390px, 56vh, 640px);
+  height: 100%;
+  min-height: 390px;
   max-height: none;
   object-fit: contain;
   object-position: center bottom;
@@ -2785,7 +2787,8 @@ body.horse-drag-in-progress [data-tooltip]::after {
   margin-top: 12px;
 }
 .trait-gallery-preview {
-  align-self: end;
+  align-self: stretch;
+  min-width: 0;
 }
 .trait-gallery-preview [data-gallery-art] {
   padding-bottom: 0;
@@ -2808,4 +2811,226 @@ body.horse-drag-in-progress [data-tooltip]::after {
 }
 .trait-gallery-toolbar [data-gallery-order] {
   flex-shrink: 0;
+}
+
+/* Keep traits to the left of a stable, centered artwork frame. */
+.trait-gallery-dialog {
+  width: min(1800px, 97vw);
+  max-width: 97vw;
+  max-height: 96dvh;
+}
+.trait-gallery-layout {
+  grid-template-columns: clamp(220px, 18vw, 280px) minmax(0, 1fr);
+  gap: 18px 24px;
+  padding: 20px 28px;
+}
+.trait-gallery-controls {
+  display: grid;
+  grid-column: 1;
+  grid-row: 1;
+  gap: 12px;
+  align-content: space-between;
+}
+.trait-gallery-trait {
+  min-width: 0;
+}
+.trait-gallery-preview {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: stretch;
+}
+.trait-gallery-preview [data-gallery-art] {
+  padding: 0;
+  margin: 0;
+}
+.trait-gallery-preview .horse-art {
+  min-height: 0;
+  height: 100%;
+}
+.trait-gallery-layout > .trait-gallery-colors {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  width: min(1100px, 100%);
+  margin-top: 0;
+}
+@media (max-width: 700px) {
+  .trait-gallery-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  .trait-gallery-controls {
+    grid-column: 1;
+    grid-row: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .trait-gallery-preview {
+    grid-column: 1;
+    grid-row: 1;
+    height: 34dvh;
+  }
+  .trait-gallery-layout > .trait-gallery-colors {
+    grid-row: 3;
+  }
+}
+
+.trait-gallery-layout {
+  position: relative;
+}
+.trait-gallery-zoom {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  max-width: 100%;
+}
+.trait-gallery-zoom input[type='range'] {
+  appearance: none;
+  accent-color: var(--gold);
+  cursor: pointer;
+  min-height: 0;
+  width: clamp(70px, 12vw, 160px);
+  min-width: 0;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+.trait-gallery-zoom .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-height: 32px;
+  margin: 0;
+  padding: 0 8px;
+  line-height: 1;
+}
+.trait-gallery-zoom output {
+  min-width: 4ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.trait-gallery-zoom .icon-button {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.trait-gallery-preview [data-gallery-art] {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.trait-gallery-preview [data-gallery-art].is-panning {
+  cursor: grabbing;
+}
+
+.trait-gallery-zoom input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gold-soft);
+}
+.trait-gallery-zoom input::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gold-soft);
+}
+.trait-gallery-zoom input::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+}
+.trait-gallery-zoom input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: var(--gold);
+}
+.trait-gallery-zoom button {
+  color: var(--gold);
+  border-radius: 5px;
+}
+.trait-gallery-zoom button:hover:not(:disabled) {
+  background: var(--panel-deep);
+  color: var(--text);
+}
+.trait-gallery-zoom button:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.5;
+}
+.trait-gallery-zoom output {
+  color: var(--text);
+}
+
+/* Temporary rotation experiment; isolated from cards and normal artwork. */
+.trait-gallery-rotation {
+  position: absolute;
+  z-index: 2;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  font-size: 12px;
+  max-width: 90%;
+}
+.trait-gallery-rotation label,
+.trait-gallery-rotation [data-rotation-options]:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.trait-gallery-rotation input {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--gold);
+}
+.trait-gallery-rotation input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+}
+.trait-gallery-rotation input[type='range'] {
+  width: 90px;
+}
+.trait-gallery-rotation small {
+  color: var(--muted);
+}
+[data-gallery-art].is-rotation-preview {
+  position: relative;
+}
+.is-rotation-preview > svg {
+  visibility: hidden;
+}
+.trait-gallery-rotation-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
 }

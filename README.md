@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.3.3](docs/assets/gallorin-banner.svg)
+![Gallorin v1.3.4](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.3.3
+# Gallorin v1.3.4
 
 **Desktop horse collection game · Windows**
 
@@ -26,7 +26,7 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 - My Horses opens in the Custom layout with Favorites expanded. Organize horses in folders, drag cards to save their order or move them between folders, and find horses outside those folders in All Horses.
 - View full-body artwork and portraits, with provided SVG artwork enabled by default and optional trait-based artwork.
 - Customize species, categorized traits, palettes, eye colors, personalities, and rarity appearance through the Compendium.
-- Browse every species in the Trait Gallery, preview available trait artwork, and experiment with nine color regions using swatches or hex codes.
+- Browse every species in the Trait Gallery, preview available trait artwork, and experiment with nine color regions using swatches or hex codes. Zoom, fit, and pan the artwork, or enable the experimental rotatable 3D relief preview.
 - Design zones with artwork presets, tint, species weights, palette filters, and bulk selection controls. Species can also have their own palette pools.
 - Inspect horse traits, mutations, notes, and skill XP. Enable Override Horse Data for section-based editing, rerolls, and restoration of recorded original values.
 - Track original horse owners across trades and profile-name changes, with optional Owner overrides. Mane and tail colors can be overridden separately; hair-color mutations take precedence.

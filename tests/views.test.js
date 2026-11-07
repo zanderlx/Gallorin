@@ -44,7 +44,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createEncounters } from '../src/encounters.js';
-import { wildPage, stablePage, collectionCards, settingsPage, savesPage, plannedPage } from '../public/pages.js';
+import {
+  wildPage,
+  stablePage,
+  collectionCards,
+  settingsPage,
+  economySettingsPage,
+  savesPage,
+  plannedPage
+} from '../public/pages.js';
 import { profileContent } from '../public/profile.js';
 import { groups, sidebar, navigationSection } from '../public/ui.js';
 import { locationsFor, newZoneDraft, randomZone, validateZone } from '../public/zones.js';
@@ -181,7 +189,9 @@ test('every navigation destination renders content without undefined values', ()
           : section === 'stable'
             ? stablePage(page, state)
             : ['dev/settings', 'dev/economy'].includes(route)
-              ? settingsPage(state)
+              ? route === 'dev/economy'
+                ? economySettingsPage(state)
+                : settingsPage(state)
               : route === 'dev/saves'
                 ? savesPage(state)
                 : route === 'dev/profile'
@@ -231,35 +241,56 @@ test('editor guidance is page-specific and the logo inherits theme colors', () =
   assert.match(nav, /fill="var\(--gold,#D2B477\)"/);
   assert.match(nav, /fill="var\(--panel-deep,#211D1A\)"/);
 });
-test('Game Settings contains gameplay and a separate Economy section without guide cards', () => {
-  const game = settingsPage(state);
-  for (const field of ['gold', 'sellingPrice', 'horsesPerSearch', 'stableCapacity', 'ignoreStableLimit'])
-    assert.ok(game.includes(`name="${field}"`));
-  assert.match(game, />Encounter &amp; Stable Settings<\/h1>|>Encounter & Stable Settings<\/h1>/);
-  assert.doesNotMatch(game, /Gold & Selling Price|class="panel-heading"/);
-  assert.match(game, /Sale History<\/h2><div class="panel">/);
-  assert.match(game, /id="economy-heading"/);
-  assert.match(game, /id="economy-form"/);
-  assert.doesNotMatch(game, /name="startingGold"|id="gold-form"|Starting Gold applies/);
-  const economyForm = game.match(/<form id="economy-form"[\s\S]*?<\/form>/)[0];
-  assert.match(economyForm, /name="gold"/);
-  assert.match(economyForm, /name="sellingPrice"/);
-  assert.match(game, /Sale History/);
-  assert.match(game, /No horses sold yet/);
-  assert.ok(game.indexOf('economy-settings') > game.indexOf('id="settings-form"'));
-  assert.doesNotMatch(
-    game,
-    /THE KEEPER’S WORKBENCH|Website appearance & pastel themes|Manage Your Economy|Make Room For Companions/
+test('developer settings expose separate encounter, economy, and zone destinations', () => {
+  const developer = groups.find(group => group.title === 'Developer Settings');
+  assert.deepEqual(
+    new Map(developer.items),
+    new Map([
+      ['dev/settings', 'Encounter & Stable Settings'],
+      ['dev/economy', 'Economy Settings'],
+      ['dev/zone-settings', 'Zone Settings']
+    ])
   );
-  assert.ok(!groups.flatMap(g => g.items).some(([path]) => path === 'dev/economy'));
+  assert.equal(groups.flatMap(group => group.items).filter(([path]) => path === 'dev/locations').length, 1);
+  const visible = { ...state, settings: { ...settings, developerSettingsVisible: true } };
+  for (const [route, label] of developer.items) {
+    const nav = sidebar(route, visible, new Set(['Developer Settings']), catalog);
+    assert.ok(nav.includes(`href="#${route}" aria-current="page"`));
+    assert.ok(nav.includes(label.replace('&', '&amp;')));
+  }
+  const compendium = groups.find(group => group.title === 'Compendium');
+  assert.ok(compendium.items.some(([route, label]) => route === 'dev/locations' && label === 'Zones'));
+  const pending = plannedPage('dev/zone-settings', state);
+  assert.match(pending, />Zone Settings<\/h1>/);
+  assert.match(pending, /Pending/);
+  assert.match(pending, /Zone overrides/);
+  assert.doesNotMatch(pending, /new-zone|edit-zone|<form/);
+  const hidden = sidebar('wilds/aetherion', state, new Set(), catalog);
+  for (const [route] of developer.items) assert.ok(!hidden.includes(`href="#${route}"`));
+  assert.ok(hidden.includes('href="#dev/locations"'));
+});
+
+test('encounter and economy pages keep their forms and controls separate', () => {
+  const game = settingsPage(state);
+  for (const field of ['horsesPerSearch', 'stableCapacity', 'ignoreStableLimit'])
+    assert.ok(game.includes(`name="${field}"`));
+  assert.match(game, />Encounter &amp; Stable Settings<\/h1>/);
+  assert.doesNotMatch(game, /economy-form|Sale History|name="gold"|name="sellingPrice"/);
+  const economy = economySettingsPage(state);
+  assert.match(economy, />Economy Settings<\/h1>/);
+  assert.match(economy, /id="economy-form"/);
+  for (const field of ['gold', 'sellingPrice']) assert.ok(economy.includes(`name="${field}"`));
+  assert.match(economy, /Sale History<\/h2><div class="panel">/);
+  assert.match(economy, /No horses sold yet/);
+  assert.doesNotMatch(economy, /id="settings-form"|horsesPerSearch|stableCapacity/);
   const saves = savesPage(state);
-  assert.doesNotMatch(saves, /Transaction history|Keep the whole story|KEEP YOUR WORLD SAFE/);
   assert.match(saves, /Create backup/);
   assert.match(saves, /Export all data/);
 });
+
 test('dev settings omit retired pages and economy exposes the actual gold balance', () => {
   assert.doesNotMatch(settingsPage(state), /toggle-copy-mode/);
-  assert.doesNotMatch(settingsPage(state, true), /toggle-copy-mode/);
+  assert.doesNotMatch(economySettingsPage(state), /toggle-copy-mode/);
   assert.doesNotMatch(
     sidebar(
       'dev/settings',
@@ -269,7 +300,7 @@ test('dev settings omit retired pages and economy exposes the actual gold balanc
     ),
     /Edit Mode|Remaining Features|dev\/(?:edit-mode|roadmap)/
   );
-  assert.match(settingsPage({ ...state, gold: 12345 }, true), /name="gold"[^>]+value="12345"/);
+  assert.match(economySettingsPage({ ...state, gold: 12345 }), /name="gold"[^>]+value="12345"/);
 });
 test('wild view has three inspectable illustrations without preview captions', () => {
   const html = wildPage(catalog.locations[0], state);
@@ -387,7 +418,7 @@ test('sale history merges old archives with transactions without double-counting
     rows.map(r => r.amount),
     [250, 100, 50]
   );
-  const page = settingsPage(populated, true);
+  const page = economySettingsPage(populated);
   assert.match(page, /&lt;img src=x&gt;/);
   assert.doesNotMatch(page, /<img src=x>/);
 });

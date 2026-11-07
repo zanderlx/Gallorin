@@ -42,7 +42,16 @@ import { createHorseTransfers } from './horse-transfer-ui.js';
 import { startHorseRename } from './horse-inline-name.js';
 import { createHorseDialogs } from './horse-dialogs.js';
 import { icon, sidebar, navigationSection, escapeHTML as e, number, setHTML, appendHTML, raw } from './ui.js';
-import { wildPage, stablePage, collectionCards, settingsPage, savesPage, plannedPage, routeTitle } from './pages.js';
+import {
+  wildPage,
+  stablePage,
+  collectionCards,
+  settingsPage,
+  economySettingsPage,
+  savesPage,
+  plannedPage,
+  routeTitle
+} from './pages.js';
 import { profileContent } from './profile.js';
 import { bindProfileTabs, selectProfileTab } from './profile-layout.js';
 import { bindHorseArtViewer } from './horse-art-viewer.js';
@@ -255,7 +264,8 @@ function pageContent(pageRoute, pageState = state) {
     );
   else if (route === 'stable/breeding') return plannedPage(route, state);
   else if (section === 'stable') return stablePage(page, state, catalog);
-  else if (route === 'dev/settings' || route === 'dev/economy') return settingsPage(state, catalog);
+  else if (route === 'dev/settings') return settingsPage(state, catalog);
+  else if (route === 'dev/economy') return economySettingsPage(state);
   else if (route === 'dev/saves') return savesPage(state);
   else if (route === 'dev/trait-gallery') return traitGalleryPage();
   else if (route === 'dev/music') return musicPlayer.page();
@@ -330,7 +340,6 @@ async function navigate({ initializeNavigation = false } = {}) {
     'dev/editor': 'dev/settings',
     'dev/generator': 'dev/settings',
     'dev/spawn': 'dev/settings',
-    'dev/economy': 'dev/settings',
     'dev/edit-mode': 'dev/settings',
     'dev/roadmap': 'dev/settings',
     'stable/favorites': 'stable/all',

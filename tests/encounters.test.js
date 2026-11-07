@@ -141,6 +141,26 @@ test('mutation thresholds require present attributes within their bounds', () =>
     [mutations[1].id]
   );
 });
+
+test('hair mutation rolls allow one per region even with duplicates enabled', () => {
+  for (const first of ['Chimera', 'Harlequin']) {
+    const other = first === 'Chimera' ? 'Harlequin' : 'Chimera';
+    const names = [`${first} Mane`, `${other} Mane`, `${other} Tail`, `${first} Tail`];
+    const pool = {
+      ...catalog,
+      mutations: names.map(name => ({ id: name, name, type: 'Standard', weight: 1 }))
+    };
+    for (const allow of [false, true]) {
+      for (const cosmic of [null, { name: 'Solar' }]) {
+        const rolled = rollMutations(pool, species, cosmic, { ...settings, ALLOW_DUPLICATE_MUTATIONS: allow }, () => 0);
+        assert.deepEqual(
+          rolled.map(m => m.name),
+          [...(cosmic ? ['Solar'] : []), names[0], names[2]]
+        );
+      }
+    }
+  }
+});
 test('eleven-size ladder shifts and clamps, without repeating duplicate effects', () => {
   const dwarf = { id: 'd', name: 'Dwarfism' },
     giant = { id: 'g', name: 'Gigantism' };

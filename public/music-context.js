@@ -73,7 +73,9 @@ const sectionDefinitions = [
     'Developer Settings',
     'developer',
     [
-      ['dev/settings', 'Game Settings'],
+      ['dev/settings', 'Encounter & Stable Settings'],
+      ['dev/economy', 'Economy Settings'],
+      ['dev/zone-settings', 'Zone Settings'],
       ['dev/horse-updates', 'Horse Overrides']
     ]
   ]

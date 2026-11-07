@@ -1,5 +1,6 @@
 // @ts-check
 import { regularEyes } from '../public/cosmic-types.js';
+import { conflictsWithHairMutation } from '../public/horse-hair-colors.js';
 import { isUnusedTraitCategory } from '../public/unused-traits.js';
 import { eligibleSpeciesPalettes } from '../public/species-palette-rules.js';
 import { rollHorseTrait } from './horse-trait-generation.js';
@@ -67,6 +68,7 @@ export function rollMutations(catalog, species, cosmic, settings, rng = randomFl
       if (!settings.ALLOW_DUPLICATE_MUTATIONS) active = active.filter(m => m.id !== mutation.id);
     }
     result.push(structuredClone(mutation));
+    active = active.filter(m => !conflictsWithHairMutation(m, result));
   }
   return result;
 }
