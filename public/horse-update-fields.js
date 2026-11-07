@@ -80,7 +80,7 @@ export function traitCountRange(category, species, cosmic, available) {
   const required =
     ['Mane', 'Tail'].includes(category) ||
     (category === 'Keratin' &&
-      ['caprine', 'bisorse', 'unicorn', 'anticorn', 'kirin'].includes(species.name.toLowerCase())) ||
+      ['caprine', 'bisorse', 'unicorn', 'anticorn', 'kirin', 'ghoulsteed'].includes(species.name.toLowerCase())) ||
     (cosmic && ['Pattern', 'Paint', 'Cosmetic'].includes(category));
   return { min: required ? Math.min(max, available) : 0, max: Math.min(max, available), rollMax: max };
 }

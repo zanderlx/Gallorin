@@ -46,7 +46,7 @@ test('Cosmics maximize pattern, paint and cosmetic without guaranteeing optional
 });
 
 test('guaranteed keratin species skip the presence roll and randomly select from their own list', () => {
-  for (const name of ['Caprine', 'Bisorse', 'Unicorn', 'Anticorn', 'Kirin'])
+  for (const name of ['Caprine', 'Bisorse', 'Unicorn', 'Anticorn', 'Kirin', 'Ghoulsteed'])
     for (const cosmic of [false, true])
       for (const [random, expected] of [
         [0, 'First'],
