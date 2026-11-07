@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.3.5](docs/assets/gallorin-banner.svg)
+![Gallorin v1.3.4](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.3.5
+# Gallorin v1.3.4
 
 **Desktop horse collection game · Windows**
 
