@@ -213,6 +213,14 @@ main {
   padding-top: 18px;
 }
 
+/* Reserve the fixed player's height once, without adding empty scroll space. */
+.workspace:has(> #main > .encounters) {
+  min-height: calc(100dvh - var(--music-player-height, 0px));
+}
+#main:has(> .encounters) {
+  padding-bottom: 20px;
+}
+
 .wilds-search-row {
   display: flex;
   align-items: center;
