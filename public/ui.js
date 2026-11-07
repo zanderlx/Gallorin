@@ -118,7 +118,8 @@ export const groups = [
     title: 'Developer Settings',
     icon: 'settings',
     items: [
-      ['dev/settings', 'Game Settings'],
+      ['dev/settings', 'Encounter & Stable Settings'],
+      ['dev/economy', 'Economy Settings'],
       ['dev/species', 'Species'],
       ['dev/colors', 'Colors & Palettes'],
       ['dev/mutations', 'Mutations'],
@@ -128,7 +129,11 @@ export const groups = [
   }
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
-workbench.items = [['dev/settings', 'Game Settings']];
+workbench.items = [
+  ['dev/settings', 'Encounter & Stable Settings'],
+  ['dev/economy', 'Economy Settings'],
+  ['dev/locations', 'Zone Settings']
+];
 groups.push(
   {
     title: 'Compendium',
@@ -141,7 +146,6 @@ groups.push(
       ['dev/personalities', 'Personalities'],
       ['dev/mutations', 'Mutations'],
       ['dev/rarities', 'Rarities'],
-      ['dev/locations', 'Zones'],
       ['dev/items', 'Items & Potions'],
       ['dev/themes', 'Item Themes']
     ]

@@ -1,4 +1,5 @@
 import { gameSettingsPage } from './game-settings.js';
+export { economySettingsPage } from './game-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { customHorseFolders } from './horse-folders.js';
 import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';

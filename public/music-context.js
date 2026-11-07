@@ -54,7 +54,6 @@ const sectionDefinitions = [
       ['dev/personalities', 'Personalities'],
       ['dev/mutations', 'Mutations'],
       ['dev/rarities', 'Rarities'],
-      ['dev/locations', 'Zones'],
       ['dev/atmospheres', 'Zone Atmospheres'],
       ['dev/items', 'Items & Potions'],
       ['dev/themes', 'Item Themes']
@@ -73,7 +72,9 @@ const sectionDefinitions = [
     'Developer Settings',
     'developer',
     [
-      ['dev/settings', 'Game Settings'],
+      ['dev/settings', 'Encounter & Stable Settings'],
+      ['dev/economy', 'Economy Settings'],
+      ['dev/locations', 'Zone Settings'],
       ['dev/horse-updates', 'Horse Overrides']
     ]
   ]

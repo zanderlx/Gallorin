@@ -1,4 +1,4 @@
-import { html } from './ui.js';
+import { html, raw } from './ui.js';
 import { icon } from './ui.js';
 import { saleHistoryTable } from './economy.js';
 import { saleModifiers, saleModifierFields } from './sale-pricing.js';
@@ -40,10 +40,13 @@ function artworkSetting(state) {
 }
 
 export function gameSettingsPage(state, catalog) {
-  return `<div class="settings-section-heading"><h1>Encounter & Stable Settings</h1></div>
-  ${settingForm(state, false, catalog)}
-  <section class="economy-settings" aria-labelledby="economy-heading"><h2 id="economy-heading">Economy Settings</h2>
-  ${settingForm(state, true)}</section>${saleHistoryTable(state)}`;
+  return String(html`<div class="settings-section-heading"><h1>Encounter &amp; Stable Settings</h1></div>
+  ${raw(settingForm(state, false, catalog))}`);
+}
+
+export function economySettingsPage(state) {
+  return String(html`<div class="settings-section-heading"><h1>Economy Settings</h1></div>
+  ${raw(settingForm(state, true))}${raw(saleHistoryTable(state))}`);
 }
 
 // Keep label clicks from opening numeric editing; steppers live inside the field.
