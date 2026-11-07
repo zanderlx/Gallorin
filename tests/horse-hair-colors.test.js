@@ -56,3 +56,14 @@ test('Appearance includes separate mane and tail color controls with original an
   assert.match(page, /Mane Color/);
   assert.match(page, /Tail Color/);
 });
+
+test('mixed Chimera and Harlequin pairs color mane and tail independently', () => {
+  for (const [mutations, mane, tail] of [
+    [['Chimera Mane', 'Harlequin Tail'], '#445566', '#778899'],
+    [['Harlequin Mane', 'Chimera Tail'], '#778899', '#445566']
+  ]) {
+    const mixed = { ...horse, mutations };
+    assert.equal(horseHairColor(mixed, 'maneColor'), mane);
+    assert.equal(horseHairColor(mixed, 'tailColor'), tail);
+  }
+});

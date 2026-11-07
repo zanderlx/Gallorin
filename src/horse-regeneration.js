@@ -1,5 +1,5 @@
 import { horseCardRank } from '../public/horse-rank.js';
-import { mutationHairColor } from '../public/horse-hair-colors.js';
+import { mutationHairColor, conflictsWithHairMutation } from '../public/horse-hair-colors.js';
 // @ts-check
 import { createHash } from 'node:crypto';
 import { removeUnusedTraits } from '../public/unused-traits.js';
@@ -117,6 +117,7 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
       const pool = standard().filter(
         m =>
           nameOf(m) !== nameOf(previous) &&
+          !conflictsWithHairMutation(m, used) &&
           (allowDuplicates || !used.some(v => (v?.id && v.id === m.id) || nameOf(v) === m.name))
       );
       return pool.length ? structuredClone(pickWeighted(pool, m => m.weight, rng)) : null;
@@ -162,6 +163,10 @@ export function regenerateHorse(original, rules, catalog, state, { rng = randomF
     }
     horse.mutations = slots.filter(Boolean);
     if (horse.mutations.length > 4) throw new Error('A horse can have at most four mutations.');
+  }
+  if (mutationChange || restored.some(key => key === 'mutations' || key.startsWith('mutation:'))) {
+    if (horse.mutations.some((m, index) => conflictsWithHairMutation(m, horse.mutations.slice(0, index))))
+      throw new Error('Choose at most one Chimera or Harlequin mutation for the Mane and one for the Tail.');
   }
   if (identity && mutationChange) {
     horse.specialSpawn = identity;
