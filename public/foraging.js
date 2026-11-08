@@ -14,10 +14,10 @@ export function foragingPage() {
   return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button" data-foraging-finish hidden>Finish Foraging</button>
       <div class="foraging-layout">
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div><span class="foraging-bonus" aria-live="polite"></span></div>
-        <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+        <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div></div>
         <div class="foraging-dashboard" aria-label="Collected this round">${FOODS.map(food => html`<div><span aria-hidden="true">${food.emoji}</span><span>${food.name}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}</div>
       </div><p id="foraging-status" class="foraging-sr" role="status"></p>
-      <div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div>
+
     </section>`);
 }
 
@@ -230,7 +230,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
   }
   setHTML(
     dialogBody,
-    html`<p>Hold and drag through 3+ matching foods horizontally or vertically; release to collect. Backtrack to undo. ${settings.noTimer ? 'Finish Foraging ends your round.' : `${settings.totalSeconds}s per round; each food adds ${settings.secondsPerItem}s, up to ${settings.totalSeconds}s.`}</p>`
+    html`<ol><li>Hold and drag through 3+ matching foods. No diagonals.</li><li>Release to collect; backtrack to undo a link.</li><li>${settings.noTimer ? 'Choose Finish Foraging when done.' : `${settings.totalSeconds}s per round. Each food adds ${settings.secondsPerItem}s (max ${settings.totalSeconds}s).`}</li></ol>`
   );
   startButton.addEventListener('click', start, options);
   finishButton.addEventListener('click', finish, options);

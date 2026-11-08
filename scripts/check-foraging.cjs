@@ -37,6 +37,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await win.loadURL(origin + '/#activities/foraging');
   await wait(() => document.querySelector('.foraging-dialog') && !document.querySelector('.foraging-dialog').hidden);
   assert.equal(await run(() => document.querySelectorAll('.foraging-tile').length), 0);
+  assert.equal(await run(() => document.querySelectorAll('.foraging-board .foraging-dialog ol li').length), 3);
   await new Promise(resolve => setTimeout(resolve, 150));
   await writeFile(join(directory, 'foraging-rules.png'), (await win.webContents.capturePage()).toPNG());
   assert.equal(await run(() => document.querySelector('#sidebar').inert), false);
