@@ -392,6 +392,7 @@ nav summary .icon,
   font-size: 14px;
 }
 .inventory-item-count {
+  align-self: flex-start;
   color: var(--gold);
   font-size: 18px;
   font-weight: 600;
