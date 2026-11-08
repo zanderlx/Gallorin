@@ -21,6 +21,7 @@ export function bindMusicDisclosures(root, signal, { nativeSummaries = false } =
   };
   const finish = (details, state) => {
     if (running.get(details) !== state) return;
+    clearTimeout(state.timer);
     details.open = state.open;
     details.style.height = '';
     details.removeAttribute('data-expanding');
@@ -37,6 +38,7 @@ export function bindMusicDisclosures(root, signal, { nativeSummaries = false } =
     const opacity = previous && content ? Number(getComputedStyle(content).opacity) : open ? 0.5 : 1;
     previous?.heightAnimation.cancel();
     previous?.fadeAnimation?.cancel();
+    clearTimeout(previous?.timer);
     if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       running.delete(details);
       details.style.height = '';
@@ -66,7 +68,9 @@ export function bindMusicDisclosures(root, signal, { nativeSummaries = false } =
       easing: 'ease-out'
     });
     running.set(details, state);
-    state.heightAnimation.finished.then(() => finish(details, state)).catch(() => {});
+    // Always release the temporary height, including when a browser cancels an animation.
+    state.timer = setTimeout(() => finish(details, state), 320);
+    state.heightAnimation.finished.then(() => finish(details, state)).catch(() => finish(details, state));
     state.fadeAnimation?.finished.catch(() => {});
   };
   root.addEventListener(

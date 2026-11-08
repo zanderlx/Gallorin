@@ -27,7 +27,7 @@ export function bindHorseFolders(root, services) {
   const controller = new AbortController();
   bindings.set(root, controller);
   if (!root.querySelector('.horse-folders')) return;
-  bindMusicDisclosures(root, controller.signal, { nativeSummaries: true });
+  bindMusicDisclosures(root, controller.signal);
   bindHorseFolderDragging(root, services, controller.signal);
   const edit = folder => {
     const dialog = document.createElement('dialog');
