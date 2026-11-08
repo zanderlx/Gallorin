@@ -384,13 +384,13 @@ nav summary .icon,
 }
 .inventory-card.panel .inventory-item-details h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-family: var(--sans);
   font-weight: 500;
   line-height: 20px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   overflow: hidden;
   overflow-wrap: anywhere;
 }
@@ -402,8 +402,11 @@ nav summary .icon,
 .inventory-item-details .inventory-item-meta {
   display: block;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .inventory-item-meta .inventory-item-type {
   display: inline;
