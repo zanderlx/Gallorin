@@ -37,6 +37,8 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await win.loadURL(origin + '/#activities/foraging');
   await wait(() => document.querySelector('.foraging-dialog') && !document.querySelector('.foraging-dialog').hidden);
   assert.equal(await run(() => document.querySelectorAll('.foraging-tile').length), 0);
+  assert.equal(await run(() => document.querySelector('.foraging-dashboard').hidden), true);
+  assert.equal(await run(() => document.querySelectorAll('[data-foraging-count]').length), 0);
   assert.equal(await run(() => document.querySelectorAll('.foraging-board .foraging-dialog ol li').length), 3);
   await new Promise(resolve => setTimeout(resolve, 150));
   await writeFile(join(directory, 'foraging-rules.png'), (await win.webContents.capturePage()).toPNG());
@@ -52,6 +54,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await wait(() => document.querySelectorAll('.foraging-tile').length === 100);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
   assert.equal(await run(() => document.querySelectorAll('.foraging-dashboard > div').length), 4);
+  assert.equal(await run(() => document.querySelector('.foraging-dashboard').hidden), false);
   assert.equal(
     await run(() => document.querySelector('[data-group="Town"]').nextElementSibling.dataset.group),
     'Activities'

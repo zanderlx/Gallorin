@@ -253,3 +253,7 @@
     bottom: 136px;
   }
 }
+
+.foraging-dashboard[hidden] {
+  display: none;
+}

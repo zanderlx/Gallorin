@@ -15,7 +15,7 @@ export function foragingPage() {
       <div class="foraging-layout">
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div><span class="foraging-bonus" aria-live="polite"></span></div>
         <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div></div>
-        <div class="foraging-dashboard" aria-label="Collected this round">${FOODS.map(food => html`<div><span aria-hidden="true">${food.emoji}</span><span>${food.name}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}</div>
+        <div class="foraging-dashboard" aria-label="Collected this round" hidden></div>
       </div><p id="foraging-status" class="foraging-sr" role="status"></p>
 
     </section>`);
@@ -210,6 +210,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
       root.querySelector('.foraging-dashboard'),
       html`${foods.map(food => html`<div><span aria-hidden="true">${food.emoji}</span><span>${food.name}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}`
     );
+    root.querySelector('.foraging-dashboard').hidden = false;
     root.querySelector('.foraging-dashboard').style.gridTemplateColumns = `repeat(${foods.length}, minmax(0, 1fr))`;
     dialog.hidden = true;
     bonus.textContent = '';
