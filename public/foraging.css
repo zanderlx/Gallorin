@@ -257,9 +257,7 @@
   visibility: hidden;
 }
 
-.harvest-icon {
-  width: 1em;
-  height: 1em;
+.harvest-emoji {
   display: inline-block;
   vertical-align: middle;
 }
@@ -292,8 +290,4 @@
 }
 .foraging-rewards [data-rarity='epic'] {
   border-color: #b276d1;
-}
-.inventory-item-icon .harvest-icon {
-  width: 1em;
-  height: 1em;
 }
