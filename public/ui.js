@@ -4,6 +4,7 @@ import { horseArt, horseHeadArt } from './art.js';
 import { horseCardRank } from './horse-rank.js';
 import { raritySettings } from './rarity-settings.js';
 import { locationsFor } from './zones.js';
+import { inventorySections } from './inventory-sections.js';
 
 export const escapeHTML = value =>
   String(value ?? '').replace(
@@ -100,10 +101,7 @@ export const groups = [
   {
     title: 'Inventory',
     icon: 'bag',
-    items: [
-      ['inventory/accessories', 'Accessories'],
-      ['inventory/potions', 'Potions']
-    ]
+    items: inventorySections
   },
   {
     title: 'Wilds',
@@ -163,7 +161,8 @@ groups.push(
 );
 groups.splice(groups.indexOf(workbench), 1);
 groups.push(workbench);
-for (const group of groups) if (group.title !== 'Stables') group.items.sort((a, b) => a[1].localeCompare(b[1]));
+for (const group of groups)
+  if (!['Stables', 'Inventory'].includes(group.title)) group.items.sort((a, b) => a[1].localeCompare(b[1]));
 export function navigationSection(route) {
   return (
     groups.find(group => group.items.some(([path]) => path === route)) ||
@@ -183,7 +182,9 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     )
     .map(group => ({
       ...group,
-      items: group.title === 'Stables' ? group.items : [...group.items].sort((a, b) => a[1].localeCompare(b[1]))
+      items: ['Stables', 'Inventory'].includes(group.title)
+        ? group.items
+        : [...group.items].sort((a, b) => a[1].localeCompare(b[1]))
     }));
   return `<a href="#wilds/aetherion" class="brand">${brandLogo()}<span><span class="brand-title">GALLORIN</span><small>A HORSEKEEPER’S CHRONICLE</small></span></a>
     <nav>${navigation

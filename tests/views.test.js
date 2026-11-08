@@ -205,7 +205,7 @@ test('every navigation destination renders content without undefined values', ()
     assert.doesNotMatch(html, /undefined|NaN/, route);
   }
 });
-test('navigation groups have alphabetized links and profile content safely renders user text', () => {
+test('navigation groups preserve requested orders and profile content safely renders user text', () => {
   assert.deepEqual(
     groups.find(g => g.title === 'Stables').items.map(item => item[1]),
     ['My Horses', 'Breeding']
@@ -214,7 +214,22 @@ test('navigation groups have alphabetized links and profile content safely rende
     groups.some(g => g.title === 'Breeding'),
     false
   );
-  for (const group of groups.filter(g => g.title !== 'Stables'))
+  const inventory = groups.find(g => g.title === 'Inventory');
+  assert.deepEqual(
+    inventory.items.map(item => item[1]),
+    ['All', 'Gear', 'Food', 'Potions', 'Materials', 'Equipment', 'Pets']
+  );
+  const inventoryHTML = sidebar('inventory/all', state, new Set(['Inventory']), catalog)
+    .split('data-group="Inventory"')[1]
+    .split('</details>')[0];
+  assert.deepEqual(
+    [...inventoryHTML.matchAll(/href="#inventory\/([^"]+)"/g)].map(match => match[1]),
+    ['all', 'gear', 'food', 'potions', 'materials', 'equipment', 'pets']
+  );
+  for (const [route, label] of inventory.items) {
+    assert.match(plannedPage(route, state), new RegExp(`<h1[^>]*>${label}</h1>`));
+  }
+  for (const group of groups.filter(g => !['Stables', 'Inventory'].includes(g.title)))
     assert.deepEqual(
       group.items.map(item => item[1]),
       group.items.map(item => item[1]).sort((a, b) => a.localeCompare(b))
