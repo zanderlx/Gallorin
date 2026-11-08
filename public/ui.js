@@ -133,6 +133,7 @@ export const groups = [
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
 workbench.items = [
+  ['dev/activities', 'Activities Settings'],
   ['dev/settings', 'Encounter & Stable Settings'],
   ['dev/economy', 'Economy Settings'],
   ['dev/zone-settings', 'Zone Settings']

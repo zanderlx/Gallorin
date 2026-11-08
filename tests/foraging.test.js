@@ -71,3 +71,13 @@ test('time reward is one second per food, capped, with green, amber and deep red
   assert.equal(timerColor(12), 'rgb(170, 32, 48)');
   assert.equal(timerColor(0), timerColor(12));
 });
+
+test('configured grids refill using only the round food pool', () => {
+  const foods = FOODS.slice(0, 2);
+  const result = cascade([], [], Math.random, 6, foods);
+  assert.equal(result.board.length, 36);
+  assert.ok(result.board.every(id => foods.some(food => food.id === id)));
+  ensurePlayable(result.board, Math.random, 6);
+  assert.ok(largestGroup(result.board, 6) >= 3);
+  assert.equal(rewardTime(20, 3, 2), 26);
+});

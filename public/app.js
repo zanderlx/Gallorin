@@ -15,6 +15,7 @@ import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
+import { activitiesSettingsPage } from './activities-settings.js';
 import { bindInventory } from './inventory.js';
 import { foragingPage, bindForaging } from './foraging.js';
 import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
@@ -268,6 +269,7 @@ function pageContent(pageRoute, pageState = state) {
   else if (route === 'activities/foraging') return foragingPage();
   else if (route === 'stable/breeding') return plannedPage(route, state);
   else if (section === 'stable') return stablePage(page, state, catalog);
+  else if (route === 'dev/activities') return activitiesSettingsPage(state);
   else if (route === 'dev/settings') return settingsPage(state, catalog);
   else if (route === 'dev/economy') return economySettingsPage(state);
   else if (route === 'dev/saves') return savesPage(state);
@@ -302,6 +304,7 @@ function render() {
   if (route.startsWith('inventory/')) bindInventory(main, route, state);
   if (route === 'activities/foraging')
     disposeForaging = bindForaging(main, {
+      settings: state.settings.activities,
       collect: (food, count) => action('forage', { food, count }),
       notify
     });
@@ -987,6 +990,7 @@ document.addEventListener('submit', async event => {
       'horse-description-form',
       'horse-notes-form',
       'keeper-form',
+      'activities-settings-form',
       'spawn-settings-form',
       'gold-form',
       'economy-form',
@@ -1037,6 +1041,15 @@ document.addEventListener('submit', async event => {
         'traits'
       );
       notify('Traits saved.');
+    } else if (form.id === 'activities-settings-form') {
+      await action('activities-settings', {
+        gridSize: Number(form.elements.gridSize.value),
+        secondsPerItem: Number(form.elements.secondsPerItem.value),
+        noTimer: form.elements.noTimer.checked,
+        foodCount: Number(form.elements.foodCount.value)
+      });
+      render();
+      notify('Activities settings saved.');
     } else if (form.id === 'spawn-settings-form') {
       await action('spawn-settings', { ALLOW_DUPLICATE_MUTATIONS: form.elements.ALLOW_DUPLICATE_MUTATIONS.checked });
       render();

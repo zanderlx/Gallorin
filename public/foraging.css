@@ -154,3 +154,99 @@
     font-size: 12px;
   }
 }
+
+/* Align the activity to the viewport, just like the fixed music player. */
+.foraging {
+  position: fixed;
+  inset: 76px 0 100px;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  pointer-events: none;
+  overflow: auto;
+  padding: 16px;
+}
+.foraging > * {
+  pointer-events: auto;
+}
+.foraging h1 {
+  margin: 0;
+  font: 32px var(--serif);
+}
+.foraging-layout {
+  width: min(100%, calc(clamp(220px, 100dvh - 360px, 560px) + 60px));
+  flex-shrink: 0;
+}
+.foraging-tile {
+  width: calc(100% / var(--grid-size));
+  height: calc(100% / var(--grid-size));
+  font-size: clamp(10px, calc(60cqw / var(--grid-size)), 32px);
+}
+.foraging-clock[hidden],
+[data-foraging-finish][hidden] {
+  display: none;
+}
+.foraging-layout:has(.foraging-clock[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.foraging-layout:has(.foraging-clock[hidden]) .foraging-dashboard {
+  grid-column: 1;
+}
+.foraging-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  padding: 28px;
+  color: var(--text);
+  background: var(--panel-deep);
+  border: 1px solid var(--gold-soft);
+  border-radius: 16px;
+}
+.foraging-dialog::backdrop {
+  background: #000b;
+}
+.foraging-dialog h2 {
+  text-align: center;
+  margin-top: 0;
+  font: 30px var(--serif);
+}
+.foraging-dialog li {
+  padding: 8px 0;
+}
+.foraging-dialog ul {
+  list-style: none;
+  padding: 0;
+}
+.foraging-dialog li strong {
+  float: right;
+  color: var(--gold);
+}
+.foraging-dialog button {
+  display: block;
+  margin: 20px auto 0;
+}
+.foraging-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+#activities-settings-form {
+  max-width: 620px;
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+}
+#activities-settings-form label {
+  display: grid;
+  gap: 6px;
+}
+@media (max-width: 700px) {
+  .foraging {
+    bottom: 136px;
+  }
+}

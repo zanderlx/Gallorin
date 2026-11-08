@@ -464,15 +464,35 @@ export class GameStore {
       await this.readConfiguration();
       const next = this.snapshot();
       const catalog = this.getCatalog(next);
-      if (type === 'forage') {
+      if (type === 'activities-settings') {
+        if (
+          !Number.isInteger(payload.gridSize) ||
+          payload.gridSize < 4 ||
+          payload.gridSize > 16 ||
+          !Number.isFinite(payload.secondsPerItem) ||
+          payload.secondsPerItem < 0 ||
+          payload.secondsPerItem > 60 ||
+          typeof payload.noTimer !== 'boolean' ||
+          !Number.isInteger(payload.foodCount) ||
+          payload.foodCount < 1 ||
+          payload.foodCount > 5
+        )
+          throw new Error('Choose valid activity settings.');
+        next.settings.activities = {
+          gridSize: payload.gridSize,
+          secondsPerItem: payload.secondsPerItem,
+          noTimer: payload.noTimer,
+          foodCount: payload.foodCount
+        };
+      } else if (type === 'forage') {
         const names = { apple: 'Apples', carrot: 'Carrots', berry: 'Berries', peach: 'Peaches', flower: 'Flowers' };
         if (
           !Object.hasOwn(names, payload.food) ||
           !Number.isInteger(payload.count) ||
           payload.count < 3 ||
-          payload.count > 100
+          payload.count > 256
         )
-          throw new Error('Choose a valid food chain of 3 to 100 items.');
+          throw new Error('Choose a valid food chain of 3 to 256 items.');
         next.inventory ??= [];
         const item = next.inventory.find(item => item.id === payload.food && item.type === 'food');
         if (item) {

@@ -35,9 +35,12 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     throw Error('Timed out: ' + fn.toString());
   };
   await win.loadURL(origin + '/#activities/foraging');
+  await wait(() => document.querySelector('.foraging-dialog')?.open);
+  assert.equal(await run(() => document.querySelectorAll('.foraging-tile').length), 0);
+  await run(() => document.querySelector('[data-foraging-start]').click());
   await wait(() => document.querySelectorAll('.foraging-tile').length === 100);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
-  assert.equal(await run(() => document.querySelectorAll('.foraging-dashboard > div').length), 5);
+  assert.equal(await run(() => document.querySelectorAll('.foraging-dashboard > div').length), 4);
   assert.equal(
     await run(() => document.querySelector('[data-group="Town"]').nextElementSibling.dataset.group),
     'Activities'
@@ -100,10 +103,10 @@ const deadline = setTimeout(() => app.exit(1), 60000);
       .dispatchEvent(new PointerEvent('pointerdown', { button: 0, isPrimary: true }));
     performance.now = now;
   });
-  await wait(() => !document.querySelector('.foraging-overlay').hidden);
+  await wait(() => document.querySelector('.foraging-dialog').open);
   assert.equal(await run(() => document.querySelector('.foraging-timer').getAttribute('aria-valuenow')), '0');
   const restart = await run(() => {
-    document.querySelector('[data-foraging-restart]').click();
+    document.querySelector('[data-foraging-start]').click();
     document
       .querySelector('.foraging-board')
       .dispatchEvent(new PointerEvent('pointerdown', { button: 0, isPrimary: true }));
@@ -141,9 +144,10 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     const root = document.querySelector('#main');
     setHTML(root, raw(foragingPage()));
     const random = Math.random;
-    Math.random = () => 0;
+    Math.random = () => 0.99999;
     window.foragingTest = { failures: 0, saved: 0 };
     window.foragingTest.dispose = bindForaging(root, {
+      settings: { foodCount: 1 },
       collect: async (_food, count) => {
         if (!window.foragingTest.failures) throw Error('Test save failure');
         window.foragingTest.saved += count;
@@ -152,6 +156,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
         window.foragingTest.failures++;
       }
     });
+    document.querySelector('[data-foraging-start]').click();
     Math.random = random;
   });
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
@@ -166,6 +171,29 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await run(keyboardCapture);
   await wait(() => window.foragingTest.saved === 3);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
+  await run(() => window.foragingTest.dispose());
+  await run(async () => {
+    const { foragingPage, bindForaging } = await import('/foraging.js');
+    const { setHTML, raw } = await import('/ui.js');
+    const root = document.querySelector('#main');
+    setHTML(root, raw(foragingPage()));
+    window.foragingTest.dispose = bindForaging(root, {
+      settings: { gridSize: 6, foodCount: 2, noTimer: true, secondsPerItem: 2 },
+      collect: async () => {},
+      notify: () => {}
+    });
+    document.querySelector('[data-foraging-start]').click();
+  });
+  await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
+  assert.equal(await run(() => document.querySelectorAll('.foraging-tile').length), 36);
+  assert.equal(
+    await run(() => new Set([...document.querySelectorAll('.foraging-tile')].map(el => el.dataset.food)).size),
+    2
+  );
+  assert.equal(await run(() => document.querySelector('.foraging-clock').hidden), true);
+  await run(() => document.querySelector('[data-foraging-finish]').click());
+  assert.equal(await run(() => document.querySelector('.foraging-dialog').open), true);
+  assert.equal(await run(() => document.querySelectorAll('[data-foraging-dialog-body] li').length), 2);
   await run(() => window.foragingTest.dispose());
   win.destroy();
   await backend.closeGameServer();
