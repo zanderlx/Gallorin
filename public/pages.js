@@ -189,7 +189,7 @@ const planned = {
 export function plannedPage(route, state) {
   if (route.startsWith('inventory/'))
     return String(
-      html`<nav class="inventory-tabs" aria-label="Inventory sections">${inventorySections.map(([path, label]) => html`<a href="#${path}" ${path === route ? raw('aria-current="page"') : ''}>${label}</a>`)}</nav>${raw(heading('YOUR TRAVELING SATCHEL', inventorySections.find(([path]) => path === route)?.[1] || 'Inventory', 'A place for all the little things that make a companion your own.'))}${raw(emptyState('Your satchel is waiting', 'Inventory and item use arrive in Phase 5, along with the gacha machine. No items have been awarded yet.', 'dev/items', 'Browse item definitions', 'bag'))}`
+      html`<nav class="inventory-tabs" aria-label="Inventory sections">${inventorySections.map(([path, label]) => html`<a href="#${path}" ${path === route ? raw('aria-current="page"') : ''}>${label}</a>`)}</nav><div class="page-heading"><h1>${inventorySections.find(([path]) => path === route)?.[1] || 'Inventory'}</h1></div><p role="status">Inventory is empty</p>`
     );
   const p = planned[route];
   if (!p)
