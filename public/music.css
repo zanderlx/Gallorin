@@ -316,13 +316,16 @@ body.has-music-player {
   font-weight: 400;
 }
 
+.music-manager {
+  max-width: 1000px;
+  margin-inline: auto;
+}
 .music-playlists-heading {
   margin: 26px 0 20px;
 }
 .music-playlist-groups {
   display: grid;
   gap: 14px;
-  max-width: 1000px;
   margin-bottom: 38px;
 }
 .music-group {
