@@ -2,9 +2,9 @@ import { gameSettingsPage } from './game-settings.js';
 export { economySettingsPage } from './game-settings.js';
 import { horseCardRank } from './horse-rank.js';
 import { customHorseFolders } from './horse-folders.js';
-import { escapeHTML as e, number, icon, card, emptyState, heading, groups, html, raw } from './ui.js';
+import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';
 import { zoneAtmosphere, atmosphereStyle, zoneTags } from './zones.js';
-import { inventorySections } from './inventory-sections.js';
+import { inventoryPage } from './inventory.js';
 
 export function wildPage(location, state, locations = [location], catalog) {
   const horses = state.encounters[location.id] || [];
@@ -187,10 +187,7 @@ const planned = {
   ]
 };
 export function plannedPage(route, state) {
-  if (route.startsWith('inventory/'))
-    return String(
-      html`<nav class="inventory-tabs" aria-label="Inventory sections">${inventorySections.map(([path, label]) => html`<a href="#${path}" ${path === route ? raw('aria-current="page"') : ''}>${label}</a>`)}</nav><div class="page-heading"><h1>${inventorySections.find(([path]) => path === route)?.[1] || 'Inventory'}</h1></div><p role="status">Inventory is empty</p>`
-    );
+  if (route.startsWith('inventory/')) return inventoryPage(route, state);
   const p = planned[route];
   if (!p)
     return `${heading('A PATH LESS TRAVELED', 'This trail is not on the map', 'Choose a destination from your navigation.')}<a href="#wilds/aetherion" class="button primary">Return to the wilds</a>`;

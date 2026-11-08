@@ -15,6 +15,7 @@ import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
+import { bindInventory } from './inventory.js';
 import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -293,6 +294,7 @@ function render() {
   renderChrome();
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
+  if (route.startsWith('inventory/')) bindInventory(main, route, state);
   updateEncounterCooldown();
   if (route === 'dev/trait-gallery') bindTraitGallery(main, catalog);
   if (route === 'dev/music') musicPlayer.bind(main);

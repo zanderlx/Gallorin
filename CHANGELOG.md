@@ -8,6 +8,12 @@ Dates for legacy entries come from their release commits.
 
 ## [1.3.5] - Unreleased
 
+### Added
+
+- **Inventory**
+  - View items by type using the All, Gear, Food, Potions, Materials, Equipment, and Pets tabs.
+  - Item cards show names and quantities, with sorting by name or count in ascending or descending order.
+
 ### Fixed
 
 - **My Horses**

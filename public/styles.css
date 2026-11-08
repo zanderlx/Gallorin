@@ -338,6 +338,68 @@ nav summary .icon,
 .inventory-tabs a[aria-current] {
   border-bottom-color: var(--gold);
 }
+.inventory-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.inventory-summary {
+  color: var(--muted);
+  font-size: 14px;
+}
+.inventory-sort-direction .icon {
+  transform: rotate(-90deg);
+}
+.inventory-sort-direction[data-inventory-direction='desc'] .icon {
+  transform: rotate(90deg);
+}
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+.inventory-card.panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  margin: 0;
+}
+.inventory-item-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-deep);
+  color: var(--gold);
+  font-size: 28px;
+}
+.inventory-item-details {
+  flex: 1;
+  min-width: 0;
+}
+.inventory-item-details h2 {
+  margin: 0;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+.inventory-item-type,
+.inventory-empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+.inventory-item-count {
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.inventory-empty {
+  grid-column: 1 / -1;
+}
 .chevron {
   display: grid;
   place-items: center;
