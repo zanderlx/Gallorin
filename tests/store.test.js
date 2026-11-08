@@ -20,6 +20,30 @@ async function fixture(t) {
   });
   return { directory, store: await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init() };
 }
+test('foraging persists exact food rewards and rejects invalid harvests without changing saves', async t => {
+  const { directory, store } = await fixture(t);
+  const before = store.snapshot();
+  await store.action('forage', { food: 'flower', count: 7 });
+  await store.action('forage', { food: 'flower', count: 3 });
+  await store.action('forage', { food: 'berry', count: 100 });
+  assert.equal(store.state.inventory.find(item => item.id === 'flower').count, 10);
+  assert.equal(store.state.inventory.find(item => item.id === 'berry').count, 100);
+  assert.deepEqual(store.state.horses, before.horses);
+  assert.equal(store.state.gold, before.gold);
+  const saved = store.snapshot();
+  for (const payload of [
+    { food: 'lasso', count: 3 },
+    { food: 'flower', count: 2 },
+    { food: 'flower', count: 101 },
+    { food: 'flower', count: 3.5 }
+  ]) {
+    await assert.rejects(store.action('forage', payload), /valid food chain/);
+    assert.deepEqual(store.snapshot(), saved);
+  }
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.state.inventory, saved.inventory);
+});
+
 test('retired edit actions reject legacy saves without changing player data', async t => {
   const { directory, store } = await fixture(t);
   await store.action('visit', { locationId: 'aetherion' });

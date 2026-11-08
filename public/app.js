@@ -16,6 +16,7 @@ import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './p
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
 import { bindInventory } from './inventory.js';
+import { foragingPage, bindForaging } from './foraging.js';
 import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -82,6 +83,7 @@ let state,
   appVersion,
   busy = false;
 let stableGridColumns = 5;
+let disposeForaging;
 let selectedSpeciesId,
   speciesTab = 'overview',
   speciesSort = 'rarity',
@@ -263,6 +265,7 @@ function pageContent(pageRoute, pageState = state) {
       locations,
       catalog
     );
+  else if (route === 'activities/foraging') return foragingPage();
   else if (route === 'stable/breeding') return plannedPage(route, state);
   else if (section === 'stable') return stablePage(page, state, catalog);
   else if (route === 'dev/settings') return settingsPage(state, catalog);
@@ -290,11 +293,18 @@ function pageContent(pageRoute, pageState = state) {
   else return plannedPage(route, state);
 }
 function render() {
+  disposeForaging?.();
+  disposeForaging = undefined;
   setProvidedHorseArtwork(state.settings.providedHorseArtwork);
   renderChrome();
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
   if (route.startsWith('inventory/')) bindInventory(main, route, state);
+  if (route === 'activities/foraging')
+    disposeForaging = bindForaging(main, {
+      collect: (food, count) => action('forage', { food, count }),
+      notify
+    });
   updateEncounterCooldown();
   if (route === 'dev/trait-gallery') bindTraitGallery(main, catalog);
   if (route === 'dev/music') musicPlayer.bind(main);

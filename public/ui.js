@@ -90,6 +90,11 @@ export const groups = [
     ]
   },
   {
+    title: 'Activities',
+    icon: 'leaf',
+    items: [['activities/foraging', 'Wilds Foraging']]
+  },
+  {
     title: 'Stables',
     icon: 'stable',
     open: true,

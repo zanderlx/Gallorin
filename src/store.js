@@ -464,7 +464,22 @@ export class GameStore {
       await this.readConfiguration();
       const next = this.snapshot();
       const catalog = this.getCatalog(next);
-      if (type === 'horse-updates-enabled') {
+      if (type === 'forage') {
+        const names = { apple: 'Apples', carrot: 'Carrots', berry: 'Berries', peach: 'Peaches', flower: 'Flowers' };
+        if (
+          !Object.hasOwn(names, payload.food) ||
+          !Number.isInteger(payload.count) ||
+          payload.count < 3 ||
+          payload.count > 100
+        )
+          throw new Error('Choose a valid food chain of 3 to 100 items.');
+        next.inventory ??= [];
+        const item = next.inventory.find(item => item.id === payload.food && item.type === 'food');
+        if (item) {
+          if (!Number.isSafeInteger(item.count + payload.count)) throw new Error('Food inventory is full.');
+          item.count += payload.count;
+        } else next.inventory.push({ id: payload.food, name: names[payload.food], type: 'food', count: payload.count });
+      } else if (type === 'horse-updates-enabled') {
         if (typeof payload.enabled !== 'boolean') throw new Error('Choose whether horse updates are enabled.');
         next.settings.horseUpdatesEnabled = payload.enabled;
       } else if (type === 'apply-horse-updates') {
