@@ -3132,3 +3132,27 @@ body.horse-drag-in-progress [data-tooltip]::after {
   cursor: grab;
   touch-action: none;
 }
+
+/* Balance the sidebar with matching space on the right so every page shares
+   the viewport center used by the Wilds, activities and fixed music player. */
+.workspace {
+  --page-sidebar-space: 264px;
+  min-height: calc(100dvh - var(--music-player-height, 0px));
+}
+#main {
+  width: calc(100% - var(--page-sidebar-space));
+  margin-right: var(--page-sidebar-space);
+}
+#main:has(> .encounters) {
+  padding-bottom: 20px;
+}
+@media (max-width: 1200px) {
+  .workspace {
+    --page-sidebar-space: 240px;
+  }
+}
+@media (max-width: 900px) {
+  .workspace {
+    --page-sidebar-space: 0px;
+  }
+}
