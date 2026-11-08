@@ -322,6 +322,7 @@ body.has-music-player {
 .music-playlist-groups {
   display: grid;
   gap: 14px;
+  max-width: 1000px;
   margin-bottom: 38px;
 }
 .music-group {
