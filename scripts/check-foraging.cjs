@@ -37,7 +37,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await win.loadURL(origin + '/#activities/foraging');
   await wait(() => document.querySelector('.foraging-dialog') && !document.querySelector('.foraging-dialog').hidden);
   assert.equal(await run(() => document.querySelectorAll('.foraging-tile').length), 0);
-  assert.equal(await run(() => document.querySelector('.foraging-dashboard').hidden), true);
+  assert.equal(await run(() => document.querySelector('.foraging-dashboard').classList.contains('is-pending')), true);
   assert.equal(await run(() => document.querySelectorAll('[data-foraging-count]').length), 0);
   assert.equal(await run(() => document.querySelectorAll('.foraging-board .foraging-dialog ol li').length), 3);
   await new Promise(resolve => setTimeout(resolve, 150));
@@ -50,11 +50,21 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   });
   await wait(() => !!document.querySelector('[data-foraging-start]'));
 
+  const initialBoard = await run(() => {
+    const rect = document.querySelector('.foraging-board').getBoundingClientRect();
+    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+  });
   await run(() => document.querySelector('[data-foraging-start]').click());
   await wait(() => document.querySelectorAll('.foraging-tile').length === 100);
+  const startedBoard = await run(() => {
+    const rect = document.querySelector('.foraging-board').getBoundingClientRect();
+    return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+  });
+  assert.deepEqual(startedBoard, initialBoard);
+
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
   assert.equal(await run(() => document.querySelectorAll('.foraging-dashboard > div').length), 4);
-  assert.equal(await run(() => document.querySelector('.foraging-dashboard').hidden), false);
+  assert.equal(await run(() => document.querySelector('.foraging-dashboard').classList.contains('is-pending')), false);
   assert.equal(
     await run(() => document.querySelector('[data-group="Town"]').nextElementSibling.dataset.group),
     'Activities'

@@ -254,6 +254,6 @@
   }
 }
 
-.foraging-dashboard[hidden] {
-  display: none;
+.foraging-dashboard.is-pending {
+  visibility: hidden;
 }
