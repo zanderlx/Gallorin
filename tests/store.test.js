@@ -825,11 +825,19 @@ test('dragged horse order and membership persist through restart and folder edit
 
 test('activity settings persist and reject unsupported values', async t => {
   const { directory, store } = await fixture(t);
-  const settings = { gridSize: 16, secondsPerItem: 2.5, noTimer: true, foodCount: 4 };
+  const settings = { gridSize: 16, secondsPerItem: 2.75, totalSeconds: 90, noTimer: true, foodCount: 4 };
   await store.action('activities-settings', settings);
   const reopened = await new GameStore(directory, catalog, defaults).init();
   assert.deepEqual(reopened.state.settings.activities, settings);
-  for (const change of [{ gridSize: 3 }, { foodCount: 6 }, { secondsPerItem: -1 }, { noTimer: 'yes' }]) {
+  for (const change of [
+    { gridSize: 3 },
+    { foodCount: 6 },
+    { secondsPerItem: -1 },
+    { noTimer: 'yes' },
+    { secondsPerItem: 0.1 },
+    { totalSeconds: 0 },
+    { totalSeconds: 1.5 }
+  ]) {
     await assert.rejects(store.action('activities-settings', { ...settings, ...change }), /valid activity settings/);
   }
   await store.action('forage', { food: 'apple', count: 256 });

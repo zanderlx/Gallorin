@@ -83,10 +83,10 @@ export function cascade(board, removed = [], rng = Math.random, size = SIZE, foo
   }
   return { board: next, moves };
 }
-export const rewardTime = (remaining, count, secondsPerItem = 1) =>
-  Math.min(ROUND_SECONDS, remaining + count * secondsPerItem);
-export function timerColor(seconds) {
-  const fraction = Math.max(0, Math.min(1, seconds / ROUND_SECONDS));
+export const rewardTime = (remaining, count, secondsPerItem = 1, totalSeconds = ROUND_SECONDS) =>
+  Math.min(totalSeconds, remaining + count * secondsPerItem);
+export function timerColor(seconds, totalSeconds = ROUND_SECONDS) {
+  const fraction = Math.max(0, Math.min(1, seconds / totalSeconds));
   const low = fraction <= 0.5 ? [170, 32, 48] : [241, 183, 48];
   const high = fraction <= 0.5 ? [241, 183, 48] : [65, 205, 113];
   const mix = fraction <= 0.5 ? Math.max(0, (fraction - 0.2) / 0.3) : (fraction - 0.5) / 0.5;
@@ -104,7 +104,8 @@ export function chooseFoods(count = 4, rng = Math.random) {
 export function activitySettings(settings = {}) {
   return {
     gridSize: settings.gridSize ?? 10,
-    secondsPerItem: settings.secondsPerItem ?? 1,
+    secondsPerItem: Math.round((settings.secondsPerItem ?? 1) * 4) / 4,
+    totalSeconds: settings.totalSeconds ?? ROUND_SECONDS,
     noTimer: settings.noTimer ?? false,
     foodCount: settings.foodCount ?? 4
   };

@@ -81,3 +81,10 @@ test('configured grids refill using only the round food pool', () => {
   assert.ok(largestGroup(result.board, 6) >= 3);
   assert.equal(rewardTime(20, 3, 2), 26);
 });
+
+test('quarter-second rewards respect a configured timer cap and urgency scale', () => {
+  assert.equal(rewardTime(12, 3, 0.25, 90), 12.75);
+  assert.equal(rewardTime(89.5, 3, 0.25, 90), 90);
+  assert.equal(timerColor(90, 90), timerColor(60));
+  assert.equal(timerColor(45, 90), timerColor(30));
+});

@@ -472,6 +472,10 @@ export class GameStore {
           !Number.isFinite(payload.secondsPerItem) ||
           payload.secondsPerItem < 0 ||
           payload.secondsPerItem > 60 ||
+          !Number.isInteger(payload.secondsPerItem * 4) ||
+          !Number.isInteger(payload.totalSeconds ?? 60) ||
+          (payload.totalSeconds ?? 60) < 1 ||
+          (payload.totalSeconds ?? 60) > 3600 ||
           typeof payload.noTimer !== 'boolean' ||
           !Number.isInteger(payload.foodCount) ||
           payload.foodCount < 1 ||
@@ -481,6 +485,7 @@ export class GameStore {
         next.settings.activities = {
           gridSize: payload.gridSize,
           secondsPerItem: payload.secondsPerItem,
+          totalSeconds: payload.totalSeconds ?? 60,
           noTimer: payload.noTimer,
           foodCount: payload.foodCount
         };

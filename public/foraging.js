@@ -2,7 +2,6 @@ import { html, setHTML } from './ui.js';
 import {
   chooseFoods,
   activitySettings,
-  ROUND_SECONDS,
   FOODS,
   extendPath,
   cascade,
@@ -46,7 +45,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     path = [],
     phase = 'ready',
     pointer = null,
-    remaining = ROUND_SECONDS;
+    remaining = settings.totalSeconds;
   let frame,
     last = performance.now(),
     disposed = false;
@@ -72,8 +71,8 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     paintPath();
   }
   function paintTimer() {
-    fill.style.transform = `scaleY(${remaining / ROUND_SECONDS})`;
-    fill.style.backgroundColor = timerColor(remaining);
+    fill.style.transform = `scaleY(${remaining / settings.totalSeconds})`;
+    fill.style.backgroundColor = timerColor(remaining, settings.totalSeconds);
     timer.setAttribute('aria-valuenow', String(Math.ceil(remaining)));
     root.querySelector('.foraging-seconds').textContent = `${Math.ceil(remaining)}s`;
   }
@@ -149,7 +148,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
       if (disposed) return;
       counts[food] += selected.length;
       root.querySelector(`[data-foraging-count="${food}"]`).textContent = String(counts[food]);
-      remaining = rewardTime(remaining, selected.length, settings.secondsPerItem);
+      remaining = rewardTime(remaining, selected.length, settings.secondsPerItem, settings.totalSeconds);
       bonus.textContent = `+${selected.length * settings.secondsPerItem}s`;
       paintTimer();
       await drop(selected);
@@ -203,7 +202,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
   function start() {
     board = [];
     clearPath();
-    remaining = ROUND_SECONDS;
+    remaining = settings.totalSeconds;
     counts = Object.fromEntries(FOODS.map(food => [food.id, 0]));
     for (const count of root.querySelectorAll('[data-foraging-count]')) count.textContent = '0';
     foods = chooseFoods(settings.foodCount);
@@ -231,11 +230,13 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
   }
   setHTML(
     dialogBody,
-    html`<p>Hold and drag through 3+ matching foods horizontally or vertically; release to collect. Backtrack to undo. ${settings.noTimer ? 'Finish Foraging ends your round.' : `Each food adds ${settings.secondsPerItem}s (max 60s).`}</p>`
+    html`<p>Hold and drag through 3+ matching foods horizontally or vertically; release to collect. Backtrack to undo. ${settings.noTimer ? 'Finish Foraging ends your round.' : `${settings.totalSeconds}s per round; each food adds ${settings.secondsPerItem}s, up to ${settings.totalSeconds}s.`}</p>`
   );
   startButton.addEventListener('click', start, options);
   finishButton.addEventListener('click', finish, options);
   dialog.hidden = false;
+  timer.setAttribute('aria-valuemax', String(settings.totalSeconds));
+  paintTimer();
   frame = requestAnimationFrame(tick);
   return () => {
     disposed = true;

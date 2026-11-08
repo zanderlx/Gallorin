@@ -1048,6 +1048,7 @@ document.addEventListener('submit', async event => {
       await action('activities-settings', {
         gridSize: Number(form.elements.gridSize.value),
         secondsPerItem: Number(form.elements.secondsPerItem.value),
+        totalSeconds: Number(form.elements.totalSeconds.value),
         noTimer: form.elements.noTimer.checked,
         foodCount: Number(form.elements.foodCount.value)
       });

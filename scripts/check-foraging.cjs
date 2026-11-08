@@ -195,7 +195,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     const root = document.querySelector('#main');
     setHTML(root, raw(foragingPage()));
     window.foragingTest.dispose = bindForaging(root, {
-      settings: { gridSize: 6, foodCount: 2, noTimer: true, secondsPerItem: 2 },
+      settings: { gridSize: 6, foodCount: 2, noTimer: true, secondsPerItem: 0.25, totalSeconds: 90 },
       collect: async () => {},
       notify: () => {}
     });
@@ -208,6 +208,8 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     2
   );
   assert.equal(await run(() => document.querySelector('.foraging-clock').hidden), true);
+  assert.equal(await run(() => document.querySelector('.foraging-timer').getAttribute('aria-valuemax')), '90');
+  assert.equal(await run(() => document.querySelector('.foraging-seconds').textContent), '90s');
   await run(() => document.querySelector('[data-foraging-finish]').click());
   assert.equal(await run(() => !document.querySelector('.foraging-dialog').hidden), true);
   assert.equal(await run(() => document.querySelectorAll('[data-foraging-dialog-body] li').length), 2);
@@ -223,7 +225,9 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     attachSettingsNumbers(root);
     trackForms(root);
   });
-  assert.equal(await run(() => document.querySelectorAll('#activities-settings-form .settings-number').length), 3);
+  assert.equal(await run(() => document.querySelectorAll('#activities-settings-form .settings-number').length), 4);
+  await run(() => document.querySelector('[aria-label="Increase Time per Ingredient"]').click());
+  assert.equal(await run(() => document.querySelector('[name=secondsPerItem]').value), '1.25');
   await run(() => document.querySelector('[aria-label="Increase Grid Size"]').click());
   assert.equal(await run(() => document.querySelector('[name=gridSize]').value), '9');
   assert.equal(await run(() => document.querySelector('#activities-settings-form button[type=submit]').hidden), false);
