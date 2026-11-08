@@ -1,5 +1,5 @@
 // Native details with reversible animation and scoped bulk controls.
-export function bindMusicDisclosures(root, signal) {
+export function bindMusicDisclosures(root, signal, { nativeSummaries = false } = {}) {
   const running = new Map();
   const expanded = details => (details.dataset.expanding ? details.dataset.expanding === 'true' : details.open);
   const refresh = () => {
@@ -28,7 +28,7 @@ export function bindMusicDisclosures(root, signal) {
     running.delete(details);
     refresh();
   };
-  const setOpen = (details, open, animate = true) => {
+  const setOpen = (details, open, animate = !nativeSummaries) => {
     const previous = running.get(details);
     if (!previous && details.open === open) return;
     const height = details.getBoundingClientRect().height,
@@ -95,6 +95,9 @@ export function bindMusicDisclosures(root, signal) {
       const summary = event.target.closest('summary'),
         details = summary?.parentElement;
       if (!details?.matches('details.music-group,details.music-playlist')) return;
+      if (nativeSummaries) {
+        return;
+      }
       event.preventDefault();
       setOpen(details, !expanded(details));
       refresh();

@@ -73,6 +73,45 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     )
       throw Error('Only Favorites should start expanded');
   });
+  if (process.argv.includes('--disclosures-only')) {
+    for (const motion of ['no-preference', 'reduce']) {
+      win.webContents.debugger.attach('1.3');
+      await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-reduced-motion', value: motion }]
+      });
+      for (const selector of ['h2', '.music-group-count', '.music-chevron']) {
+        for (const open of [true, false]) {
+          const point = await win.webContents.executeJavaScript(
+            `(() => { const el = document.querySelector('[data-music-group=unfiled] summary ${selector}'); el.scrollIntoView({block:'center',behavior:'instant'}); const r = el.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`
+          );
+          await win.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
+            type: 'mousePressed',
+            ...point,
+            button: 'left',
+            buttons: 1,
+            clickCount: 1
+          });
+          await win.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
+            type: 'mouseReleased',
+            ...point,
+            button: 'left',
+            buttons: 0,
+            clickCount: 1
+          });
+          await wait(() => !document.querySelector('[data-music-group=unfiled]').hasAttribute('data-expanding'));
+          const actual = await run(() => document.querySelector('[data-music-group=unfiled]').open);
+          if (actual !== open) throw Error('Individual folder did not toggle ' + motion + ' ' + selector);
+        }
+      }
+      win.webContents.debugger.detach();
+    }
+    win.destroy();
+    await backend.closeGameServer();
+    clearTimeout(deadline);
+    console.log('Individual stable folder disclosure checks passed. ' + directory);
+    app.exit(0);
+    return;
+  }
   if (process.argv.includes('--drag-only')) {
     const { checkHorseDragging } = require('./check-horse-folder-drag.cjs');
     await checkHorseDragging(win, action, ids, directory);
