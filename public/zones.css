@@ -215,10 +215,23 @@ main {
 
 /* Reserve the fixed player's height once, without adding empty scroll space. */
 .workspace:has(> #main > .encounters) {
+  --wilds-sidebar-space: 264px;
   min-height: calc(100dvh - var(--music-player-height, 0px));
 }
 #main:has(> .encounters) {
+  width: calc(100% - var(--wilds-sidebar-space));
+  margin-right: var(--wilds-sidebar-space);
   padding-bottom: 20px;
+}
+@media (max-width: 1200px) {
+  .workspace:has(> #main > .encounters) {
+    --wilds-sidebar-space: 240px;
+  }
+}
+@media (max-width: 900px) {
+  .workspace:has(> #main > .encounters) {
+    --wilds-sidebar-space: 0px;
+  }
 }
 
 .wilds-search-row {
