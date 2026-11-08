@@ -12,7 +12,7 @@ Dates for legacy entries come from their release commits.
 
 - **Inventory**
   - View items by type using the All, Gear, Food, Potions, Materials, Equipment, and Pets tabs.
-  - Item cards show names and quantities, with sorting by name or count in ascending or descending order.
+  - Item cards show names and quantities. Search and filter by item type, or sort by name, count, rarity, or type in either direction. Rarity and type sorting group items into sections.
 
 ### Fixed
 

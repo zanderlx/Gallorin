@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { inventoryItems, inventoryPage } from '../public/inventory.js';
+import { inventoryItems, inventoryPage, inventoryCards, inventoryFamily } from '../public/inventory.js';
 import { withInventorySamples } from '../src/inventory-samples.js';
 import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -87,4 +87,31 @@ test('inventory cards escape names, show counts, and keep empty categories plain
   assert.match(page, /id="inventory-sort"/);
   assert.match(inventoryPage('inventory/pets', state), /Inventory is empty/);
   assert.doesNotMatch(page, /satchel|Phase 5|companion your own/i);
+});
+
+test('inventory groups rarity and harvest families and searches names without changing quantities', () => {
+  const items = [
+    { id: 'green-apple', name: 'Green Apples', type: 'food', count: 7, rarity: 'rare' },
+    { id: 'carrot', name: 'Orange Carrots', type: 'food', count: 9, rarity: 'common' },
+    { id: 'pink-apple', name: 'Pink Apples', type: 'food', count: 2, rarity: 'epic' },
+    { id: 'mint', name: 'Mint', type: 'food', count: 3, rarity: 'rare' }
+  ];
+  assert.equal(inventoryFamily(items[3]), 'berry');
+  assert.equal(inventoryItems(items, 'food', 'name', 'asc', 'pink')[0].count, 2);
+  assert.equal(inventoryItems(items, 'food', 'name', 'asc', '', 'apple').length, 2);
+  assert.deepEqual(
+    inventoryItems(items, 'food', 'rarity').map(item => item.rarity),
+    ['common', 'rare', 'rare', 'epic']
+  );
+  const grouped = String(inventoryCards(items, 'food', 'rarity'));
+  assert.ok(grouped.indexOf('>Common</h2>') < grouped.indexOf('>Rare</h2>'));
+  assert.ok(grouped.indexOf('>Rare</h2>') < grouped.indexOf('>Epic</h2>'));
+  assert.doesNotMatch(grouped, /inventory-item-type/);
+  assert.match(String(inventoryCards(items, 'all')), /inventory-item-type/);
+  const families = String(inventoryCards(items, 'food', 'type'));
+  assert.match(families, />Apples<\/h2>/);
+  const page = inventoryPage('inventory/food', { inventory: items });
+  assert.doesNotMatch(page, /Item types|inventory-summary/);
+  assert.match(page, /definition-sort-controls/);
+  assert.match(page, /inventory-search/);
 });

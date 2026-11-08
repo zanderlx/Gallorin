@@ -378,12 +378,15 @@ nav summary .icon,
   font-size: 28px;
 }
 .inventory-item-details {
+  align-self: flex-start;
   flex: 1;
   min-width: 0;
 }
-.inventory-item-details h2 {
+.inventory-card.panel .inventory-item-details h2 {
   margin: 0;
   font-size: 16px;
+  font-family: var(--sans);
+  font-weight: 500;
   line-height: 20px;
   display: -webkit-box;
   -webkit-box-orient: vertical;

@@ -81,6 +81,27 @@ const deadline = setTimeout(() => app.exit(1), 45000);
   await new Promise(resolve => setTimeout(resolve, 350));
   assert.ok(await run(() => document.documentElement.scrollWidth <= innerWidth));
   await writeFile(join(directory, 'food-narrow.png'), (await win.webContents.capturePage()).toPNG());
+  await run(() => {
+    const select = document.querySelector('#inventory-sort');
+    select.value = 'rarity';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  assert.ok(await run(() => !!document.querySelector('.inventory-section > h2')));
+  assert.equal(await run(() => document.querySelectorAll('.inventory-item-type').length), 0);
+  await run(() => {
+    const select = document.querySelector('#inventory-sort');
+    select.value = 'type';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const search = document.querySelector('#inventory-search');
+    search.value = 'Apples';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.deepEqual(await run(names), ['Apples']);
+  await run(() => {
+    const search = document.querySelector('#inventory-search');
+    search.value = '';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   await run(() => document.querySelector('.inventory-tabs a[href="#inventory/pets"]').click());
   await wait(() => !!document.querySelector('.inventory-empty'));
   assert.equal(await run(() => document.querySelector('.inventory-empty').textContent), 'Inventory is empty');
