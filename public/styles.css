@@ -279,7 +279,8 @@ nav {
 nav details {
   margin-bottom: 5px;
 }
-nav summary {
+nav summary,
+.nav-section-link {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -295,13 +296,47 @@ nav summary {
 nav summary::-webkit-details-marker {
   display: none;
 }
-nav summary:hover {
+nav summary:hover,
+.nav-section-link:hover {
   background: #ffffff05;
 }
-nav summary .icon {
+nav summary .icon,
+.nav-section-link .icon {
   width: 18px;
   height: 18px;
   color: #b49b75;
+}
+.nav-section-link {
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+.nav-section-link[aria-current] {
+  background: linear-gradient(90deg, #543131, #3c2826);
+  color: #f0dba9;
+  box-shadow: inset 2px 0 #c5a166;
+}
+.inventory-tabs {
+  display: flex;
+  flex: none;
+  gap: 24px;
+  padding: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.inventory-tabs a {
+  flex: none;
+  padding: 12px 4px;
+  min-height: 44px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+.inventory-tabs a:hover,
+.inventory-tabs a[aria-current] {
+  color: var(--gold);
+}
+.inventory-tabs a[aria-current] {
+  border-bottom-color: var(--gold);
 }
 .chevron {
   display: grid;

@@ -219,15 +219,19 @@ test('navigation groups preserve requested orders and profile content safely ren
     inventory.items.map(item => item[1]),
     ['All', 'Gear', 'Food', 'Potions', 'Materials', 'Equipment', 'Pets']
   );
-  const inventoryHTML = sidebar('inventory/all', state, new Set(['Inventory']), catalog)
-    .split('data-group="Inventory"')[1]
-    .split('</details>')[0];
-  assert.deepEqual(
-    [...inventoryHTML.matchAll(/href="#inventory\/([^"]+)"/g)].map(match => match[1]),
-    ['all', 'gear', 'food', 'potions', 'materials', 'equipment', 'pets']
-  );
+  const inventoryHTML = sidebar('inventory/all', state, new Set(['Inventory']), catalog);
+  assert.doesNotMatch(inventoryHTML, /data-group="Inventory"/);
+  assert.match(inventoryHTML, /class="nav-section-link" href="#inventory\/all" aria-current="location"/);
+  assert.equal([...inventoryHTML.matchAll(/href="#inventory\//g)].length, 1);
   for (const [route, label] of inventory.items) {
-    assert.match(plannedPage(route, state), new RegExp(`<h1[^>]*>${label}</h1>`));
+    const page = plannedPage(route, state);
+    assert.match(page, new RegExp(`<h1[^>]*>${label}</h1>`));
+    assert.deepEqual(
+      [...page.matchAll(/href="#inventory\/([^"]+)"/g)].map(match => match[1]),
+      ['all', 'gear', 'food', 'potions', 'materials', 'equipment', 'pets']
+    );
+    assert.match(page, new RegExp(`href="#${route}" aria-current="page"`));
+    assert.equal((page.match(/aria-current="page"/g) || []).length, 1);
   }
   for (const group of groups.filter(g => !['Stables', 'Inventory'].includes(g.title)))
     assert.deepEqual(
@@ -441,7 +445,8 @@ test('active sidebar destination is exposed to assistive technology', () => {
   const html = sidebar('wilds/aetherion', state, new Set(['Wilds']));
   assert.match(html, /href="#wilds\/aetherion" aria-current="page"/);
   assert.match(html, /<details data-group="Wilds" open>/);
-  assert.doesNotMatch(html, /nav-section-link|event-dot/);
+  const wilds = html.split('data-group="Wilds"')[1].split('</details>')[0];
+  assert.doesNotMatch(wilds, /nav-section-link|event-dot/);
 });
 test('custom zones appear in navigation and wild pages with safe text; disabled zones stay hidden', () => {
   const zone = {

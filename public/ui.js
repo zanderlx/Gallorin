@@ -188,8 +188,12 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     }));
   return `<a href="#wilds/aetherion" class="brand">${brandLogo()}<span><span class="brand-title">GALLORIN</span><small>A HORSEKEEPER’S CHRONICLE</small></span></a>
     <nav>${navigation
-      .map(
-        group => `<details data-group="${group.title}" ${openGroups.has(group.title) ? 'open' : ''}>
+      .map(group =>
+        group.title === 'Inventory'
+          ? String(
+              html`<a class="nav-section-link" href="#inventory/all" ${route.startsWith('inventory/') ? raw('aria-current="location"') : ''}>${raw(icon(group.icon))}<span>Inventory</span></a>`
+            )
+          : `<details data-group="${group.title}" ${openGroups.has(group.title) ? 'open' : ''}>
       <summary>${group.title === 'Wilds' ? `<a class="nav-group-home" href="#wilds/aetherion" data-action="wilds-home">${icon(group.icon)}<span>Wilds</span></a>` : `${icon(group.icon)}<span>${group.title}</span>`}<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
       <div class="nav-items">${group.items.map(([path, label]) => `<a href="#${path}" ${route === path ? 'aria-current="page"' : ''}><span>${escapeHTML(label)}</span>${path === 'stable/all' ? `<span class="count">${state.horses.length}</span>` : ''}</a>`).join('')}</div>
     </details>`
