@@ -46,7 +46,7 @@ export function inventoryItems(
     });
 }
 const card = (item, category) =>
-  html`<article class="inventory-card panel"><div class="inventory-item-icon" aria-hidden="true">${harvestIcon(item.id) || (item.id === 'lasso' ? '➰' : raw(icon('bag')))}</div><div class="inventory-item-details"><h2 title="${item.name}">${item.name}</h2>${category === 'all' ? html`<span class="inventory-item-type">${inventorySections.find(([path]) => path === 'inventory/' + item.type)?.[1] || item.type}</span>` : ''}</div><span class="inventory-item-count" aria-label="Count: ${item.count}">×${number(item.count)}</span></article>`;
+  html`<article class="inventory-card panel"><div class="inventory-item-icon" aria-hidden="true">${harvestIcon(item.id) || (item.id === 'lasso' ? '➰' : raw(icon('bag')))}</div><div class="inventory-item-details"><h2 title="${item.name}">${item.name}</h2>${category === 'all' || item.rarity ? html`<span class="inventory-item-meta">${category === 'all' ? html`<span class="inventory-item-type">${inventorySections.find(([path]) => path === 'inventory/' + item.type)?.[1] || item.type}</span>` : ''}${category === 'all' && item.rarity ? ' · ' : ''}${item.rarity ? html`<span class="inventory-item-rarity">${title(item.rarity)}</span>` : ''}</span>` : ''}</div><span class="inventory-item-count" aria-label="Count: ${item.count}">×${number(item.count)}</span></article>`;
 export function inventoryCards(items, category, sort = 'name', direction = 'asc', query = '', family = '') {
   const entries = inventoryItems(items, category, sort, direction, query, family);
   if (!entries.length)

@@ -107,6 +107,8 @@ test('inventory groups rarity and harvest families and searches names without ch
   assert.ok(grouped.indexOf('>Common</h2>') < grouped.indexOf('>Rare</h2>'));
   assert.ok(grouped.indexOf('>Rare</h2>') < grouped.indexOf('>Epic</h2>'));
   assert.doesNotMatch(grouped, /inventory-item-type/);
+  assert.match(grouped, /inventory-item-rarity">Rare</);
+  assert.match(String(inventoryCards(items, 'all')), /Food<\/span> · <span class="inventory-item-rarity">Rare/);
   assert.match(String(inventoryCards(items, 'all')), /inventory-item-type/);
   const families = String(inventoryCards(items, 'food', 'type'));
   assert.match(families, />Apples<\/h2>/);

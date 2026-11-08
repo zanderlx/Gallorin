@@ -399,6 +399,15 @@ nav summary .icon,
   font-size: 12px;
   line-height: 16px;
 }
+.inventory-item-details .inventory-item-meta {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.inventory-item-meta .inventory-item-type {
+  display: inline;
+}
 .inventory-item-type,
 .inventory-empty {
   color: var(--muted);
