@@ -383,8 +383,18 @@ nav summary .icon,
 }
 .inventory-item-details h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 16px;
+  line-height: 20px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   overflow-wrap: anywhere;
+}
+.inventory-item-details .inventory-item-type {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
 }
 .inventory-item-type,
 .inventory-empty {
@@ -394,7 +404,8 @@ nav summary .icon,
 .inventory-item-count {
   align-self: flex-start;
   color: var(--gold);
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 20px;
   font-weight: 600;
   white-space: nowrap;
 }
