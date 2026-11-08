@@ -356,13 +356,13 @@ nav summary .icon,
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: 16px;
+  gap: 10px;
 }
 .inventory-card.panel {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
+  gap: 12px;
+  padding: 12px;
   margin: 0;
 }
 .inventory-item-icon {
