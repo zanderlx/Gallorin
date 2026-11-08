@@ -306,7 +306,10 @@ function render() {
   if (route === 'activities/foraging')
     disposeForaging = bindForaging(main, {
       settings: state.settings.activities,
-      collect: (food, count) => action('forage', { food, count }),
+      complete: async (counts, roundId) => {
+        await action('complete-forage', { counts, roundId });
+        return state.foragingReceipts.find(receipt => receipt.id === roundId).rewards;
+      },
       notify
     });
   updateEncounterCooldown();

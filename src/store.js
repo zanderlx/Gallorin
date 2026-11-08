@@ -1,3 +1,4 @@
+import { splitHarvest, HARVESTS } from '../public/harvest-rewards.js';
 import { copyHorseOverrideField, horseOverrideValue } from '../public/horse-override-markers.js';
 import { horseTraitLimits } from '../public/horse-update-fields.js';
 // @ts-check
@@ -464,7 +465,33 @@ export class GameStore {
       await this.readConfiguration();
       const next = this.snapshot();
       const catalog = this.getCatalog(next);
-      if (type === 'activities-settings') {
+      if (type === 'complete-forage') {
+        if (
+          typeof payload.roundId !== 'string' ||
+          !/^[a-zA-Z0-9-]{1,64}$/.test(payload.roundId) ||
+          !payload.counts ||
+          typeof payload.counts !== 'object' ||
+          Array.isArray(payload.counts) ||
+          Object.entries(payload.counts).some(
+            ([food, count]) =>
+              !Object.hasOwn(HARVESTS, food) || !Number.isSafeInteger(count) || count < 0 || count > 1000000
+          )
+        )
+          throw new Error('Choose valid forage totals.');
+        if (next.foragingReceipts?.some(receipt => receipt.id === payload.roundId)) return this.state;
+        const rewards = Object.entries(payload.counts).flatMap(([food, count]) => splitHarvest(food, count));
+        next.inventory ??= [];
+        for (const reward of rewards) {
+          const item = next.inventory.find(item => item.id === reward.id && item.type === 'food');
+          if (item) {
+            if (!Number.isSafeInteger(item.count + reward.count)) throw new Error('Food inventory is full.');
+            item.count += reward.count;
+            item.name = reward.name;
+            item.rarity = reward.rarity;
+          } else next.inventory.push(reward);
+        }
+        next.foragingReceipts = [...(next.foragingReceipts || []).slice(-63), { id: payload.roundId, rewards }];
+      } else if (type === 'activities-settings') {
         if (
           !Number.isInteger(payload.gridSize) ||
           payload.gridSize < 4 ||
@@ -499,11 +526,15 @@ export class GameStore {
         )
           throw new Error('Choose a valid food chain of 3 to 256 items.');
         next.inventory ??= [];
-        const item = next.inventory.find(item => item.id === payload.food && item.type === 'food');
-        if (item) {
-          if (!Number.isSafeInteger(item.count + payload.count)) throw new Error('Food inventory is full.');
-          item.count += payload.count;
-        } else next.inventory.push({ id: payload.food, name: names[payload.food], type: 'food', count: payload.count });
+        for (const reward of splitHarvest(payload.food, payload.count)) {
+          const item = next.inventory.find(item => item.id === reward.id && item.type === 'food');
+          if (item) {
+            if (!Number.isSafeInteger(item.count + reward.count)) throw new Error('Food inventory is full.');
+            item.count += reward.count;
+            item.name = reward.name;
+            item.rarity = reward.rarity;
+          } else next.inventory.push(reward);
+        }
       } else if (type === 'horse-updates-enabled') {
         if (typeof payload.enabled !== 'boolean') throw new Error('Choose whether horse updates are enabled.');
         next.settings.horseUpdatesEnabled = payload.enabled;

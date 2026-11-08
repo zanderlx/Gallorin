@@ -234,7 +234,6 @@
   padding: 0;
 }
 .foraging-dialog li strong {
-  float: right;
   color: var(--gold);
 }
 .foraging-dialog button {
@@ -256,4 +255,45 @@
 
 .foraging-dashboard.is-pending {
   visibility: hidden;
+}
+
+.harvest-icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: middle;
+}
+.foraging-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.foraging-dialog .foraging-rewards li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 0 1 130px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.foraging-reward-icon {
+  font-size: 30px;
+  line-height: 1.2;
+}
+.foraging-rewards small {
+  text-transform: capitalize;
+  color: var(--muted);
+}
+.foraging-rewards [data-rarity='rare'] {
+  border-color: #6196c5;
+}
+.foraging-rewards [data-rarity='epic'] {
+  border-color: #b276d1;
+}
+.inventory-item-icon .harvest-icon {
+  width: 1em;
+  height: 1em;
 }

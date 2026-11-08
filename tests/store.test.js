@@ -1,3 +1,4 @@
+import { HARVESTS } from '../public/harvest-rewards.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm, readdir } from 'node:fs/promises';
@@ -26,8 +27,13 @@ test('foraging persists exact food rewards and rejects invalid harvests without 
   await store.action('forage', { food: 'flower', count: 7 });
   await store.action('forage', { food: 'flower', count: 3 });
   await store.action('forage', { food: 'berry', count: 100 });
-  assert.equal(store.state.inventory.find(item => item.id === 'flower').count, 10);
-  assert.equal(store.state.inventory.find(item => item.id === 'berry').count, 100);
+  assert.equal(
+    store.state.inventory
+      .filter(item => HARVESTS.flower.some(option => option.id === item.id))
+      .reduce((sum, item) => sum + item.count, 0),
+    10
+  );
+  assert.equal(store.state.inventory.find(item => item.id === 'strawberry').count, 80);
   assert.deepEqual(store.state.horses, before.horses);
   assert.equal(store.state.gold, before.gold);
   const saved = store.snapshot();
@@ -841,5 +847,44 @@ test('activity settings persist and reject unsupported values', async t => {
     await assert.rejects(store.action('activities-settings', { ...settings, ...change }), /valid activity settings/);
   }
   await store.action('forage', { food: 'apple', count: 256 });
-  assert.equal(store.state.inventory.find(item => item.id === 'apple').count, 256);
+  assert.equal(
+    store.state.inventory
+      .filter(item => HARVESTS.apple.some(option => option.id === item.id))
+      .reduce((sum, item) => sum + item.count, 0),
+    256
+  );
+});
+
+test('completed rounds split totals once, persist variants and safely retry', async t => {
+  const { directory, store } = await fixture(t);
+  const counts = Object.fromEntries(Object.keys(HARVESTS).map(food => [food, 1000]));
+  await store.action('complete-forage', { roundId: 'round-one', counts });
+  assert.equal(store.state.inventory.length, 15);
+  assert.equal(
+    store.state.inventory.reduce((sum, item) => sum + item.count, 0),
+    5000
+  );
+  for (const options of Object.values(HARVESTS))
+    for (const option of options) {
+      const item = store.state.inventory.find(item => item.id === option.id);
+      assert.equal(item.count, Math.round(option.chance * 1000));
+      assert.equal(item.rarity, option.rarity);
+    }
+  const saved = store.snapshot();
+  await store.action('complete-forage', { roundId: 'round-one', counts });
+  assert.deepEqual(store.snapshot(), saved);
+  await assert.rejects(store.action('complete-forage', { roundId: 'invalid', counts: { peach: -1 } }));
+  assert.deepEqual(store.snapshot(), saved);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  await reopened.action('complete-forage', { roundId: 'round-one', counts });
+  assert.deepEqual(reopened.state.inventory, saved.inventory);
+  await reopened.action('complete-forage', { roundId: 'round-two', counts: { peach: 24 } });
+  const rewards = reopened.state.foragingReceipts.at(-1).rewards;
+  assert.deepEqual(
+    rewards.map(item => [item.id, item.count]),
+    [
+      ['peach', 23],
+      ['white-peach', 1]
+    ]
+  );
 });

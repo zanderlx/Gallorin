@@ -127,8 +127,27 @@ const deadline = setTimeout(() => app.exit(1), 60000);
       .dispatchEvent(new PointerEvent('pointerdown', { button: 0, isPrimary: true }));
     performance.now = now;
   });
-  await wait(() => !document.querySelector('.foraging-dialog').hidden);
+  await wait(
+    () =>
+      !document.querySelector('.foraging-dialog').hidden &&
+      document.querySelector('[data-foraging-start]').textContent === 'Play Again'
+  );
   assert.equal(await run(() => document.querySelector('.foraging-timer').getAttribute('aria-valuenow')), '0');
+  assert.equal(
+    await run(() =>
+      [...document.querySelectorAll('.foraging-rewards strong')].reduce(
+        (sum, el) => sum + Number(el.textContent.replace('×', '')),
+        0
+      )
+    ),
+    3
+  );
+  assert.equal(
+    await run(() => document.querySelector('[data-foraging-dialog-body]').textContent.includes('Your harvest')),
+    false
+  );
+  await new Promise(resolve => setTimeout(resolve, 150));
+  await writeFile(join(directory, 'foraging-completed.png'), (await win.webContents.capturePage()).toPNG());
   const restart = await run(() => {
     document.querySelector('[data-foraging-start]').click();
     document
@@ -159,8 +178,16 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await run(() => {
     location.hash = 'inventory/food';
   });
-  await wait(() => document.querySelectorAll('.inventory-card').length === 1);
-  assert.equal(await run(() => document.querySelector('.inventory-item-count').getAttribute('aria-label')), 'Count: 3');
+  await wait(() => document.querySelectorAll('.inventory-card').length > 0);
+  assert.equal(
+    await run(() =>
+      [...document.querySelectorAll('.inventory-item-count')].reduce(
+        (sum, el) => sum + Number(el.textContent.replace('×', '')),
+        0
+      )
+    ),
+    3
+  );
   // Exercise failure recovery and keyboard input using an isolated deterministic board.
   await run(async () => {
     const { foragingPage, bindForaging } = await import('/foraging.js');
@@ -171,10 +198,11 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     Math.random = () => 0.99999;
     window.foragingTest = { failures: 0, saved: 0 };
     window.foragingTest.dispose = bindForaging(root, {
-      settings: { foodCount: 1 },
-      collect: async (_food, count) => {
+      settings: { foodCount: 1, noTimer: true },
+      complete: async counts => {
         if (!window.foragingTest.failures) throw Error('Test save failure');
-        window.foragingTest.saved += count;
+        window.foragingTest.saved += counts.apple;
+        return [{ id: 'apple', name: 'Red Apples', rarity: 'common', count: counts.apple }];
       },
       notify: () => {
         window.foragingTest.failures++;
@@ -197,11 +225,13 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     await input('mouseUp', fixedTrail[2]);
   }
   await pointerCapture();
-  await wait(() => window.foragingTest.failures === 1);
-  assert.equal(await run(() => document.querySelector('[data-foraging-count="apple"]').textContent), '0');
-  await pointerCapture();
-  await wait(() => window.foragingTest.saved === 3);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
+  assert.equal(await run(() => window.foragingTest.saved), 0);
+  await run(() => document.querySelector('[data-foraging-finish]').click());
+  await wait(() => window.foragingTest.failures === 1);
+  assert.equal(await run(() => document.querySelector('[data-foraging-start]').textContent), 'Retry');
+  await run(() => document.querySelector('[data-foraging-start]').click());
+  await wait(() => window.foragingTest.saved === 3);
   await run(() => window.foragingTest.dispose());
   await run(async () => {
     const { foragingPage, bindForaging } = await import('/foraging.js');
@@ -210,7 +240,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     setHTML(root, raw(foragingPage()));
     window.foragingTest.dispose = bindForaging(root, {
       settings: { gridSize: 6, foodCount: 2, noTimer: true, secondsPerItem: 0.25, totalSeconds: 90 },
-      collect: async () => {},
+      complete: async () => [],
       notify: () => {}
     });
     document.querySelector('[data-foraging-start]').click();
@@ -226,7 +256,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   assert.equal(await run(() => document.querySelector('.foraging-seconds').textContent), '90s');
   await run(() => document.querySelector('[data-foraging-finish]').click());
   assert.equal(await run(() => !document.querySelector('.foraging-dialog').hidden), true);
-  assert.equal(await run(() => document.querySelectorAll('[data-foraging-dialog-body] li').length), 2);
+  assert.equal(await run(() => document.querySelectorAll('[data-foraging-dialog-body] li').length), 0);
   await run(() => window.foragingTest.dispose());
   win.setSize(1280, 1000);
   await run(async () => {
@@ -255,6 +285,21 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await new Promise(resolve => setTimeout(resolve, 150));
   assert.ok(await run(() => document.documentElement.scrollWidth <= innerWidth));
   await writeFile(join(directory, 'activities-settings-narrow.png'), (await win.webContents.capturePage()).toPNG());
+  win.setSize(1600, 1200);
+  await run(async () => {
+    const { harvestItems } = await import('/harvest-rewards.js');
+    const { inventoryCards } = await import('/inventory.js');
+    const { setHTML, html } = await import('/ui.js');
+    setHTML(
+      document.querySelector('#main'),
+      html`<h1>Harvest variants</h1><div class="inventory-grid">${inventoryCards(
+        harvestItems.map(item => ({ ...item, type: 'food', count: 3 })),
+        'food'
+      )}</div>`
+    );
+  });
+  await new Promise(resolve => setTimeout(resolve, 150));
+  await writeFile(join(directory, 'harvest-variants.png'), (await win.webContents.capturePage()).toPNG());
   win.destroy();
   await backend.closeGameServer();
   clearTimeout(deadline);

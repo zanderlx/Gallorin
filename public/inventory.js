@@ -1,3 +1,4 @@
+import { harvestIcon } from './harvest-icons.js';
 import { html, raw, icon, number, setHTML } from './ui.js';
 import { inventorySections } from './inventory-sections.js';
 
@@ -17,7 +18,7 @@ export function inventoryItems(items = [], category = 'all', sort = 'name', dire
 export function inventoryCards(items, category, sort = 'name', direction = 'asc') {
   const entries = inventoryItems(items, category, sort, direction);
   return entries.length
-    ? html`${entries.map(item => html`<article class="inventory-card panel"><div class="inventory-item-icon" aria-hidden="true">${itemIcons[item.id] || raw(icon('bag'))}</div><div class="inventory-item-details"><h2>${item.name}</h2><span class="inventory-item-type">${inventorySections.find(([path]) => path === 'inventory/' + item.type)?.[1] || item.type}</span></div><span class="inventory-item-count" aria-label="Count: ${item.count}">×${number(item.count)}</span></article>`)}`
+    ? html`${entries.map(item => html`<article class="inventory-card panel"><div class="inventory-item-icon" aria-hidden="true">${harvestIcon(item.id) || itemIcons[item.id] || raw(icon('bag'))}</div><div class="inventory-item-details"><h2>${item.name}</h2><span class="inventory-item-type">${inventorySections.find(([path]) => path === 'inventory/' + item.type)?.[1] || item.type}${item.rarity ? ' · ' + item.rarity : ''}</span></div><span class="inventory-item-count" aria-label="Count: ${item.count}">×${number(item.count)}</span></article>`)}`
     : html`<p class="inventory-empty" role="status">Inventory is empty</p>`;
 }
 

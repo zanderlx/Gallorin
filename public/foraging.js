@@ -1,3 +1,4 @@
+import { harvestIcon } from './harvest-icons.js';
 import { html, setHTML } from './ui.js';
 import {
   chooseFoods,
@@ -21,7 +22,7 @@ export function foragingPage() {
     </section>`);
 }
 
-export function bindForaging(root, { collect, notify, settings: savedSettings = {} }) {
+export function bindForaging(root, { complete, notify, settings: savedSettings = {} }) {
   const boardElement = root.querySelector('.foraging-board');
   const tiles = root.querySelector('.foraging-tiles');
   const line = root.querySelector('polyline');
@@ -50,6 +51,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     last = performance.now(),
     disposed = false;
   let animations = [];
+  let roundId;
   let counts = Object.fromEntries(FOODS.map(food => [food.id, 0]));
   function paintPath() {
     line.setAttribute(
@@ -144,7 +146,6 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     status.textContent = 'Gathering your harvest…';
     const food = board[selected[0]];
     try {
-      await collect(food, selected.length);
       if (disposed) return;
       counts[food] += selected.length;
       root.querySelector(`[data-foraging-count="${food}"]`).textContent = String(counts[food]);
@@ -201,6 +202,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
   window.addEventListener('blur', clearPath, options);
   function start() {
     board = [];
+    roundId = crypto.randomUUID();
     clearPath();
     remaining = settings.totalSeconds;
     counts = Object.fromEntries(FOODS.map(food => [food.id, 0]));
@@ -219,22 +221,39 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     paintTimer();
     void drop();
   }
-  function finish() {
-    if (phase !== 'playing') return;
-    phase = 'over';
+  async function finish() {
+    if (!['playing', 'retry'].includes(phase)) return;
+    phase = 'saving';
     clearPath();
-    setHTML(
-      dialogBody,
-      html`<h3>Your harvest</h3><ul>${foods.map(food => html`<li>${food.emoji} ${food.name}<strong>×${counts[food.id]}</strong></li>`)}</ul><p>Added to your Inventory.</p>`
-    );
-    startButton.textContent = 'Play Again';
     dialog.hidden = false;
+    startButton.disabled = true;
+    startButton.textContent = 'Saving…';
+    setHTML(dialogBody, html`<p>Preparing rewards…</p>`);
+    try {
+      const rewards = await complete({ ...counts }, roundId);
+      if (disposed) return;
+      phase = 'over';
+      setHTML(
+        dialogBody,
+        html`<ul class="foraging-rewards">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span>${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul><p>${rewards.length ? 'Added to your Inventory.' : 'No ingredients collected this round.'}</p>`
+      );
+      startButton.textContent = 'Play Again';
+    } catch (error) {
+      if (disposed) return;
+      phase = 'retry';
+      setHTML(dialogBody, html`<p>Unable to save rewards. Retry to finish this round.</p>`);
+      startButton.textContent = 'Retry';
+      notify(error.message, true);
+    } finally {
+      if (!disposed) startButton.disabled = false;
+    }
   }
+
   setHTML(
     dialogBody,
     html`<ol><li>Hold and drag through 3+ matching foods. No diagonals.</li><li>Release to collect; backtrack to undo a link.</li><li>${settings.noTimer ? 'Choose Finish Foraging when done.' : `${settings.totalSeconds}s per round. Each food adds ${settings.secondsPerItem}s (max ${settings.totalSeconds}s).`}</li></ol>`
   );
-  startButton.addEventListener('click', start, options);
+  startButton.addEventListener('click', () => (phase === 'retry' ? void finish() : start()), options);
   finishButton.addEventListener('click', finish, options);
   dialog.hidden = false;
   timer.setAttribute('aria-valuemax', String(settings.totalSeconds));
