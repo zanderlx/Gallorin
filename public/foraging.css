@@ -194,7 +194,11 @@
 .foraging-dialog {
   position: absolute;
   z-index: 3;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
   display: flex;
   flex-direction: column;
   justify-content: safe center;
@@ -203,12 +207,16 @@
   touch-action: pan-y;
   color: var(--text);
   background: var(--panel-deep);
-  text-align: left;
+  border: 1px solid var(--gold-soft);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px #0006;
+  text-align: center;
   font-size: clamp(12px, 3.2cqw, 16px);
 }
 .foraging-dialog ol {
   margin: 0;
-  padding-left: 24px;
+  padding: 0;
+  list-style-position: inside;
 }
 .foraging-dialog[hidden] {
   display: none;
