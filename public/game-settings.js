@@ -51,7 +51,9 @@ export function economySettingsPage(state) {
 
 // Keep label clicks from opening numeric editing; steppers live inside the field.
 export function attachSettingsNumbers(root) {
-  for (const input of root.querySelectorAll(':is(#settings-form,#economy-form) input[type="number"]')) {
+  for (const input of root.querySelectorAll(
+    ':is(#settings-form,#economy-form,#activities-settings-form) input[type="number"]'
+  )) {
     if (input.closest('.settings-number')) continue;
     const label = input.closest('label');
     const name = label.querySelector('strong').textContent;

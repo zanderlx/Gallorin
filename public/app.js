@@ -15,6 +15,7 @@ import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
+import { activitySettings } from './foraging-engine.js';
 import { activitiesSettingsPage } from './activities-settings.js';
 import { bindInventory } from './inventory.js';
 import { foragingPage, bindForaging } from './foraging.js';
@@ -855,7 +856,9 @@ document.addEventListener('click', async event => {
   }
   if (intent === 'defaults') {
     const form = button.closest('form');
-    for (const [name, value] of Object.entries(defaults)) {
+    for (const [name, value] of Object.entries(
+      form.id === 'activities-settings-form' ? activitySettings() : defaults
+    )) {
       const input = form.elements.namedItem(name);
       if (!input) continue;
       if (input.type === 'checkbox') input.checked = value;
@@ -1018,7 +1021,7 @@ document.addEventListener('submit', async event => {
   const submit = form.querySelector('[type="submit"]');
   if (submit) submit.disabled = true;
   try {
-    if (['economy-form', 'settings-form'].includes(form.id)) validateSettingsNumbers(form);
+    if (['economy-form', 'settings-form', 'activities-settings-form'].includes(form.id)) validateSettingsNumbers(form);
     const values = Object.fromEntries(new FormData(form));
     if (form.id === 'rarity-settings-form') {
       await action('rarity-settings', readRaritySettings(form));

@@ -1206,12 +1206,12 @@ footer > span:last-child {
   display: block;
 }
 #settings-form .setting-row strong,
-#economy-form .setting-row strong {
+:is(#economy-form, #activities-settings-form) .setting-row strong {
   font-size: 17px;
 }
 @media (max-width: 480px) {
   #settings-form .setting-row strong,
-  #economy-form .setting-row strong {
+  :is(#economy-form, #activities-settings-form) .setting-row strong {
     font-size: 16px;
   }
 }
@@ -1254,11 +1254,11 @@ footer > span:last-child {
   flex-wrap: wrap;
 }
 #settings-form .form-actions,
-#economy-form .form-actions {
+:is(#economy-form, #activities-settings-form) .form-actions {
   justify-content: flex-end;
 }
 #settings-form .form-actions [data-action='defaults'],
-#economy-form .form-actions [data-action='defaults'] {
+:is(#economy-form, #activities-settings-form) .form-actions [data-action='defaults'] {
   order: -1;
   margin-right: auto;
 }
@@ -1793,14 +1793,14 @@ dialog::backdrop {
   }
 }
 
-#economy-form input[type='number'],
+:is(#economy-form, #activities-settings-form) input[type='number'],
 #settings-form input[type='number'] {
   appearance: textfield;
   -moz-appearance: textfield;
   text-align: center;
 }
-#economy-form input[type='number']::-webkit-inner-spin-button,
-#economy-form input[type='number']::-webkit-outer-spin-button,
+:is(#economy-form, #activities-settings-form) input[type='number']::-webkit-inner-spin-button,
+:is(#economy-form, #activities-settings-form) input[type='number']::-webkit-outer-spin-button,
 #settings-form input[type='number']::-webkit-inner-spin-button,
 #settings-form input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -2408,11 +2408,11 @@ nav summary {
   display: inline-flex;
   flex: 0 0 auto;
 }
-:is(#settings-form, #economy-form) .settings-number input[type='number'] {
+:is(#settings-form, :is(#economy-form, #activities-settings-form)) .settings-number input[type='number'] {
   width: clamp(88px, calc(var(--number-digits, 3) * 1ch + 54px), 170px);
   padding-right: 12px;
 }
-:is(#settings-form, #economy-form) .settings-number:focus-within input[type='number'] {
+:is(#settings-form, :is(#economy-form, #activities-settings-form)) .settings-number:focus-within input[type='number'] {
   padding-right: 40px;
 }
 .settings-number-steps {

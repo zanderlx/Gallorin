@@ -235,15 +235,18 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
-#activities-settings-form {
-  max-width: 620px;
-  padding: 24px;
-  display: grid;
-  gap: 18px;
+#activities-settings-form .activities-settings-heading {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--border);
 }
-#activities-settings-form label {
-  display: grid;
-  gap: 6px;
+.activities-settings-heading h2 {
+  margin: 0;
+  font: 22px var(--serif);
+}
+.activities-settings-heading p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 @media (max-width: 700px) {
   .foraging {
