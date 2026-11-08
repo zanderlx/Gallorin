@@ -15,10 +15,10 @@ export function foragingPage() {
   return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button" data-foraging-finish hidden>Finish Foraging</button>
       <div class="foraging-layout">
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div><span class="foraging-bonus" aria-live="polite"></span></div>
-        <div class="foraging-board" aria-label="Food grid" tabindex="0" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+        <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
         <div class="foraging-dashboard" aria-label="Collected this round">${FOODS.map(food => html`<div><span aria-hidden="true">${food.emoji}</span><span>${food.name}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}</div>
       </div><p id="foraging-status" class="foraging-sr" role="status"></p>
-      <dialog class="foraging-dialog" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></dialog>
+      <div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div>
     </section>`);
 }
 
@@ -49,9 +49,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     remaining = ROUND_SECONDS;
   let frame,
     last = performance.now(),
-    disposed = false,
-    cursor = 0,
-    keyboardChain = false;
+    disposed = false;
   let animations = [];
   let counts = Object.fromEntries(FOODS.map(food => [food.id, 0]));
   function paintPath() {
@@ -65,12 +63,10 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
     );
     for (const tile of tiles.children) {
       tile.classList.toggle('is-selected', path.includes(Number(tile.dataset.cell)));
-      tile.classList.toggle('is-cursor', Number(tile.dataset.cell) === cursor);
     }
   }
   function clearPath() {
     path = [];
-    keyboardChain = false;
     if (pointer !== null && boardElement.hasPointerCapture(pointer)) boardElement.releasePointerCapture(pointer);
     pointer = null;
     paintPath();
@@ -177,7 +173,6 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
       advance(performance.now());
       if (phase !== 'playing' || pointer !== null || event.button !== 0 || !event.isPrimary) return;
       event.preventDefault();
-      boardElement.focus({ preventScroll: true });
       pointer = event.pointerId;
       boardElement.setPointerCapture(pointer);
       path = extendPath(board, [], cellAt(event), SIZE);
@@ -205,34 +200,6 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
   boardElement.addEventListener('pointercancel', clearPath, options);
   boardElement.addEventListener('lostpointercapture', clearPath, options);
   window.addEventListener('blur', clearPath, options);
-  boardElement.addEventListener(
-    'keydown',
-    event => {
-      if (phase !== 'playing' || event.target !== boardElement) return;
-      const delta = { ArrowUp: -SIZE, ArrowDown: SIZE, ArrowLeft: -1, ArrowRight: 1 }[event.key];
-      if (delta !== undefined) {
-        event.preventDefault();
-        const next = cursor + delta;
-        if (
-          next >= 0 &&
-          next < SIZE * SIZE &&
-          (Math.abs(delta) === SIZE || Math.floor(next / SIZE) === Math.floor(cursor / SIZE))
-        )
-          cursor = next;
-        if (keyboardChain) path = extendPath(board, path, cursor, SIZE);
-        paintPath();
-      } else if (event.key === ' ') {
-        event.preventDefault();
-        keyboardChain = true;
-        path = extendPath(board, path, cursor, SIZE);
-        paintPath();
-      } else if (event.key === 'Enter') {
-        event.preventDefault();
-        void capture();
-      } else if (event.key === 'Escape') clearPath();
-    },
-    options
-  );
   function start() {
     board = [];
     clearPath();
@@ -245,8 +212,7 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
       html`${foods.map(food => html`<div><span aria-hidden="true">${food.emoji}</span><span>${food.name}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}`
     );
     root.querySelector('.foraging-dashboard').style.gridTemplateColumns = `repeat(${foods.length}, minmax(0, 1fr))`;
-    dialog.close();
-    boardElement.focus({ preventScroll: true });
+    dialog.hidden = true;
     bonus.textContent = '';
     status.textContent = 'The wilds are waking…';
     paintTimer();
@@ -261,20 +227,19 @@ export function bindForaging(root, { collect, notify, settings: savedSettings = 
       html`<h3>Your harvest</h3><ul>${foods.map(food => html`<li>${food.emoji} ${food.name}<strong>×${counts[food.id]}</strong></li>`)}</ul><p>Added to your Inventory.</p>`
     );
     startButton.textContent = 'Play Again';
-    dialog.showModal();
+    dialog.hidden = false;
   }
   setHTML(
     dialogBody,
-    html`<ol><li>Hold and drag through at least 3 matching ingredients.</li><li>Connect up, down, left or right. Diagonals cannot connect.</li><li>Backtrack one step to undo a link. Release to gather.</li><li>${settings.noTimer ? 'Play at your own pace. Choose Finish Foraging to see your harvest.' : `Each ingredient adds ${settings.secondsPerItem} seconds, up to 60 seconds. Time pauses while ingredients fall.`}</li><li>Each round chooses ${settings.foodCount} random ingredient types. Gathered ingredients go to Inventory.</li></ol><p>Keyboard: arrows to move, Space to begin, Enter to collect, Escape to cancel a chain.</p>`
+    html`<p>Hold and drag through 3+ matching foods horizontally or vertically; release to collect. Backtrack to undo. ${settings.noTimer ? 'Finish Foraging ends your round.' : `Each food adds ${settings.secondsPerItem}s (max 60s).`}</p>`
   );
-  dialog.addEventListener('cancel', event => event.preventDefault(), options);
   startButton.addEventListener('click', start, options);
   finishButton.addEventListener('click', finish, options);
-  dialog.showModal();
+  dialog.hidden = false;
   frame = requestAnimationFrame(tick);
   return () => {
     disposed = true;
-    dialog.close();
+    dialog.hidden = true;
     controller.abort();
     cancelAnimationFrame(frame);
     animations.forEach(animation => animation.cancel());

@@ -35,8 +35,18 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     throw Error('Timed out: ' + fn.toString());
   };
   await win.loadURL(origin + '/#activities/foraging');
-  await wait(() => document.querySelector('.foraging-dialog')?.open);
+  await wait(() => document.querySelector('.foraging-dialog') && !document.querySelector('.foraging-dialog').hidden);
   assert.equal(await run(() => document.querySelectorAll('.foraging-tile').length), 0);
+  await new Promise(resolve => setTimeout(resolve, 150));
+  await writeFile(join(directory, 'foraging-rules.png'), (await win.webContents.capturePage()).toPNG());
+  assert.equal(await run(() => document.querySelector('#sidebar').inert), false);
+  await run(() => document.querySelector('#sidebar a[href="#stable/all"]').click());
+  await wait(() => location.hash === '#stable/all' && !document.querySelector('.foraging'));
+  await run(() => {
+    location.hash = 'activities/foraging';
+  });
+  await wait(() => !!document.querySelector('[data-foraging-start]'));
+
   await run(() => document.querySelector('[data-foraging-start]').click());
   await wait(() => document.querySelectorAll('.foraging-tile').length === 100);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
@@ -103,7 +113,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
       .dispatchEvent(new PointerEvent('pointerdown', { button: 0, isPrimary: true }));
     performance.now = now;
   });
-  await wait(() => document.querySelector('.foraging-dialog').open);
+  await wait(() => !document.querySelector('.foraging-dialog').hidden);
   assert.equal(await run(() => document.querySelector('.foraging-timer').getAttribute('aria-valuenow')), '0');
   const restart = await run(() => {
     document.querySelector('[data-foraging-start]').click();
@@ -160,15 +170,22 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     Math.random = random;
   });
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
-  const keyboardCapture = () => {
-    const board = document.querySelector('.foraging-board');
-    for (const key of [' ', 'ArrowRight', 'ArrowRight', 'Enter'])
-      board.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-  };
-  await run(keyboardCapture);
+  const fixedTrail = await run(() =>
+    [...document.querySelectorAll('.foraging-tile')].slice(0, 3).map(el => {
+      const rect = el.getBoundingClientRect();
+      return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+    })
+  );
+  async function pointerCapture() {
+    await input('mouseDown', fixedTrail[0]);
+    await input('mouseMove', fixedTrail[1]);
+    await input('mouseMove', fixedTrail[2]);
+    await input('mouseUp', fixedTrail[2]);
+  }
+  await pointerCapture();
   await wait(() => window.foragingTest.failures === 1);
   assert.equal(await run(() => document.querySelector('[data-foraging-count="apple"]').textContent), '0');
-  await run(keyboardCapture);
+  await pointerCapture();
   await wait(() => window.foragingTest.saved === 3);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
   await run(() => window.foragingTest.dispose());
@@ -192,7 +209,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   );
   assert.equal(await run(() => document.querySelector('.foraging-clock').hidden), true);
   await run(() => document.querySelector('[data-foraging-finish]').click());
-  assert.equal(await run(() => document.querySelector('.foraging-dialog').open), true);
+  assert.equal(await run(() => !document.querySelector('.foraging-dialog').hidden), true);
   assert.equal(await run(() => document.querySelectorAll('[data-foraging-dialog-body] li').length), 2);
   await run(() => window.foragingTest.dispose());
   win.setSize(1280, 1000);

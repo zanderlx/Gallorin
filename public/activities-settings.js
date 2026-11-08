@@ -2,9 +2,8 @@ import { html, raw, icon } from './ui.js';
 import { activitySettings } from './foraging-engine.js';
 export function activitiesSettingsPage(state) {
   const settings = activitySettings(state.settings.activities);
-  return String(html`<div class="settings-section-heading"><h1>Activities Settings</h1></div>
+  return String(html`<div class="settings-section-heading"><h1>Wilds Foraging</h1></div>
  <form id="activities-settings-form" class="panel" novalidate>
- <div class="activities-settings-heading"><h2>Wilds Foraging</h2><p>Changes apply to your next forage.</p></div>
  <label class="setting-row"><span><strong>Grid Size</strong><small>Rows and columns in the foraging board (4–16).</small></span><input type="number" name="gridSize" min="4" max="16" step="1" required value="${settings.gridSize}"></label>
  <label class="setting-row"><span><strong>Time per Ingredient</strong><small>Seconds restored for each captured ingredient (0–60).</small></span><input type="number" name="secondsPerItem" min="0" max="60" step="0.1" required value="${settings.secondsPerItem}"></label>
  <label class="setting-row"><span><strong>No Timer</strong><small>Play at your own pace and use Finish Foraging to end the round.</small></span><input class="toggle" type="checkbox" name="noTimer" ${settings.noTimer ? raw('checked') : ''}></label>
