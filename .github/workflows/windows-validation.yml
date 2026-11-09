@@ -5,6 +5,9 @@ on:
       release:
         type: boolean
         default: false
+      release_ref:
+        type: string
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -17,6 +20,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ inputs.release_ref || github.ref }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
@@ -26,17 +30,20 @@ jobs:
         shell: pwsh
         env:
           RELEASE_BUILD: ${{ inputs.release }}
+          RELEASE_TAG: ${{ inputs.release_ref || github.ref_name }}
         run: |
           if ($env:RELEASE_BUILD -eq 'true') {
             $version = (Get-Content package.json | ConvertFrom-Json).version
-            if ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne "gallorin-v$version") { throw 'Release tag must match package version.' }
+            if ($env:RELEASE_TAG -cne "gallorin-v$version") { throw 'Release tag must match package version.' }
+            $tagCommit = git rev-parse "$($env:RELEASE_TAG)^{commit}"
+            if ($LASTEXITCODE -ne 0 -or $tagCommit -ne (git rev-parse HEAD)) { throw 'Release checkout must match the existing tag.' }
             git merge-base --is-ancestor HEAD origin/main
             if ($LASTEXITCODE -ne 0) { throw 'Release commit must be merged into main.' }
             node scripts/release-notes.js --check --release
           } else { node scripts/release-notes.js --check }
           if ($LASTEXITCODE -ne 0) { throw 'Version/changelog validation failed.' }
       - name: Build without publishing
-        run: npm run desktop:build
+        run: npm run desktop:build -- --config.electronDist=node_modules/electron/dist
       - name: Verify installer and updater metadata
         run: node scripts/verify-release-assets.js
       - name: Packaged smoke tests (normal and reduced motion)

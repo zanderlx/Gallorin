@@ -27,6 +27,8 @@ Workflow changes take effect only after they are pushed and merged. Required val
 - PRs targeting main run Required validation. New commits cancel superseded runs.
 - Use manual dispatch to run the same checks before opening a PR.
 - The release tag starts the Windows build. Publication uses the validated installer from that run after owner approval.
+- If a tagged run is blocked by build infrastructure, the Release workflow can be dispatched from main with the existing tag. Validation checks out that exact tag, verifies its version and merged ancestry, and retains installer checks, both motion modes, and the release approval gate. Tags are never moved for recovery.
+- Windows packaging uses the locked Electron runtime already installed by npm instead of downloading it a second time.
 
 ## Owner-only settings and agent credentials
 
