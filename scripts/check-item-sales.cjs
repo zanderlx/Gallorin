@@ -67,6 +67,27 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   assert.equal(await run(() => document.querySelectorAll('.economy-sections details[open]').length), 0);
   await new Promise(resolve => setTimeout(resolve, 250));
   await writeFile(join(directory, 'economy-collapsed.png'), (await win.webContents.capturePage()).toPNG());
+  win.webContents.debugger.attach('1.3');
+  for (const motion of ['no-preference', 'reduce']) {
+    await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
+      features: [{ name: 'prefers-reduced-motion', value: motion }]
+    });
+    await run(() => (document.querySelector('[data-music-group]').open = true));
+    for (const open of [true, false]) {
+      await run(() => document.querySelector('#economy-form [data-playlist] > summary').click());
+      assert.equal(
+        await run(() =>
+          document.querySelector('#economy-form [data-playlist]').hasAttribute('data-disclosure-animating')
+        ),
+        motion === 'no-preference'
+      );
+      await new Promise(resolve => setTimeout(resolve, 360));
+      assert.equal(await run(() => document.querySelector('#economy-form [data-playlist]').open), open);
+      assert.equal(await run(() => document.querySelector('#economy-form [data-playlist]').style.height), '');
+    }
+    await run(() => (document.querySelector('[data-music-group]').open = false));
+  }
+  win.webContents.debugger.detach();
   await run(() => document.querySelector('[data-economy-show-all]').click());
   assert.ok(await run(() => [...document.querySelectorAll('.economy-sections details')].every(el => el.open)));
   assert.equal(await run(() => document.querySelectorAll('#economy-history tbody tr').length), 10);

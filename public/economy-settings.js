@@ -43,7 +43,7 @@ export function bindEconomy(root, state, { action, render, notify }) {
     },
     { capture: true, signal }
   );
-  bindMusicDisclosures(root, signal, { nativeSummaries: true });
+  bindMusicDisclosures(root, signal);
   root.addEventListener(
     'invalid',
     event => {
