@@ -23,3 +23,15 @@
 :root :is(h1, h2, h3, h4, h5, h6, .eye-card-name, .mutation-card-name, .card-title) {
   font-family: var(--font-main);
 }
+
+#sidebar nav summary,
+:root legend,
+:root [role='heading'],
+:root .setting-row strong,
+:root .zone-field {
+  font-family: var(--font-main);
+}
+
+#sidebar .nav-items a {
+  font-family: var(--font-ui);
+}
