@@ -59,21 +59,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     filter.value = 'apple';
     filter.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  await run(() => document.querySelector('[data-food-sell="apple"]').click());
-  await wait(() => !!document.querySelector('.food-sale-dialog[open]'));
-  assert.equal(await run(() => document.querySelectorAll('.food-sale-dialog').length), 1);
-  await run(() => {
-    const input = document.querySelector('.food-sale-dialog input');
-    input.value = '2';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-  assert.equal(await run(() => document.querySelector('.food-sale-dialog output').textContent), '2');
-  await new Promise(resolve => setTimeout(resolve, 250));
-  await writeFile(join(directory, 'sell-food.png'), (await win.webContents.capturePage()).toPNG());
-  await run(() => document.querySelector('.food-sale-dialog form').requestSubmit());
-  await wait(() => !document.querySelector('.food-sale-dialog'));
-  assert.equal((await state()).gold, 2);
-  assert.equal((await state()).inventory[0].count, 8);
+  assert.equal(await run(() => document.querySelectorAll('[data-food-sell]').length), 0);
   await run(() => {
     location.hash = 'dev/economy';
   });
@@ -110,7 +96,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
       document.querySelector('#economy-form [name=sellingPrice]')?.value === '60' &&
       document.querySelectorAll('.economy-sections details[open]').length === 0
   );
-  assert.equal((await state()).gold, 2);
+  assert.equal((await state()).gold, 0);
   await run(() => document.querySelector('[data-economy-show-all]').click());
   await run(() => document.querySelector('[data-economy-show-all]').click());
   assert.ok(await run(() => [...document.querySelectorAll('.economy-sections details')].every(el => !el.open)));
@@ -162,7 +148,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await backend.closeGameServer();
   clearTimeout(deadline);
   console.log(
-    'Food sales, default sorting, economy settings, bulk disclosure controls and pagination passed. Diagnostics: ' +
+    'Inventory cards, default sorting, economy settings, bulk disclosure controls and pagination passed. Diagnostics: ' +
       directory
   );
   app.exit(0);

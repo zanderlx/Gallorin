@@ -1,4 +1,3 @@
-import { bindFoodSales } from './inventory-sales.js';
 import { harvestIcon } from './harvest-icons.js';
 import { HARVESTS } from './harvest-rewards.js';
 import { html, raw, icon, number, setHTML } from './ui.js';
@@ -59,7 +58,7 @@ export function inventoryItems(
     });
 }
 const card = (item, category) =>
-  html`<article class="inventory-card panel"><div class="inventory-item-icon" aria-hidden="true">${harvestIcon(item.id) || (item.id === 'lasso' ? '➰' : raw(icon('bag')))}</div><div class="inventory-item-details"><h2 title="${item.name}">${item.name}</h2>${category === 'all' || item.rarity ? html`<span class="inventory-item-meta">${category === 'all' ? html`<span class="inventory-item-type">${inventorySections.find(([path]) => path === 'inventory/' + item.type)?.[1] || item.type}</span>` : ''}${category === 'all' && item.rarity ? ' · ' : ''}${item.rarity ? html`<span class="inventory-item-rarity">${title(item.rarity)}</span>` : ''}</span>` : ''}</div><span class="inventory-item-count" aria-label="Count: ${item.count}">×${number(item.count)}</span>${item.type === 'food' ? html`<button type="button" class="inventory-sell button secondary" data-food-sell="${item.id}" aria-label="Sell ${item.name}">Sell</button>` : ''}</article>`;
+  html`<article class="inventory-card panel"><div class="inventory-item-icon" aria-hidden="true">${harvestIcon(item.id) || (item.id === 'lasso' ? '➰' : raw(icon('bag')))}</div><div class="inventory-item-details"><h2 title="${item.name}">${item.name}</h2>${category === 'all' || item.rarity ? html`<span class="inventory-item-meta">${category === 'all' ? html`<span class="inventory-item-type">${inventorySections.find(([path]) => path === 'inventory/' + item.type)?.[1] || item.type}</span>` : ''}${category === 'all' && item.rarity ? ' · ' : ''}${item.rarity ? html`<span class="inventory-item-rarity">${title(item.rarity)}</span>` : ''}</span>` : ''}</div><span class="inventory-item-count" aria-label="Count: ${item.count}">×${number(item.count)}</span></article>`;
 export function inventoryCards(items, category, sort = 'name', direction = 'asc', query = '', family = '') {
   const entries = inventoryItems(items, category, sort, direction, query, family);
   if (!entries.length)
@@ -79,7 +78,7 @@ export function inventoryPage(route, state) {
     html`<nav class="inventory-tabs" aria-label="Inventory sections">${inventorySections.map(([path, label]) => html`<a href="#${path}" ${path === route ? raw('aria-current="page"') : ''}>${label}</a>`)}</nav><div class="page-heading inventory-heading"><h1>${inventorySections.find(([path]) => path === route)?.[1] || 'Inventory'}</h1></div><div class="eye-grid-controls inventory-controls"><label class="zone-field"><input id="inventory-search" type="search" placeholder="Search..." aria-label="Search inventory" value="${view.query}"></label><label class="zone-field">Type<select id="inventory-type"><option value="">All Types</option>${families.map(key => html`<option value="${key}" ${view.family === key ? raw('selected') : ''}>${familyLabels[key] || title(key)}</option>`)}</select></label><div class="definition-sort-controls"><label class="zone-field">Sort By<select id="inventory-sort">${['name', 'count', 'rarity', 'type'].map(key => html`<option value="${key}" ${view.sort === key ? raw('selected') : ''}>${title(key)}</option>`)}</select></label><button type="button" class="icon-button sort-direction" data-inventory-direction="${view.direction}" data-direction="${view.direction}" aria-label="${view.direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending'}" title="${view.direction === 'asc' ? 'Ascending order. Switch to descending' : 'Descending order. Switch to ascending'}">${raw(icon('arrow'))}</button></div></div><div id="inventory-grid">${inventoryCards(state.inventory, category, view.sort, view.direction, view.query, families.includes(view.family) ? view.family : '')}</div>`
   );
 }
-export function bindInventory(root, route, state, options) {
+export function bindInventory(root, route, state) {
   const view = inventoryView(route.split('/')[1]);
   const select = root.querySelector('#inventory-sort'),
     button = root.querySelector('[data-inventory-direction]'),
@@ -87,7 +86,7 @@ export function bindInventory(root, route, state, options) {
     family = root.querySelector('#inventory-type');
   if (!select || !button) return;
   view.family = family.value;
-  const cleanup = options ? bindFoodSales(root, state, options) : () => {};
+
   const update = () => {
     button.dataset.inventoryDirection = button.dataset.direction = view.direction;
     const label =
@@ -115,5 +114,5 @@ export function bindInventory(root, route, state, options) {
     view.direction = view.direction === 'asc' ? 'desc' : 'asc';
     update();
   });
-  return cleanup;
+  return () => {};
 }

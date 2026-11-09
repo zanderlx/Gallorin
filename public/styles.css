@@ -366,22 +366,11 @@ nav summary .icon,
   margin-bottom: 20px;
 }
 .inventory-card.panel {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
   margin: 0;
-}
-.inventory-sell {
-  grid-column: 2 / -1;
-  justify-self: end;
-  min-height: 30px;
-  padding: 3px 12px;
-}
-.food-sale-dialog {
-  width: min(440px, calc(100vw - 32px));
-  padding: 24px;
 }
 .economy-toolbar {
   margin: 20px 0;
