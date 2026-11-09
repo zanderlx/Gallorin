@@ -5,6 +5,7 @@
 }
 @font-face {
   font-family: 'Friz Quadrata';
+  size-adjust: 112%;
   src: url('./assets/fonts/FrizQuadrata.ttf') format('truetype');
   font-display: swap;
 }
