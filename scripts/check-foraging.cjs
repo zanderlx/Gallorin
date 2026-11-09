@@ -42,6 +42,9 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   assert.equal(await run(() => document.querySelectorAll('.foraging-board .foraging-dialog ol li').length), 3);
   await new Promise(resolve => setTimeout(resolve, 150));
   await writeFile(join(directory, 'foraging-rules.png'), (await win.webContents.capturePage()).toPNG());
+  await run(() => {
+    if (document.querySelector('#sidebar').inert) document.querySelector('.mobile-menu').click();
+  });
   assert.equal(await run(() => document.querySelector('#sidebar').inert), false);
   await run(() => document.querySelector('#sidebar a[href="#stable/all"]').click());
   await wait(() => location.hash === '#stable/all' && !document.querySelector('.foraging'));
@@ -85,6 +88,38 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     await run(() => document.querySelector('[data-group="Town"]').nextElementSibling.dataset.group),
     'Activities'
   );
+  for (const [width, height] of [
+    [1600, 1200],
+    [1100, 800],
+    [760, 700],
+    [420, 900]
+  ]) {
+    win.setSize(width, height);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const metrics = await run(() => {
+      const scene = document.querySelector('.foraging-scene').getBoundingClientRect();
+      const area = document.querySelector('.foraging').getBoundingClientRect();
+      const player = document.querySelector('.music-player').getBoundingClientRect();
+      return {
+        width: scene.width,
+        fits: scene.left >= 0 && scene.right <= innerWidth && scene.top >= area.top && scene.bottom <= player.top + 1,
+        collapsed: document.querySelector('#sidebar').inert,
+        expectedCollapsed: innerWidth <= 900 || document.body.classList.contains('foraging-nav-collapsed')
+      };
+    });
+    assert.ok(metrics.fits, JSON.stringify({ width, height, metrics }));
+    assert.equal(metrics.collapsed, metrics.expectedCollapsed);
+    if (metrics.collapsed) {
+      await run(() => document.querySelector('.mobile-menu').click());
+      assert.equal(await run(() => document.querySelector('#sidebar').inert), false);
+      await run(() => document.querySelector('.scrim').click());
+      assert.equal(await run(() => document.querySelector('#sidebar').inert), true);
+    }
+    await new Promise(resolve => setTimeout(resolve, 350));
+    await writeFile(join(directory, `foraging-responsive-${width}.png`), (await win.webContents.capturePage()).toPNG());
+  }
+  win.setSize(1280, 1000);
+  await new Promise(resolve => setTimeout(resolve, 100));
   // Find an actual orthogonal three-cell path, then drag it with native input.
   const trail = await run(() => {
     const tiles = [...document.querySelectorAll('.foraging-tile')];
@@ -132,7 +167,7 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await input('mouseUp', trail.points[2]);
   await wait(() => [...document.querySelectorAll('[data-foraging-count]')].some(el => el.textContent === '3'));
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
-  assert.equal(await run(() => document.querySelector('.foraging-bonus').textContent), '+3s');
+  assert.equal(await run(() => document.querySelector('.foraging-bonus')), null);
   await writeFile(join(directory, 'foraging-wide.png'), (await win.webContents.capturePage()).toPNG());
   // Advance the monotonic clock, rather than waiting a minute, to exercise real game-over code.
   await run(() => {

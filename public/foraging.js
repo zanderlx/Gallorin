@@ -14,7 +14,7 @@ import {
 export function foragingPage() {
   return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button" data-foraging-finish hidden>Finish Foraging</button>
       <div class="foraging-layout"><div class="foraging-scene">
-        <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div><span class="foraging-bonus" aria-live="polite"></span></div>
+        <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div></div>
         <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div></div>
         <div class="foraging-dashboard is-pending" aria-label="Collected this round" aria-hidden="true"><div aria-hidden="true"><span>&nbsp;</span><span>&nbsp;</span><strong>&nbsp;</strong></div></div>
       </div></div><p id="foraging-status" class="foraging-sr" role="status"></p>
@@ -39,7 +39,6 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
   const status = root.querySelector('#foraging-status');
   const timer = root.querySelector('.foraging-timer');
   const fill = root.querySelector('.foraging-timer-fill');
-  const bonus = root.querySelector('.foraging-bonus');
   const controller = new AbortController();
   const options = { signal: controller.signal };
   let board = [],
@@ -164,7 +163,6 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
       counts[food] += selected.length;
       root.querySelector(`[data-foraging-count="${food}"]`).textContent = String(counts[food]);
       remaining = rewardTime(remaining, selected.length, settings.secondsPerItem, settings.totalSeconds);
-      bonus.textContent = `+${selected.length * settings.secondsPerItem}s`;
       paintTimer();
       await drop(selected);
     } catch (error) {
@@ -230,7 +228,6 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     root.querySelector('.foraging-dashboard').removeAttribute('aria-hidden');
     root.querySelector('.foraging-dashboard').style.gridTemplateColumns = `repeat(${foods.length}, minmax(0, 1fr))`;
     dialog.hidden = true;
-    bonus.textContent = '';
     status.textContent = 'The wilds are waking…';
     paintTimer();
     void drop();

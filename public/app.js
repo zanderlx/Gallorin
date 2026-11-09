@@ -86,6 +86,7 @@ let state,
   busy = false;
 let stableGridColumns = 5;
 let disposeForaging;
+const forageLayoutObserver = new ResizeObserver(syncResponsiveMenu);
 let selectedSpeciesId,
   speciesTab = 'overview',
   speciesSort = 'rarity',
@@ -296,6 +297,7 @@ function pageContent(pageRoute, pageState = state) {
   else return plannedPage(route, state);
 }
 function render() {
+  forageLayoutObserver.disconnect();
   disposeForaging?.();
   disposeForaging = undefined;
   setProvidedHorseArtwork(state.settings.providedHorseArtwork);
@@ -312,6 +314,8 @@ function render() {
       },
       notify
     });
+  if (route === 'activities/foraging') forageLayoutObserver.observe(main.querySelector('.foraging'));
+  syncResponsiveMenu();
   updateEncounterCooldown();
   if (route === 'dev/trait-gallery') bindTraitGallery(main, catalog);
   if (route === 'dev/music') musicPlayer.bind(main);
@@ -510,14 +514,20 @@ function inspect(id) {
 function closeMenu() {
   document.body.classList.remove('nav-open');
   $('.workspace').inert = false;
-  if (matchMedia('(max-width: 900px)').matches) $('#sidebar').inert = true;
+  syncResponsiveMenu();
   $('.mobile-menu')?.setAttribute('aria-expanded', 'false');
 }
 function syncResponsiveMenu() {
-  const mobile = matchMedia('(max-width: 900px)').matches;
+  const scene = route === 'activities/foraging' && main.querySelector('.foraging-scene');
+  const sidebarWidth = innerWidth <= 1200 ? 240 : 264;
+  const tight = !!scene && innerWidth > 900 && scene.getBoundingClientRect().left < sidebarWidth + 16;
+  document.body.classList.toggle('foraging-nav-collapsed', tight);
+  const mobile = matchMedia('(max-width: 900px)').matches || tight;
+  if (!mobile) document.body.classList.remove('nav-open');
   const opened = document.body.classList.contains('nav-open');
   $('#sidebar').inert = mobile && !opened;
   $('.workspace').inert = mobile && opened;
+  $('.mobile-menu')?.setAttribute('aria-expanded', String(mobile && opened));
 }
 function askToSell(id) {
   confirmation.classList.remove('eye-delete-confirm');
@@ -1319,7 +1329,11 @@ document.addEventListener('keydown', event => {
     tabs[next]?.click();
     return;
   }
-  if (event.key === 'Tab' && document.body.classList.contains('nav-open') && matchMedia('(max-width: 900px)').matches) {
+  if (
+    event.key === 'Tab' &&
+    document.body.classList.contains('nav-open') &&
+    (matchMedia('(max-width: 900px)').matches || document.body.classList.contains('foraging-nav-collapsed'))
+  ) {
     const focusable = [...$('#sidebar').querySelectorAll('a, summary')].filter(el => el.getClientRects().length);
     const first = focusable[0],
       last = focusable.at(-1);
@@ -1349,6 +1363,7 @@ for (const dialog of [profile, confirmation])
       dialog.close();
   });
 matchMedia('(max-width: 900px)').addEventListener('change', syncResponsiveMenu);
+window.addEventListener('resize', syncResponsiveMenu);
 window.addEventListener('hashchange', navigate);
 try {
   ({ state, catalog, defaults, appVersion } = await request('/api/state'));
