@@ -45,6 +45,19 @@ test('new games use enabled 90-second cooldown; saved values override future def
   assert.equal(store.state.settings.searchCooldownEnabled, true);
   assert.equal(store.state.settings.searchCooldownSeconds, 90);
   assert.equal(store.state.settings.providedHorseArtwork, true);
+  assert.equal(store.state.settings.activities.secondsPerItem, 0.25);
+  const zone = store.getCatalog().locations.find(zone => zone.id === 'aetherion');
+  assert.equal(zone.palettePool.length, 72);
+  assert.equal(new Set(zone.palettePool).size, 72);
+  assert.ok(
+    zone.palettePool.every(name =>
+      store.getCatalog().palettes.some(palette => palette.name === name && palette.complete)
+    )
+  );
+  store.state.settings.activities.secondsPerItem = 2;
+  const savedZone = await store.files.json('zones/aetherion.json');
+  savedZone.palettePool = ['Natural Gold'];
+  await store.files.atomic('zones/aetherion.json', savedZone);
   store.state.settings.providedHorseArtwork = false;
   store.state.settings.searchCooldownEnabled = false;
   store.state.settings.searchCooldownSeconds = 12;
@@ -56,6 +69,8 @@ test('new games use enabled 90-second cooldown; saved values override future def
   assert.equal(loaded.state.settings.providedHorseArtwork, false);
   assert.equal(loaded.state.settings.searchCooldownSeconds, 12);
   assert.equal(loaded.state.settings.saleModifiers.traitBonus, 0);
+  assert.equal(loaded.state.settings.activities.secondsPerItem, 2);
+  assert.deepEqual(loaded.getCatalog().locations.find(zone => zone.id === 'aetherion').palettePool, ['Natural Gold']);
   assert.equal(loaded.state.settings.saleModifiers.mutationBonus, 75);
   assert.deepEqual(loaded.state.settings.futureOption, { enabled: true, seconds: 45 });
   const progress = structuredClone(loaded.state);

@@ -16,6 +16,7 @@ Collect food through Wilds Foraging, organize it in Inventory, and explore refre
   - Play a food-chain puzzle from Activities. Connect three or more matching adjacent ingredients, collect them, and watch new ingredients fall into place.
   - Start from an instructions panel, track collected ingredients in buckets, and review Common, Rare, and Epic food rewards in a completion popup. Rewards are saved to Inventory; Exit returns to the start screen.
   - Configure grid size, ingredient types per round, starting time, and time restored per ingredient. Enable No Timer to play freely and end a round with Finish Foraging.
+  - Gain 0.25 seconds per collected ingredient by default.
   - Supplied frame and bucket artwork scale with the board. Boards without a valid chain refill without resetting the remaining time.
 
 - **Inventory**
@@ -24,6 +25,9 @@ Collect food through Wilds Foraging, organize it in Inventory, and explore refre
   - Food defaults to Type sorting, keeping Common, Rare, and Epic items in that order within each food group.
 
 ### Updated
+
+- **Aetherion Wilds**
+  - Use a broader default pool of 72 palettes.
 
 - **Economy Settings**
   - Show Current Gold above collapsible Horse Sale Settings, Item Sale Settings, and Sale History, with Show All controls for individual sections and the entire page.

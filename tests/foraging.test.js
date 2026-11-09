@@ -8,6 +8,7 @@ import {
   ensurePlayable,
   cascade,
   rewardTime,
+  activitySettings,
   timerColor
 } from '../public/foraging-engine.js';
 import { groups } from '../public/ui.js';
@@ -63,9 +64,11 @@ test('dead boards are repaired without losing foods even when random shuffles ca
     assert.ok(largestGroup(next) >= 3);
   }
 });
-test('time reward is one second per food, capped, with green, amber and deep red urgency', () => {
-  assert.equal(rewardTime(12, 7), 19);
-  assert.equal(rewardTime(58, 7), 60);
+test('time reward defaults to a quarter second per food, capped, with timer urgency', () => {
+  assert.equal(activitySettings().secondsPerItem, 0.25);
+  assert.equal(activitySettings({ secondsPerItem: 1 }).secondsPerItem, 1);
+  assert.equal(rewardTime(12, 7), 13.75);
+  assert.equal(rewardTime(59, 7), 60);
   assert.equal(timerColor(60), 'rgb(65, 205, 113)');
   assert.equal(timerColor(30), 'rgb(241, 183, 48)');
   assert.equal(timerColor(12), 'rgb(170, 32, 48)');

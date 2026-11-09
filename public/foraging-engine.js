@@ -83,7 +83,7 @@ export function cascade(board, removed = [], rng = Math.random, size = SIZE, foo
   }
   return { board: next, moves };
 }
-export const rewardTime = (remaining, count, secondsPerItem = 1, totalSeconds = ROUND_SECONDS) =>
+export const rewardTime = (remaining, count, secondsPerItem = 0.25, totalSeconds = ROUND_SECONDS) =>
   Math.min(totalSeconds, remaining + count * secondsPerItem);
 export function timerColor(seconds, totalSeconds = ROUND_SECONDS) {
   const fraction = Math.max(0, Math.min(1, seconds / totalSeconds));
@@ -104,7 +104,7 @@ export function chooseFoods(count = 4, rng = Math.random) {
 export function activitySettings(settings = {}) {
   return {
     gridSize: settings.gridSize ?? 10,
-    secondsPerItem: Math.round((settings.secondsPerItem ?? 1) * 4) / 4,
+    secondsPerItem: Math.round((settings.secondsPerItem ?? 0.25) * 4) / 4,
     totalSeconds: settings.totalSeconds ?? ROUND_SECONDS,
     noTimer: settings.noTimer ?? false,
     foodCount: settings.foodCount ?? 4
