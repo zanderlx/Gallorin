@@ -14,8 +14,6 @@
   --muted: #b6aa98;
   --burgundy: #6d343c;
   --green: #a3bd91;
-  --serif: Georgia, 'Times New Roman', serif;
-  --sans: 'Segoe UI', system-ui, sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -24,7 +22,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 16px/1.6 var(--sans);
+  font: 16px/1.6 var(--font-main);
 }
 body:has(dialog[open]) {
   overflow: hidden;

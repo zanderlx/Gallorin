@@ -20,9 +20,7 @@
   margin: 0 0 28px;
 }
 .audio-settings-dialog > header h2 {
-  font:
-    30px/1.2 Georgia,
-    serif;
+  font: 30px/1.2 var(--font-main);
   margin: 0;
   color: var(--text, #e9d8b4);
   letter-spacing: 0;
@@ -38,9 +36,7 @@
   border: 0;
   background: none;
   color: inherit;
-  font:
-    28px/1 'Segoe UI',
-    sans-serif;
+  font: 28px/1 var(--font-ui);
   cursor: pointer;
 }
 .audio-settings-dialog .audio-settings-close:hover {
@@ -56,9 +52,7 @@
   grid-template-columns: 108px minmax(75px, 180px) 80px;
   align-items: center;
   gap: 14px;
-  font:
-    14px/1.5 'Segoe UI',
-    sans-serif;
+  font: 14px/1.5 var(--font-ui);
   margin: 0;
 }
 .audio-settings-dialog input[type='range'],
@@ -77,18 +71,14 @@
 .effect-volume output {
   text-align: left;
   color: var(--gold, #d2b477);
-  font:
-    14px 'Segoe UI',
-    sans-serif;
+  font: 14px var(--font-ui);
 }
 .audio-settings-dialog .audio-settings-error:empty {
   display: none;
 }
 .audio-settings-dialog .audio-settings-error {
   margin: 18px 0 0;
-  font:
-    13px 'Segoe UI',
-    sans-serif;
+  font: 13px var(--font-ui);
   color: #e7a5a5;
 }
 @media (max-width: 450px) {

@@ -1,3 +1,4 @@
+@import url('../public/typography.css');
 @import url('../public/focus.css');
 
 * {
@@ -8,9 +9,7 @@ body {
   min-height: 100vh;
   background: #191e1b;
   color: #e9d8b4;
-  font:
-    16px 'Segoe UI',
-    sans-serif;
+  font: 16px var(--font-ui);
   overflow: hidden;
 }
 .landscape {
@@ -64,9 +63,7 @@ main img {
   filter: drop-shadow(0 0 30px #d2b47722);
 }
 h1 {
-  font:
-    clamp(38px, 5vw, 66px) Georgia,
-    serif;
+  font: clamp(38px, 5vw, 66px) var(--font-main);
   letter-spacing: 12px;
   margin: 20px 0 12px;
   padding-left: 12px;
@@ -103,9 +100,7 @@ button:hover {
   border-color: #d2b477;
 }
 .invitation {
-  font:
-    italic 17px Georgia,
-    serif;
+  font: italic 17px var(--font-main);
   color: #b7b7a0;
   margin-top: 28px;
 }
@@ -137,9 +132,7 @@ dialog::backdrop {
   backdrop-filter: blur(5px);
 }
 h2 {
-  font:
-    30px Georgia,
-    serif;
+  font: 30px var(--font-main);
   margin: 0 0 30px;
 }
 h3 {
@@ -163,9 +156,7 @@ input {
   margin: 20px 0;
 }
 dialog p {
-  font:
-    italic 14px Georgia,
-    serif;
+  font: italic 14px var(--font-main);
   color: #a5ae9e;
   margin-bottom: 28px;
 }
