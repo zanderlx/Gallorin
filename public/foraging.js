@@ -215,6 +215,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
   function start() {
     boardElement.append(dialog);
     dialog.classList.remove('is-completion');
+    dialog.querySelector('h2').textContent = 'Wilds Foraging';
     board = [];
     roundId = crypto.randomUUID();
     clearPath();
@@ -240,6 +241,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     clearPath();
     root.querySelector('.foraging').append(dialog);
     dialog.classList.add('is-completion');
+    dialog.querySelector('h2').textContent = 'Wilds Foraging Rewards';
     dialog.hidden = false;
     startButton.disabled = true;
     startButton.textContent = 'Saving…';
