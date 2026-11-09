@@ -12,7 +12,7 @@ import {
 } from './foraging-engine.js';
 
 export function foragingPage() {
-  return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button" data-foraging-finish hidden>Finish Foraging</button>
+  return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button primary" data-foraging-finish hidden>Finish Foraging</button>
       <div class="foraging-layout"><div class="foraging-scene">
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div></div>
         <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><div class="foraging-dialog-actions"><button type="button" class="button primary" data-foraging-start>Start Foraging</button><button type="button" class="button secondary" data-foraging-exit hidden>Exit</button></div></div></div>
