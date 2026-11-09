@@ -15,11 +15,11 @@
   --sans: var(--font-ui);
 }
 :root body {
-  font-family: var(--font-main);
-}
-:root :is(button, input, select, textarea, label, small, code, pre, th, td, nav, footer, output, time) {
   font-family: var(--font-ui);
 }
-:root :is(h1, h2, h3, h4, h5, h6, p, .eye-card-name, .mutation-card-name, .card-title) {
+:root :is(p, button, input, select, textarea, label, small, code, pre, th, td, nav, footer, output, time) {
+  font-family: var(--font-ui);
+}
+:root :is(h1, h2, h3, h4, h5, h6, .eye-card-name, .mutation-card-name, .card-title) {
   font-family: var(--font-main);
 }

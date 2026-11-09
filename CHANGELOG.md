@@ -25,7 +25,7 @@ Forage for food, browse your growing inventory, and explore Gallorin with refres
 ### Updated
 
 - **Interface & Typography**
-  - Use the bundled FreeRealms font for headings and main text, and Friz Quadrata for controls and supporting text across gameplay, the title screen, splash, and app dialogs.
+  - Use the bundled FreeRealms font for headings and prominent titles, and Friz Quadrata for descriptions, controls, and supporting text across gameplay, the title screen, splash, and app dialogs.
   - Center page content against the window, constrain music settings to a readable width, and adapt foraging and navigation layouts to smaller screens.
 
 ### Fixed
