@@ -356,6 +356,15 @@ nav summary .icon,
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 10px;
 }
+.page-heading.inventory-heading {
+  margin-bottom: 8px;
+}
+.page-heading.inventory-heading h1 {
+  margin-bottom: 4px;
+}
+.eye-grid-controls.inventory-controls {
+  margin-bottom: 20px;
+}
 .inventory-card.panel {
   display: flex;
   align-items: center;
