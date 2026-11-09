@@ -18,6 +18,7 @@ import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './z
 import { activitySettings } from './foraging-engine.js';
 import { activitiesSettingsPage } from './activities-settings.js';
 import { bindInventory } from './inventory.js';
+import { bindEconomy } from './economy-settings.js';
 import { foragingPage, bindForaging } from './foraging.js';
 import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
@@ -95,6 +96,7 @@ let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;
 const openGroups = new Set();
+let pageCleanup = () => {};
 const $ = selector => document.querySelector(selector);
 const main = $('#main');
 const musicPlayer = createMusicPlayer({
@@ -297,6 +299,8 @@ function pageContent(pageRoute, pageState = state) {
   else return plannedPage(route, state);
 }
 function render() {
+  pageCleanup();
+  pageCleanup = () => {};
   forageLayoutObserver.disconnect();
   disposeForaging?.();
   disposeForaging = undefined;
@@ -304,7 +308,8 @@ function render() {
   renderChrome();
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
-  if (route.startsWith('inventory/')) bindInventory(main, route, state);
+  if (route.startsWith('inventory/')) pageCleanup = bindInventory(main, route, state, { action, render, notify });
+  if (route === 'dev/economy') pageCleanup = bindEconomy(main, state, { action, render, notify });
   if (route === 'activities/foraging')
     disposeForaging = bindForaging(main, {
       settings: state.settings.activities,
@@ -1085,7 +1090,6 @@ document.addEventListener('submit', async event => {
       notify('Profile saved.');
     } else if (form.id === 'economy-form') {
       await action('economy-settings', {
-        gold: Number(values.gold),
         sellingPrice: Number(values.sellingPrice),
         saleModifiers: Object.fromEntries(
           Object.keys(defaultSaleModifiers).map(key => [key, Number(values[`saleModifier:${key}`])])

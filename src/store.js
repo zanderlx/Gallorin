@@ -36,6 +36,7 @@ import { locationsFor, validateZone } from '../public/zones.js';
 import { catalogFor, validateDefinition, definitionKinds } from '../public/definitions.js';
 import { validateKeeper } from '../public/keeper.js';
 import { moveHorseInFolders } from './horse-folders.js';
+import { foodSalePrice, itemSalePrices } from '../public/item-sales.js';
 
 const snapshotIntervalMs = 60 * 60 * 1000;
 const backupsPerKind = 20;
@@ -535,6 +536,31 @@ export class GameStore {
             item.rarity = reward.rarity;
           } else next.inventory.push(reward);
         }
+      } else if (type === 'item-sale-settings') {
+        next.settings.itemSalePrices = itemSalePrices({ itemSalePrices: payload.prices });
+      } else if (type === 'sell-food') {
+        const index = next.inventory.findIndex(item => item.id === payload.id && item.type === 'food');
+        const item = next.inventory[index];
+        if (!item || !Number.isSafeInteger(payload.count) || payload.count < 1 || payload.count > item.count)
+          throw new Error('Choose a quantity available in your inventory.');
+        const unitPrice = foodSalePrice(item, next.settings);
+        const amount = unitPrice * payload.count;
+        if (!Number.isSafeInteger(amount) || !Number.isSafeInteger(next.gold + amount))
+          throw new Error('This sale would exceed the supported gold balance.');
+        item.count -= payload.count;
+        if (!item.count) next.inventory.splice(index, 1);
+        next.gold += amount;
+        next.transactions.push({
+          id: randomUUID(),
+          type: 'Food sold',
+          itemId: item.id,
+          itemName: item.name,
+          rarity: item.rarity || 'common',
+          count: payload.count,
+          unitPrice,
+          amount,
+          at: new Date().toISOString()
+        });
       } else if (type === 'horse-updates-enabled') {
         if (typeof payload.enabled !== 'boolean') throw new Error('Choose whether horse updates are enabled.');
         next.settings.horseUpdatesEnabled = payload.enabled;
@@ -771,6 +797,10 @@ export class GameStore {
         const settings = { ...catalog.spawning, ...payload };
         catalog.spawning = validateSpawnSettings(settings);
       } else if (type === 'current-gold' || type === 'economy-settings') {
+        payload = {
+          ...payload,
+          gold: payload.gold === undefined && type === 'economy-settings' ? next.gold : payload.gold
+        };
         if (!Number.isSafeInteger(payload.gold) || payload.gold < 0 || payload.gold > 1000000000)
           throw new Error('Gold must be a whole number between 0 and 1,000,000,000.');
         if (type === 'economy-settings') {

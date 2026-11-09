@@ -72,11 +72,8 @@ const deadline = setTimeout(() => app.exit(1), 45000);
   await run(() => document.querySelector('.inventory-tabs a[href="#inventory/food"]').click());
   await wait(() => document.querySelectorAll('.inventory-card').length === 5);
   assert.ok(!(await run(names)).includes('Lassos'));
-  assert.equal(await run(() => document.querySelector('#inventory-sort').value), 'count');
-  assert.equal(
-    await run(() => document.querySelector('[data-inventory-direction]').dataset.inventoryDirection),
-    'desc'
-  );
+  assert.equal(await run(() => document.querySelector('#inventory-sort').value), 'type');
+  assert.equal(await run(() => document.querySelector('[data-inventory-direction]').dataset.inventoryDirection), 'asc');
   win.setSize(640, 900);
   await new Promise(resolve => setTimeout(resolve, 350));
   assert.ok(await run(() => document.documentElement.scrollWidth <= innerWidth));

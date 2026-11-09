@@ -366,11 +366,56 @@ nav summary .icon,
   margin-bottom: 20px;
 }
 .inventory-card.panel {
-  display: flex;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 12px;
   margin: 0;
+}
+.inventory-sell {
+  grid-column: 2 / -1;
+  justify-self: end;
+  min-height: 30px;
+  padding: 3px 12px;
+}
+.food-sale-dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: 24px;
+}
+.economy-toolbar {
+  margin: 20px 0;
+}
+.economy-gold.panel {
+  padding: 12px 24px;
+}
+.economy-gold .setting-row {
+  border: 0;
+  padding: 12px 0;
+}
+.economy-gold .form-actions:not(:has(button:not([hidden]))) {
+  display: none;
+}
+.economy-section-body {
+  padding: 16px;
+}
+.economy-sections .music-group {
+  margin-bottom: 12px;
+}
+.economy-sections .music-group > summary h2 {
+  flex: 1;
+}
+.economy-sections .music-playlist > summary {
+  padding: 12px;
+  cursor: pointer;
+}
+.economy-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
 }
 .inventory-item-icon {
   display: grid;

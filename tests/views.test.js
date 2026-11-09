@@ -300,8 +300,10 @@ test('encounter and economy pages keep their forms and controls separate', () =>
   assert.match(economy, />Economy Settings<\/h1>/);
   assert.match(economy, /id="economy-form"/);
   for (const field of ['gold', 'sellingPrice']) assert.ok(economy.includes(`name="${field}"`));
-  assert.match(economy, /Sale History<\/h2><div class="panel">/);
-  assert.match(economy, /No horses sold yet/);
+  assert.match(economy, /Sale History<\/h2>/);
+  assert.match(economy, /No sales yet/);
+  assert.match(economy, /Horse Sale Settings/);
+  assert.match(economy, /Item Sale Settings/);
   assert.doesNotMatch(economy, /id="settings-form"|horsesPerSearch|stableCapacity/);
   const saves = savesPage(state);
   assert.match(saves, /Create backup/);

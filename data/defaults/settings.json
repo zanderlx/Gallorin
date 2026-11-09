@@ -6,6 +6,7 @@
   "ignoreStableLimit": true,
   "providedHorseArtwork": true,
   "note": "Phase 1 preview defaults. Starting gold, capacity, and free guaranteed catches are provisional interface settings, not confirmed gameplay rules.",
+  "itemSalePrices": { "common": 1, "rare": 5, "epic": 15 },
   "saleModifiers": {
     "traitBonus": 8,
     "mutationBonus": 75,

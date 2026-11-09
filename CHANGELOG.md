@@ -21,6 +21,11 @@ Forage for food, browse your growing inventory, and explore Gallorin with refres
 - **Inventory**
   - Browse All, Gear, Food, Potions, Materials, Equipment, and Pets through tabs on the Inventory page.
   - Item cards show names, quantities, and rarity. Search and filter by item type, or sort by name, count, rarity, or type in either direction. Rarity and type sorting group items into sections.
+  - Food opens sorted by type. Sell a chosen quantity from its inventory card, with default per-item prices of 1 gold for Common, 5 for Rare, and 15 for Epic food.
+
+- **Economy Settings**
+  - Keep Current Gold above collapsible Horse Sale Settings, Item Sale Settings, and Sale History sections. Expand individual sections or all settings together.
+  - Configure food sale prices by rarity and browse food and horse sales in paginated history.
 
 ### Updated
 
