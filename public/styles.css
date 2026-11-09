@@ -399,6 +399,9 @@ nav summary .icon,
 .economy-section-body {
   padding: 22px;
 }
+.economy-sections .setting-row:last-of-type {
+  border-bottom: 0;
+}
 .economy-sections {
   display: grid;
   gap: 14px;

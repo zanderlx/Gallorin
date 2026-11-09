@@ -116,7 +116,37 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   assert.ok(await run(() => [...document.querySelectorAll('.economy-sections details')].every(el => !el.open)));
   await run(() => document.querySelectorAll('[data-music-toggle-folder]')[1].click());
   await wait(() => [...document.querySelectorAll('#item-sale-form details')].every(el => el.open));
-  assert.equal(await run(() => document.querySelectorAll('#item-sale-form details').length), 0);
+  assert.equal(await run(() => document.querySelectorAll('#item-sale-form details').length), 6);
+  assert.ok(
+    await run(() =>
+      [...document.querySelectorAll('#economy-form [data-playlist] > summary')].every(el =>
+        el.querySelector('.music-chevron svg')
+      )
+    )
+  );
+  assert.ok(
+    await run(() =>
+      [...document.querySelectorAll('#economy-form [data-playlist] > summary')].some(
+        el => el.textContent === 'Cosmic Multipliers'
+      )
+    )
+  );
+  assert.equal(
+    await run(
+      () =>
+        getComputedStyle(document.querySelector('#economy-form [name=sellingPrice]').closest('.setting-row'))
+          .borderBottomWidth
+    ),
+    '0px'
+  );
+  assert.equal(
+    await run(
+      () =>
+        getComputedStyle(document.querySelector('#item-sale-form [name=epic]').closest('.setting-row'))
+          .borderBottomWidth
+    ),
+    '0px'
+  );
   assert.ok(
     await run(() =>
       document.querySelector('#economy-form [name=sellingPrice]').closest('details').matches('[data-music-group]')
