@@ -23,6 +23,7 @@ Workflow changes take effect only after they are pushed and merged. Required val
 
 ## CI triggers
 
+- Required validation runs the pinned actionlint version through Go so a failed GitHub release-archive download cannot prevent workflow linting. The lint rules and workflow security audit remain required.
 - PRs targeting main run Required validation. New commits cancel superseded runs.
 - Use manual dispatch to run the same checks before opening a PR.
 - The release tag starts the Windows build. Publication uses the validated installer from that run after owner approval.
