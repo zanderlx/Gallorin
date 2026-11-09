@@ -1,3 +1,4 @@
+@import url('../public/typography.css');
 * {
   box-sizing: border-box;
 }
@@ -5,7 +6,7 @@ body {
   margin: 0;
   background: radial-gradient(ellipse at 50% 35%, #394036 0, #25261f 42%, #1d1b18 80%);
   color: #d2b477;
-  font-family: Georgia, serif;
+  font-family: var(--font-main);
   height: 100vh;
   display: grid;
   place-items: center;
@@ -44,9 +45,7 @@ h1 {
   padding-left: 9px;
 }
 p {
-  font:
-    10px 'Segoe UI',
-    sans-serif;
+  font: 10px var(--font-ui);
   letter-spacing: 3.6px;
   color: #b6aa98;
   margin: 0;

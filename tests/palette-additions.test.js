@@ -24,6 +24,13 @@ async function fixture(t) {
     await rm(directory, { recursive: true, force: true });
   });
   await new GameStore(directory, catalog, defaults).init();
+  // These migration fixtures remove newer palettes to recreate old registries.
+  // Keep their zone pool valid for those historical registries; fresh-install
+  // defaults are checked separately in default-overrides.test.js.
+  const zonePath = join(directory, 'config', 'zones', 'aetherion.json');
+  const zone = JSON.parse(await readFile(zonePath, 'utf8'));
+  zone.palettePool = ['Natural Gold', 'Amethyst', 'Emerald'];
+  await writeFile(zonePath, JSON.stringify(zone));
   const paths = { save: join(directory, 'player', 'save.json'), palettes: join(directory, 'config', 'palettes.json') };
   const json = async path => JSON.parse(await readFile(path, 'utf8'));
   return {

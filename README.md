@@ -1,8 +1,8 @@
 <div align="center">
 
-![Gallorin v1.3.4](docs/assets/gallorin-banner.svg)
+![Gallorin v1.4.0](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.3.4
+# Gallorin v1.4.0: Hooves & Harvests
 
 **Desktop horse collection game · Windows**
 
@@ -23,6 +23,8 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 ## Features
 
 - Explore zones and tame, rename, favorite, sell, import, and export horses.
+- Play Wilds Foraging to collect food and earn inventory rewards, with configurable rounds and an optional untimed mode.
+- Browse inventory tabs with item quantities, rarities, search, filters, and grouped sorting.
 - My Horses opens in the Custom layout with Favorites expanded. Organize horses in folders, drag cards to save their order or move them between folders, and find horses outside those folders in All Horses.
 - View full-body artwork and portraits, with provided SVG artwork enabled by default and optional trait-based artwork.
 - Customize species, categorized traits, palettes, eye colors, personalities, and rarity appearance through the Compendium.
@@ -31,10 +33,10 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 - Inspect horse traits, mutations, notes, and skill XP. Enable Override Horse Data for section-based editing, rerolls, and restoration of recorded original values.
 - Track original horse owners across trades and profile-name changes, with optional Owner overrides. Mane and tail colors can be overridden separately; hair-color mutations take precedence.
 - Manage playlists and sound events with crossfades, independent music/effect volumes, and individual event levels.
-- Configure search cooldowns, spawning, economy, profiles, themes, and page text.
+- Configure search cooldowns, spawning, economy, profiles, themes, and page text. Bundled FreeRealms and Friz Quadrata fonts work offline.
 - Keep saves local with exports, automatic backups, and hourly snapshots. Saved preferences override bundled defaults.
 
-Breeding, Town activities, equipment gameplay, and skill training remain planned.
+Food selling, breeding, the remaining Town activities, equipment gameplay, and skill training remain planned.
 
 ## Local development
 

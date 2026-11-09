@@ -15,6 +15,11 @@ import { createPaletteTransfers } from './palette-transfer.js';
 import { palettesManagerPage, createPaletteEditor, updatePaletteGrid } from './palettes-manager.js';
 import { updateZonePalettes, syncZonePaletteChoice } from './zone-palettes.js';
 import { syncZoneSelectionButtons, setZoneSelection, zoneAllSelected } from './zone-selection.js';
+import { activitySettings } from './foraging-engine.js';
+import { activitiesSettingsPage } from './activities-settings.js';
+import { bindInventory } from './inventory.js';
+import { bindEconomy } from './economy-settings.js';
+import { foragingPage, bindForaging } from './foraging.js';
 import { handleInvalidHex, validHex, hexInputValue, protectHexSelection } from './hex-inputs.js';
 import { validateSettingsNumbers, attachSettingsNumbers } from './game-settings.js';
 import { raritiesManagerPage, readRaritySettings, syncRarityControls } from './rarities-manager.js';
@@ -81,6 +86,8 @@ let state,
   appVersion,
   busy = false;
 let stableGridColumns = 5;
+let disposeForaging;
+const forageLayoutObserver = new ResizeObserver(syncResponsiveMenu);
 let selectedSpeciesId,
   speciesTab = 'overview',
   speciesSort = 'rarity',
@@ -89,6 +96,7 @@ let route = location.hash.slice(1) || 'wilds/aetherion';
 let routeVersion = 0,
   pendingDeletion;
 const openGroups = new Set();
+let pageCleanup = () => {};
 const $ = selector => document.querySelector(selector);
 const main = $('#main');
 const musicPlayer = createMusicPlayer({
@@ -262,8 +270,10 @@ function pageContent(pageRoute, pageState = state) {
       locations,
       catalog
     );
+  else if (route === 'activities/foraging') return foragingPage();
   else if (route === 'stable/breeding') return plannedPage(route, state);
   else if (section === 'stable') return stablePage(page, state, catalog);
+  else if (route === 'dev/activities') return activitiesSettingsPage(state);
   else if (route === 'dev/settings') return settingsPage(state, catalog);
   else if (route === 'dev/economy') return economySettingsPage(state);
   else if (route === 'dev/saves') return savesPage(state);
@@ -289,10 +299,28 @@ function pageContent(pageRoute, pageState = state) {
   else return plannedPage(route, state);
 }
 function render() {
+  pageCleanup();
+  pageCleanup = () => {};
+  forageLayoutObserver.disconnect();
+  disposeForaging?.();
+  disposeForaging = undefined;
   setProvidedHorseArtwork(state.settings.providedHorseArtwork);
   renderChrome();
   // eslint-disable-next-line no-restricted-syntax -- TODO(html-template): migrate to the escaping html helper
   main.innerHTML = pageContent(route);
+  if (route.startsWith('inventory/')) pageCleanup = bindInventory(main, route, state, { action, render, notify });
+  if (route === 'dev/economy') pageCleanup = bindEconomy(main, state, { action, render, notify });
+  if (route === 'activities/foraging')
+    disposeForaging = bindForaging(main, {
+      settings: state.settings.activities,
+      complete: async (counts, roundId) => {
+        await action('complete-forage', { counts, roundId });
+        return state.foragingReceipts.find(receipt => receipt.id === roundId).rewards;
+      },
+      notify
+    });
+  if (route === 'activities/foraging') forageLayoutObserver.observe(main.querySelector('.foraging'));
+  syncResponsiveMenu();
   updateEncounterCooldown();
   if (route === 'dev/trait-gallery') bindTraitGallery(main, catalog);
   if (route === 'dev/music') musicPlayer.bind(main);
@@ -491,14 +519,20 @@ function inspect(id) {
 function closeMenu() {
   document.body.classList.remove('nav-open');
   $('.workspace').inert = false;
-  if (matchMedia('(max-width: 900px)').matches) $('#sidebar').inert = true;
+  syncResponsiveMenu();
   $('.mobile-menu')?.setAttribute('aria-expanded', 'false');
 }
 function syncResponsiveMenu() {
-  const mobile = matchMedia('(max-width: 900px)').matches;
+  const scene = route === 'activities/foraging' && main.querySelector('.foraging-scene');
+  const sidebarWidth = innerWidth <= 1200 ? 240 : 264;
+  const tight = !!scene && innerWidth > 900 && scene.getBoundingClientRect().left < sidebarWidth + 16;
+  document.body.classList.toggle('foraging-nav-collapsed', tight);
+  const mobile = matchMedia('(max-width: 900px)').matches || tight;
+  if (!mobile) document.body.classList.remove('nav-open');
   const opened = document.body.classList.contains('nav-open');
   $('#sidebar').inert = mobile && !opened;
   $('.workspace').inert = mobile && opened;
+  $('.mobile-menu')?.setAttribute('aria-expanded', String(mobile && opened));
 }
 function askToSell(id) {
   confirmation.classList.remove('eye-delete-confirm');
@@ -840,7 +874,9 @@ document.addEventListener('click', async event => {
   }
   if (intent === 'defaults') {
     const form = button.closest('form');
-    for (const [name, value] of Object.entries(defaults)) {
+    for (const [name, value] of Object.entries(
+      form.id === 'activities-settings-form' ? activitySettings() : defaults
+    )) {
       const input = form.elements.namedItem(name);
       if (!input) continue;
       if (input.type === 'checkbox') input.checked = value;
@@ -975,6 +1011,7 @@ document.addEventListener('submit', async event => {
       'horse-description-form',
       'horse-notes-form',
       'keeper-form',
+      'activities-settings-form',
       'spawn-settings-form',
       'gold-form',
       'economy-form',
@@ -1002,7 +1039,7 @@ document.addEventListener('submit', async event => {
   const submit = form.querySelector('[type="submit"]');
   if (submit) submit.disabled = true;
   try {
-    if (['economy-form', 'settings-form'].includes(form.id)) validateSettingsNumbers(form);
+    if (['economy-form', 'settings-form', 'activities-settings-form'].includes(form.id)) validateSettingsNumbers(form);
     const values = Object.fromEntries(new FormData(form));
     if (form.id === 'rarity-settings-form') {
       await action('rarity-settings', readRaritySettings(form));
@@ -1025,6 +1062,16 @@ document.addEventListener('submit', async event => {
         'traits'
       );
       notify('Traits saved.');
+    } else if (form.id === 'activities-settings-form') {
+      await action('activities-settings', {
+        gridSize: Number(form.elements.gridSize.value),
+        secondsPerItem: Number(form.elements.secondsPerItem.value),
+        totalSeconds: Number(form.elements.totalSeconds.value),
+        noTimer: form.elements.noTimer.checked,
+        foodCount: Number(form.elements.foodCount.value)
+      });
+      render();
+      notify('Activities settings saved.');
     } else if (form.id === 'spawn-settings-form') {
       await action('spawn-settings', { ALLOW_DUPLICATE_MUTATIONS: form.elements.ALLOW_DUPLICATE_MUTATIONS.checked });
       render();
@@ -1043,7 +1090,6 @@ document.addEventListener('submit', async event => {
       notify('Profile saved.');
     } else if (form.id === 'economy-form') {
       await action('economy-settings', {
-        gold: Number(values.gold),
         sellingPrice: Number(values.sellingPrice),
         saleModifiers: Object.fromEntries(
           Object.keys(defaultSaleModifiers).map(key => [key, Number(values[`saleModifier:${key}`])])
@@ -1287,7 +1333,11 @@ document.addEventListener('keydown', event => {
     tabs[next]?.click();
     return;
   }
-  if (event.key === 'Tab' && document.body.classList.contains('nav-open') && matchMedia('(max-width: 900px)').matches) {
+  if (
+    event.key === 'Tab' &&
+    document.body.classList.contains('nav-open') &&
+    (matchMedia('(max-width: 900px)').matches || document.body.classList.contains('foraging-nav-collapsed'))
+  ) {
     const focusable = [...$('#sidebar').querySelectorAll('a, summary')].filter(el => el.getClientRects().length);
     const first = focusable[0],
       last = focusable.at(-1);
@@ -1317,6 +1367,7 @@ for (const dialog of [profile, confirmation])
       dialog.close();
   });
 matchMedia('(max-width: 900px)').addEventListener('change', syncResponsiveMenu);
+window.addEventListener('resize', syncResponsiveMenu);
 window.addEventListener('hashchange', navigate);
 try {
   ({ state, catalog, defaults, appVersion } = await request('/api/state'));

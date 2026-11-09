@@ -152,6 +152,7 @@
 .horse-profile-shell .horse-name-row h2,
 .horse-profile-shell .horse-name-text,
 .horse-profile-shell .horse-inline-name {
+  font-family: var(--font-main);
   text-align: center;
 }
 .horse-profile-shell .horse-species-gender {

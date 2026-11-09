@@ -6,6 +6,43 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
+## [1.4.0] - Hooves & Harvests - 2026-11-08
+
+Collect food through Wilds Foraging, organize it in Inventory, and explore refreshed typography and layouts.
+
+### Added
+
+- **Wilds Foraging**
+  - Play a food-chain puzzle from Activities. Connect three or more matching adjacent ingredients, collect them, and watch new ingredients fall into place.
+  - Start from an instructions panel, track collected ingredients in buckets, and review Common, Rare, and Epic food rewards in a completion popup. Rewards are saved to Inventory; Exit returns to the start screen.
+  - Configure grid size, ingredient types per round, starting time, and time restored per ingredient. Enable No Timer to play freely and end a round with Finish Foraging.
+  - Gain 0.25 seconds per collected ingredient by default.
+  - Supplied frame and bucket artwork scale with the board. Boards without a valid chain refill without resetting the remaining time.
+
+- **Inventory**
+  - Browse All, Gear, Food, Potions, Materials, Equipment, and Pets through tabs on the Inventory page.
+  - Compact cards show item names, quantities, and rarity, with category labels in All. Search, filter by item type, and sort by name, count, rarity, or type. Rarity and type sorting group items into sections.
+  - Food defaults to Type sorting, keeping Common, Rare, and Epic items in that order within each food group.
+
+### Updated
+
+- **Aetherion Wilds**
+  - Use a broader default pool of 72 palettes.
+
+- **Economy Settings**
+  - Show Current Gold above collapsible Horse Sale Settings, Item Sale Settings, and Sale History, with Show All controls for individual sections and the entire page.
+  - Organize horse bonuses and Cosmic Multipliers into subsections, group item settings by inventory category, and paginate sale history in groups of 10.
+  - Prepare configurable Common, Rare, and Epic food prices for future selling. Selling from Inventory remains planned.
+
+- **Interface & Typography**
+  - Use the bundled FreeRealms font for headings and prominent titles, and Friz Quadrata for descriptions, controls, and supporting text across gameplay, the title screen, splash, and app dialogs.
+  - Center page content against the window, constrain music settings to a readable width, and adapt foraging and navigation layouts to smaller screens.
+
+### Fixed
+
+- **My Horses**
+  - Stable folders open and close reliably when clicking their headers.
+
 ## [1.3.4] - 2026-11-07
 
 Explore updated Ghoulsteed artwork with zoom, pan, and an experimental 3D preview.

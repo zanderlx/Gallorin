@@ -11,6 +11,16 @@ export function saleHistory(state) {
       at: t.at
     };
   });
+  rows.push(
+    ...(state.transactions || [])
+      .filter(t => t.type === 'Food sold')
+      .map(t => ({
+        name: `${t.itemName} ×${t.count}`,
+        species: 'Food',
+        amount: t.amount,
+        at: t.at
+      }))
+  );
   for (const horse of state.sold)
     if (!transactions.some(t => t.horseId === horse.id)) {
       rows.push({ name: horse.name || horse.species, species: horse.species, amount: horse.soldFor, at: horse.soldAt });

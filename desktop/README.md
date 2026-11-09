@@ -15,7 +15,7 @@ If a graphics driver causes problems, set `AETHERION_SOFTWARE_RENDERING=1` befor
 
 ## Gallorin version series
 
-Current source: **v1.2.4** (release preparation).
+Current source: **v1.4.0** (unreleased preview).
 
 Gallorin starts at **v1.0.0 — The Symphony of the Wilds**. Aetherion releases are legacy history. Gallorin tags use gallorin-v followed by major.minor.patch to avoid collisions with legacy tags. The updater accepts only this series. Legacy Aetherion users need a one-time manual Gallorin install because the version resets from 2.0.0 to 1.0.0; saves remain compatible.
 

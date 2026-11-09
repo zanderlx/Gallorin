@@ -1,5 +1,5 @@
 // Native details with reversible animation and scoped bulk controls.
-export function bindMusicDisclosures(root, signal) {
+export function bindMusicDisclosures(root, signal, { nativeSummaries = false } = {}) {
   const running = new Map();
   const expanded = details => (details.dataset.expanding ? details.dataset.expanding === 'true' : details.open);
   const refresh = () => {
@@ -21,6 +21,7 @@ export function bindMusicDisclosures(root, signal) {
   };
   const finish = (details, state) => {
     if (running.get(details) !== state) return;
+    clearTimeout(state.timer);
     details.open = state.open;
     details.style.height = '';
     details.removeAttribute('data-expanding');
@@ -28,7 +29,7 @@ export function bindMusicDisclosures(root, signal) {
     running.delete(details);
     refresh();
   };
-  const setOpen = (details, open, animate = true) => {
+  const setOpen = (details, open, animate = !nativeSummaries) => {
     const previous = running.get(details);
     if (!previous && details.open === open) return;
     const height = details.getBoundingClientRect().height,
@@ -37,6 +38,7 @@ export function bindMusicDisclosures(root, signal) {
     const opacity = previous && content ? Number(getComputedStyle(content).opacity) : open ? 0.5 : 1;
     previous?.heightAnimation.cancel();
     previous?.fadeAnimation?.cancel();
+    clearTimeout(previous?.timer);
     if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       running.delete(details);
       details.style.height = '';
@@ -66,7 +68,9 @@ export function bindMusicDisclosures(root, signal) {
       easing: 'ease-out'
     });
     running.set(details, state);
-    state.heightAnimation.finished.then(() => finish(details, state)).catch(() => {});
+    // Always release the temporary height, including when a browser cancels an animation.
+    state.timer = setTimeout(() => finish(details, state), 320);
+    state.heightAnimation.finished.then(() => finish(details, state)).catch(() => finish(details, state));
     state.fadeAnimation?.finished.catch(() => {});
   };
   root.addEventListener(
@@ -95,6 +99,9 @@ export function bindMusicDisclosures(root, signal) {
       const summary = event.target.closest('summary'),
         details = summary?.parentElement;
       if (!details?.matches('details.music-group,details.music-playlist')) return;
+      if (nativeSummaries) {
+        return;
+      }
       event.preventDefault();
       setOpen(details, !expanded(details));
       refresh();

@@ -4,6 +4,7 @@ import { horseCardRank } from './horse-rank.js';
 import { customHorseFolders } from './horse-folders.js';
 import { escapeHTML as e, number, icon, card, emptyState, heading, groups } from './ui.js';
 import { zoneAtmosphere, atmosphereStyle, zoneTags } from './zones.js';
+import { inventoryPage } from './inventory.js';
 
 export function wildPage(location, state, locations = [location], catalog) {
   const horses = state.encounters[location.id] || [];
@@ -186,8 +187,7 @@ const planned = {
   ]
 };
 export function plannedPage(route, state) {
-  if (route.startsWith('inventory/'))
-    return `${heading('YOUR TRAVELING SATCHEL', route.endsWith('potions') ? 'Potions & possibilities' : 'The finishing touches', 'A place for all the little things that make a companion your own.')}${emptyState('Your satchel is waiting', 'Inventory and item use arrive in Phase 5, along with the gacha machine. No items have been awarded yet.', 'dev/items', 'Browse item definitions', 'bag')}`;
+  if (route.startsWith('inventory/')) return inventoryPage(route, state);
   const p = planned[route];
   if (!p)
     return `${heading('A PATH LESS TRAVELED', 'This trail is not on the map', 'Choose a destination from your navigation.')}<a href="#wilds/aetherion" class="button primary">Return to the wilds</a>`;

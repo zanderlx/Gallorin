@@ -1,1 +1,53 @@
-/* System fonts keep the entire sanctuary available offline without font requests. */
+@font-face {
+  font-family: 'FreeRealms';
+  src: url('./assets/fonts/FreeRealms.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Friz Quadrata';
+  size-adjust: 112%;
+  src: url('./assets/fonts/FrizQuadrata.ttf') format('truetype');
+  font-display: swap;
+}
+:root {
+  --font-main: 'FreeRealms', 'Friz Quadrata';
+  --font-ui: 'Friz Quadrata', 'FreeRealms';
+  --serif: var(--font-main);
+  --sans: var(--font-ui);
+}
+:root body {
+  font-family: var(--font-ui);
+}
+:root :is(p, button, input, select, textarea, label, small, code, pre, th, td, nav, footer, output, time) {
+  font-family: var(--font-ui);
+}
+:root :is(h1, h2, h3, h4, h5, h6, .eye-card-name, .mutation-card-name, .card-title) {
+  font-family: var(--font-main);
+}
+
+#sidebar nav summary,
+:root legend,
+:root [role='heading'],
+:root .setting-row strong,
+:root .zone-field {
+  font-family: var(--font-main);
+}
+
+#sidebar .nav-items a {
+  font-family: var(--font-ui);
+}
+
+#sidebar nav summary,
+#sidebar .nav-section-link {
+  font-family: var(--font-main);
+  font-size: 16px;
+  white-space: nowrap;
+}
+#sidebar .nav-items a {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+#sidebar nav summary > .icon,
+#sidebar nav summary > .chevron {
+  flex-shrink: 0;
+}

@@ -134,7 +134,9 @@ async function start() {
     icon: join(root, 'desktop/assets/icon.png'),
     webPreferences: {
       ...options,
-      paintWhenInitiallyHidden: false,
+      // Hidden automated runs must keep reveal animations and smoke polling active.
+      paintWhenInitiallyHidden: smoke,
+      backgroundThrottling: !smoke,
       preload: join(root, 'desktop/menu-preload.cjs'),
       autoplayPolicy: 'no-user-gesture-required'
     }

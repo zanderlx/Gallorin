@@ -1,0 +1,611 @@
+.foraging {
+  width: min(100%, calc(clamp(260px, 100dvh - 550px, 540px) + 60px));
+  margin: 0 auto;
+  text-align: center;
+}
+.foraging-instructions {
+  max-width: 590px;
+  margin: 0 auto 20px;
+  color: var(--muted);
+}
+.foraging-layout {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 16px 12px;
+}
+.foraging-board {
+  container-type: inline-size;
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--panel-deep);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.foraging-tiles,
+.foraging-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.foraging-path {
+  pointer-events: none;
+  color: var(--gold);
+  z-index: 2;
+}
+.foraging-tile {
+  position: absolute;
+  width: 10%;
+  height: 10%;
+  padding: 3px;
+  display: grid;
+  place-items: center;
+  font-size: clamp(14px, 6cqw, 32px);
+  line-height: 1;
+}
+.foraging-tile span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.foraging-tile.is-selected span {
+  background: color-mix(in srgb, var(--gold) 30%, var(--panel));
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.foraging-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.foraging-timer {
+  flex: 1;
+  width: 18px;
+  min-height: 60px;
+  border-radius: 20px;
+  background: var(--panel-deep);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.foraging-timer-fill {
+  height: 100%;
+  transform-origin: bottom;
+  background: #41cd71;
+  transition: background-color 150ms linear;
+}
+.foraging-dashboard {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.foraging-dashboard > div {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 3px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 10px;
+  font-size: 12px;
+}
+.foraging-dashboard > div > span:first-child {
+  font-size: 24px;
+}
+.foraging-dashboard strong {
+  color: var(--gold);
+  font-size: 21px;
+}
+.foraging-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--panel-deep) 94%, transparent);
+}
+.foraging-overlay[hidden] {
+  display: none;
+}
+.foraging-overlay h2 {
+  font: 32px var(--serif);
+  margin: 0;
+}
+.foraging-help,
+#foraging-status {
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 480px) {
+  .foraging-layout {
+    grid-template-columns: 34px minmax(0, 1fr);
+    column-gap: 6px;
+  }
+  .foraging-tile {
+    padding: 1px;
+  }
+  .foraging-tile span {
+    border-radius: 4px;
+  }
+  .foraging-dashboard {
+    grid-column: 1 / -1;
+  }
+  .foraging-overlay p {
+    font-size: 12px;
+  }
+}
+
+/* Align the activity to the viewport, just like the fixed music player. */
+.foraging {
+  position: fixed;
+  inset: 76px 0 100px;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  pointer-events: none;
+  overflow: auto;
+  padding: 16px;
+}
+.foraging > * {
+  pointer-events: auto;
+}
+.foraging h1 {
+  margin: 0;
+  font: 32px var(--serif);
+}
+.foraging-layout {
+  width: min(100%, calc(clamp(220px, 100dvh - 360px, 560px) + 60px));
+  flex-shrink: 0;
+}
+.foraging-tile {
+  width: calc(100% / var(--grid-size));
+  height: calc(100% / var(--grid-size));
+  font-size: clamp(10px, calc(60cqw / var(--grid-size)), 32px);
+}
+.foraging-clock[hidden],
+[data-foraging-finish][hidden] {
+  display: none;
+}
+.foraging-layout:has(.foraging-clock[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.foraging-layout:has(.foraging-clock[hidden]) .foraging-dashboard {
+  grid-column: 1;
+}
+.foraging-dialog {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  padding: clamp(12px, 5cqw, 28px);
+  overflow: auto;
+  touch-action: pan-y;
+  color: var(--text);
+  background: var(--panel-deep);
+  border: 1px solid var(--gold-soft);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px #0006;
+  text-align: center;
+  font-size: clamp(12px, 3.2cqw, 16px);
+}
+.foraging-dialog ol {
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+}
+.foraging-dialog[hidden] {
+  display: none;
+}
+.foraging-dialog h2 {
+  text-align: center;
+  margin-top: 0;
+  font: clamp(20px, 5.4cqw, 30px) var(--serif);
+}
+.foraging-dialog li {
+  padding: 8px 0;
+}
+.foraging-dialog ul {
+  list-style: none;
+  padding: 0;
+}
+.foraging-dialog li strong {
+  color: var(--gold);
+}
+.foraging-dialog button {
+  display: block;
+  margin: 20px auto 0;
+}
+.foraging-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (max-width: 700px) {
+  .foraging {
+    bottom: 136px;
+  }
+}
+
+.foraging-dashboard.is-pending {
+  visibility: hidden;
+}
+
+.harvest-emoji {
+  display: inline-block;
+  vertical-align: middle;
+}
+.foraging-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.foraging-dialog .foraging-rewards li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 0 1 130px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.foraging-reward-icon {
+  font-size: 30px;
+  line-height: 1.2;
+}
+.foraging-rewards small {
+  text-transform: capitalize;
+  color: var(--muted);
+}
+.foraging-rewards [data-rarity='rare'] {
+  border-color: #6196c5;
+}
+.foraging-rewards [data-rarity='epic'] {
+  border-color: #b276d1;
+}
+
+/* Supplied artwork uses a 1000 � 1000 coordinate system. Keep interactive
+   regions registered to its board (245,230,509,509) and timer (202,267,31,352). */
+.foraging-layout {
+  display: block;
+  width: min(100%, calc(100dvh - 260px), 1000px);
+}
+.foraging-scene {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 1;
+  width: 100%;
+  background: url('/assets/foraging-frame.svg') center / contain no-repeat;
+}
+.foraging-board {
+  position: absolute;
+  left: 24.5%;
+  top: 23%;
+  width: 50.9%;
+  height: 50.9%;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+}
+.foraging-tile {
+  padding: 2px;
+}
+.foraging-tile span {
+  background: #ffffff08;
+  border-color: #72523366;
+  border-radius: 5px;
+}
+.foraging-clock {
+  position: absolute;
+  left: 20.2%;
+  top: 26.7%;
+  width: 3.1%;
+  height: 35.2%;
+  display: block;
+  font-size: clamp(14px, 2.8cqw, 24px);
+}
+.foraging-seconds {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.foraging-timer {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+}
+.foraging-dashboard {
+  position: absolute;
+  left: 24.5%;
+  top: 76%;
+  width: 50.9%;
+  gap: 2%;
+}
+.foraging-dashboard > div {
+  position: relative;
+  aspect-ratio: 1.25;
+  padding: 0;
+  background: url('/assets/foraging-bucket.svg') center / contain no-repeat;
+  border: 0;
+  border-radius: 0;
+  font-size: clamp(8px, 1.5cqw, 13px);
+}
+.foraging-dashboard > div > span:first-child {
+  position: absolute;
+  left: 50%;
+  top: -5%;
+  transform: translateX(-50%);
+  font-size: clamp(14px, 3.5cqw, 30px);
+  line-height: 1;
+}
+.foraging-dashboard strong {
+  position: absolute;
+  top: 41%;
+  width: 100%;
+  font-size: clamp(12px, 2.8cqw, 23px);
+  color: #fff0cb;
+  line-height: 1;
+  text-shadow: 0 1px 3px #2b1305;
+}
+
+/* Size the scene from the actual play area, including the current player height. */
+.foraging {
+  inset: 75px 0 var(--music-player-height, 0px);
+  container-type: size;
+  --foraging-controls-space: 0px;
+}
+.foraging:has([data-foraging-finish]:not([hidden])) {
+  --foraging-controls-space: 60px;
+}
+.foraging-layout {
+  width: min(100cqw, calc(100cqh - var(--foraging-controls-space)));
+}
+@media (max-width: 900px) {
+  .foraging {
+    top: 67px;
+  }
+}
+/* When the centered artwork reaches the sidebar, use the existing menu drawer. */
+.foraging-nav-collapsed #sidebar {
+  width: 280px;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 30;
+}
+.foraging-nav-collapsed .workspace {
+  margin-left: 0;
+  --page-sidebar-space: 0px;
+}
+.foraging-nav-collapsed .mobile-menu {
+  display: inline-grid;
+  margin-left: -10px;
+}
+.foraging-nav-collapsed.nav-open #sidebar {
+  transform: translateX(0);
+}
+.foraging-nav-collapsed.nav-open .scrim {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: #0009;
+  z-index: 25;
+}
+.foraging-nav-collapsed.nav-open {
+  overflow: hidden;
+}
+
+/* Completion rewards use the play area rather than the smaller board opening. */
+.foraging-dialog.is-completion {
+  width: min(760px, var(--reward-width, 420px), calc(100% - 32px));
+  height: min(660px, calc(var(--completion-rows, 1) * 130px + 180px), calc(100% - 32px));
+  max-height: none;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-content: stretch;
+  gap: 16px;
+  overflow: visible;
+  font-size: 15px;
+}
+.foraging-dialog.is-completion h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+}
+.foraging-dialog.is-completion [data-foraging-dialog-body] {
+  min-height: 0;
+}
+.foraging-dialog.is-completion button {
+  margin: 0 auto;
+  font-size: 14px;
+}
+.foraging-dialog.is-completion .foraging-rewards {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 10px;
+}
+.foraging-dialog.is-completion .foraging-rewards li {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  max-width: 160px;
+  max-height: 120px;
+  height: min(120px, calc((100% - (var(--reward-rows) - 1) * 10px) / var(--reward-rows)));
+  flex: 0 1 calc((100% - 40px) / 5);
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 14px;
+  line-height: 1.2;
+  background: var(--panel);
+}
+.foraging-dialog.is-completion .foraging-reward-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.foraging-dialog.is-completion .foraging-reward-name {
+  white-space: normal;
+}
+.foraging-dialog.is-completion strong {
+  font-size: 18px;
+}
+.foraging-dialog.is-completion small {
+  font-size: 12px;
+}
+.foraging-dialog.is-completion [data-rarity='rare'] {
+  border-color: #6196c5;
+}
+.foraging-dialog.is-completion [data-rarity='epic'] {
+  border-color: #b276d1;
+}
+@media (max-width: 700px), (max-height: 800px) {
+  .foraging-dialog.is-completion {
+    padding: 12px;
+    gap: 10px;
+  }
+  .foraging-dialog.is-completion h2 {
+    font-size: 24px;
+  }
+  .foraging-dialog.is-completion .foraging-rewards {
+    gap: 6px;
+  }
+  .foraging-dialog.is-completion .foraging-rewards li {
+    height: min(120px, calc((100% - (var(--reward-mobile-rows) - 1) * 6px) / var(--reward-mobile-rows)));
+    flex-basis: calc((100% - 12px) / 3);
+    font-size: 12px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .foraging-dialog.is-completion .foraging-reward-icon {
+    font-size: 24px;
+  }
+  .foraging-dialog.is-completion strong {
+    font-size: 16px;
+  }
+  .foraging-dialog.is-completion small {
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 750px) {
+  .foraging-dialog.is-completion {
+    padding: 8px;
+    gap: 6px;
+  }
+  .foraging-dialog.is-completion h2 {
+    font-size: 20px;
+  }
+  .foraging-dialog.is-completion button {
+    padding: 5px 10px;
+    min-height: 0;
+    font-size: 12px;
+  }
+  .foraging-dialog.is-completion .foraging-rewards li {
+    font-size: 11px;
+    padding: 2px;
+    gap: 1px;
+  }
+  .foraging-dialog.is-completion .foraging-reward-name {
+    white-space: nowrap;
+  }
+  .foraging-dialog.is-completion .foraging-reward-icon {
+    font-size: 18px;
+  }
+  .foraging-dialog.is-completion strong {
+    font-size: 14px;
+  }
+  .foraging-dialog.is-completion small {
+    font-size: 10px;
+  }
+}
+
+.foraging-dialog-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.foraging-dialog .foraging-dialog-actions button {
+  margin: 0;
+}
+.foraging-dialog.is-completion .foraging-dialog-actions {
+  margin-top: 0;
+}
+
+.foraging-scene > h1 {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55%;
+  margin: 0;
+  font-size: clamp(16px, 4cqw, 34px);
+  line-height: 1.2;
+  color: #fff0d4;
+  text-shadow: 0 2px 3px #291506;
+}
+
+.foraging-dialog.is-completion:not(:has(.foraging-rewards:not(:empty))) {
+  width: min(360px, calc(100% - 32px));
+  height: auto;
+}
+.foraging-dialog.is-completion .foraging-rewards:empty {
+  display: none;
+}
+.foraging-dialog.is-completion:not(:has(.foraging-rewards:not(:empty))) [data-foraging-dialog-body] {
+  display: grid;
+  place-items: center;
+  min-height: 50px;
+  text-align: center;
+}
+.foraging-dialog.is-completion [data-foraging-dialog-body] > p {
+  margin: 10px 0;
+  width: 100%;
+  text-align: center;
+}
+@media (max-width: 700px), (max-height: 800px) {
+  .foraging-dialog.is-completion:has(.foraging-rewards:not(:empty)) {
+    height: min(660px, calc(var(--completion-mobile-rows, 1) * 110px + 120px), calc(100% - 32px));
+  }
+}

@@ -1,6 +1,6 @@
 import { html, raw } from './ui.js';
 import { icon } from './ui.js';
-import { saleHistoryTable } from './economy.js';
+import { economyPage } from './economy-settings.js';
 import { saleModifiers, saleModifierFields } from './sale-pricing.js';
 
 function settingForm(state, economy = false, catalog) {
@@ -29,6 +29,11 @@ function settingForm(state, economy = false, catalog) {
 export function validateSettingsNumbers(form) {
   for (const input of form.querySelectorAll('input[type="number"]')) {
     if (input.value.trim() && Number.isFinite(input.valueAsNumber) && input.validity.valid) continue;
+    let details = input.closest('details');
+    while (details) {
+      details.open = true;
+      details = details.parentElement?.closest('details');
+    }
     input.focus();
     const label = input.closest('label')?.querySelector('strong')?.textContent || 'Value';
     throw new Error(`${label}: ${input.validationMessage || 'Enter a valid number.'}`);
@@ -45,13 +50,14 @@ export function gameSettingsPage(state, catalog) {
 }
 
 export function economySettingsPage(state) {
-  return String(html`<div class="settings-section-heading"><h1>Economy Settings</h1></div>
-  ${raw(settingForm(state, true))}${raw(saleHistoryTable(state))}`);
+  return economyPage(state);
 }
 
 // Keep label clicks from opening numeric editing; steppers live inside the field.
 export function attachSettingsNumbers(root) {
-  for (const input of root.querySelectorAll(':is(#settings-form,#economy-form) input[type="number"]')) {
+  for (const input of root.querySelectorAll(
+    ':is(#settings-form,#economy-form,#activities-settings-form,#item-sale-form,#gold-form) input[type="number"]'
+  )) {
     if (input.closest('.settings-number')) continue;
     const label = input.closest('label');
     const name = label.querySelector('strong').textContent;

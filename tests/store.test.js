@@ -1,3 +1,4 @@
+import { HARVESTS } from '../public/harvest-rewards.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm, readdir } from 'node:fs/promises';
@@ -20,6 +21,35 @@ async function fixture(t) {
   });
   return { directory, store: await new GameStore(directory, catalog, defaults, { rng: () => 0.5 }).init() };
 }
+test('foraging persists exact food rewards and rejects invalid harvests without changing saves', async t => {
+  const { directory, store } = await fixture(t);
+  const before = store.snapshot();
+  await store.action('forage', { food: 'flower', count: 7 });
+  await store.action('forage', { food: 'flower', count: 3 });
+  await store.action('forage', { food: 'berry', count: 100 });
+  assert.equal(
+    store.state.inventory
+      .filter(item => HARVESTS.flower.some(option => option.id === item.id))
+      .reduce((sum, item) => sum + item.count, 0),
+    10
+  );
+  assert.equal(store.state.inventory.find(item => item.id === 'strawberry').count, 80);
+  assert.deepEqual(store.state.horses, before.horses);
+  assert.equal(store.state.gold, before.gold);
+  const saved = store.snapshot();
+  for (const payload of [
+    { food: 'lasso', count: 3 },
+    { food: 'flower', count: 2 },
+    { food: 'flower', count: 257 },
+    { food: 'flower', count: 3.5 }
+  ]) {
+    await assert.rejects(store.action('forage', payload), /valid food chain/);
+    assert.deepEqual(store.snapshot(), saved);
+  }
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.state.inventory, saved.inventory);
+});
+
 test('retired edit actions reject legacy saves without changing player data', async t => {
   const { directory, store } = await fixture(t);
   await store.action('visit', { locationId: 'aetherion' });
@@ -797,4 +827,64 @@ test('dragged horse order and membership persist through restart and folder edit
   assert.deepEqual(reopened.state.horseFolders, store.state.horseFolders);
   assert.deepEqual(reopened.state.horseFolderOrder, store.state.horseFolderOrder);
   assert.equal(reopened.state.horses.find(h => h.id === ids[0]).favorite, true);
+});
+
+test('activity settings persist and reject unsupported values', async t => {
+  const { directory, store } = await fixture(t);
+  const settings = { gridSize: 16, secondsPerItem: 2.75, totalSeconds: 90, noTimer: true, foodCount: 4 };
+  await store.action('activities-settings', settings);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  assert.deepEqual(reopened.state.settings.activities, settings);
+  for (const change of [
+    { gridSize: 3 },
+    { foodCount: 6 },
+    { secondsPerItem: -1 },
+    { noTimer: 'yes' },
+    { secondsPerItem: 0.1 },
+    { totalSeconds: 0 },
+    { totalSeconds: 1.5 }
+  ]) {
+    await assert.rejects(store.action('activities-settings', { ...settings, ...change }), /valid activity settings/);
+  }
+  await store.action('forage', { food: 'apple', count: 256 });
+  assert.equal(
+    store.state.inventory
+      .filter(item => HARVESTS.apple.some(option => option.id === item.id))
+      .reduce((sum, item) => sum + item.count, 0),
+    256
+  );
+});
+
+test('completed rounds split totals once, persist variants and safely retry', async t => {
+  const { directory, store } = await fixture(t);
+  const counts = Object.fromEntries(Object.keys(HARVESTS).map(food => [food, 1000]));
+  await store.action('complete-forage', { roundId: 'round-one', counts });
+  assert.equal(store.state.inventory.length, 15);
+  assert.equal(
+    store.state.inventory.reduce((sum, item) => sum + item.count, 0),
+    5000
+  );
+  for (const options of Object.values(HARVESTS))
+    for (const option of options) {
+      const item = store.state.inventory.find(item => item.id === option.id);
+      assert.equal(item.count, Math.round(option.chance * 1000));
+      assert.equal(item.rarity, option.rarity);
+    }
+  const saved = store.snapshot();
+  await store.action('complete-forage', { roundId: 'round-one', counts });
+  assert.deepEqual(store.snapshot(), saved);
+  await assert.rejects(store.action('complete-forage', { roundId: 'invalid', counts: { peach: -1 } }));
+  assert.deepEqual(store.snapshot(), saved);
+  const reopened = await new GameStore(directory, catalog, defaults).init();
+  await reopened.action('complete-forage', { roundId: 'round-one', counts });
+  assert.deepEqual(reopened.state.inventory, saved.inventory);
+  await reopened.action('complete-forage', { roundId: 'round-two', counts: { peach: 24 } });
+  const rewards = reopened.state.foragingReceipts.at(-1).rewards;
+  assert.deepEqual(
+    rewards.map(item => [item.id, item.count]),
+    [
+      ['peach', 23],
+      ['white-peach', 1]
+    ]
+  );
 });

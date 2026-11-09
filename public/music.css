@@ -316,6 +316,10 @@ body.has-music-player {
   font-weight: 400;
 }
 
+.music-manager {
+  max-width: 1000px;
+  margin-inline: auto;
+}
 .music-playlists-heading {
   margin: 26px 0 20px;
 }

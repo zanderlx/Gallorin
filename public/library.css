@@ -388,7 +388,7 @@
 .color-inputs input[data-color-hex] {
   width: 100%;
   font-size: 14px;
-  font-family: monospace;
+  font-family: var(--font-ui);
 }
 .theme-picker {
   margin-bottom: 32px;

@@ -1,3 +1,5 @@
+import { inventorySections } from './inventory-sections.js';
+
 export const defaultMusicTrack = {
   id: 'menu',
   name: 'Glades of Gallorin',
@@ -36,14 +38,7 @@ const sectionDefinitions = [
       ['town/spirit', 'Spirit Tame']
     ]
   ],
-  [
-    'Inventory',
-    'inventory',
-    [
-      ['inventory/accessories', 'Accessories'],
-      ['inventory/potions', 'Potions']
-    ]
-  ],
+  ['Inventory', 'inventory', inventorySections],
   [
     'Compendium',
     'compendium',

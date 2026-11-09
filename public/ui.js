@@ -4,6 +4,7 @@ import { horseArt, horseHeadArt } from './art.js';
 import { horseCardRank } from './horse-rank.js';
 import { raritySettings } from './rarity-settings.js';
 import { locationsFor } from './zones.js';
+import { inventorySections } from './inventory-sections.js';
 
 export const escapeHTML = value =>
   String(value ?? '').replace(
@@ -89,6 +90,11 @@ export const groups = [
     ]
   },
   {
+    title: 'Activities',
+    icon: 'leaf',
+    items: [['activities/foraging', 'Wilds Foraging']]
+  },
+  {
     title: 'Stables',
     icon: 'stable',
     open: true,
@@ -100,10 +106,7 @@ export const groups = [
   {
     title: 'Inventory',
     icon: 'bag',
-    items: [
-      ['inventory/accessories', 'Accessories'],
-      ['inventory/potions', 'Potions']
-    ]
+    items: inventorySections
   },
   {
     title: 'Wilds',
@@ -130,6 +133,7 @@ export const groups = [
 ];
 const workbench = groups.find(g => g.title === 'Developer Settings');
 workbench.items = [
+  ['dev/activities', 'Activities Settings'],
   ['dev/settings', 'Encounter & Stable Settings'],
   ['dev/economy', 'Economy Settings'],
   ['dev/zone-settings', 'Zone Settings']
@@ -163,7 +167,8 @@ groups.push(
 );
 groups.splice(groups.indexOf(workbench), 1);
 groups.push(workbench);
-for (const group of groups) if (group.title !== 'Stables') group.items.sort((a, b) => a[1].localeCompare(b[1]));
+for (const group of groups)
+  if (!['Stables', 'Inventory'].includes(group.title)) group.items.sort((a, b) => a[1].localeCompare(b[1]));
 export function navigationSection(route) {
   return (
     groups.find(group => group.items.some(([path]) => path === route)) ||
@@ -183,12 +188,18 @@ export function sidebar(route, state, openGroups, catalog, appVersion = '') {
     )
     .map(group => ({
       ...group,
-      items: group.title === 'Stables' ? group.items : [...group.items].sort((a, b) => a[1].localeCompare(b[1]))
+      items: ['Stables', 'Inventory'].includes(group.title)
+        ? group.items
+        : [...group.items].sort((a, b) => a[1].localeCompare(b[1]))
     }));
   return `<a href="#wilds/aetherion" class="brand">${brandLogo()}<span><span class="brand-title">GALLORIN</span><small>A HORSEKEEPER’S CHRONICLE</small></span></a>
     <nav>${navigation
-      .map(
-        group => `<details data-group="${group.title}" ${openGroups.has(group.title) ? 'open' : ''}>
+      .map(group =>
+        group.title === 'Inventory'
+          ? String(
+              html`<a class="nav-section-link" href="#inventory/all" ${route.startsWith('inventory/') ? raw('aria-current="location"') : ''}>${raw(icon(group.icon))}<span>Inventory</span></a>`
+            )
+          : `<details data-group="${group.title}" ${openGroups.has(group.title) ? 'open' : ''}>
       <summary>${group.title === 'Wilds' ? `<a class="nav-group-home" href="#wilds/aetherion" data-action="wilds-home">${icon(group.icon)}<span>Wilds</span></a>` : `${icon(group.icon)}<span>${group.title}</span>`}<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
       <div class="nav-items">${group.items.map(([path, label]) => `<a href="#${path}" ${route === path ? 'aria-current="page"' : ''}><span>${escapeHTML(label)}</span>${path === 'stable/all' ? `<span class="count">${state.horses.length}</span>` : ''}</a>`).join('')}</div>
     </details>`
