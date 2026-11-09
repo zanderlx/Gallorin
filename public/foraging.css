@@ -361,17 +361,10 @@
 .foraging-dashboard > div > span:first-child {
   position: absolute;
   left: 50%;
-  top: -12%;
+  top: -5%;
   transform: translateX(-50%);
   font-size: clamp(14px, 3.5cqw, 30px);
   line-height: 1;
-}
-.foraging-dashboard > div > span:nth-child(2) {
-  position: absolute;
-  top: calc(100% + 2px);
-  width: 100%;
-  line-height: 1.1;
-  text-shadow: 0 1px 3px #000;
 }
 .foraging-dashboard strong {
   position: absolute;
@@ -387,10 +380,10 @@
 .foraging {
   inset: 75px 0 var(--music-player-height, 0px);
   container-type: size;
-  --foraging-controls-space: 54px;
+  --foraging-controls-space: 0px;
 }
 .foraging:has([data-foraging-finish]:not([hidden])) {
-  --foraging-controls-space: 114px;
+  --foraging-controls-space: 60px;
 }
 .foraging-layout {
   width: min(100cqw, calc(100cqh - var(--foraging-controls-space)));
@@ -431,8 +424,8 @@
 
 /* Completion rewards use the play area rather than the smaller board opening. */
 .foraging-dialog.is-completion {
-  width: min(760px, calc(100% - 32px));
-  height: min(660px, calc(100% - 32px));
+  width: min(760px, var(--reward-width, 420px), calc(100% - 32px));
+  height: min(660px, calc(var(--completion-rows, 1) * 130px + 180px), calc(100% - 32px));
   max-height: none;
   padding: 20px;
   display: grid;
@@ -578,4 +571,41 @@
 }
 .foraging-dialog.is-completion .foraging-dialog-actions {
   margin-top: 0;
+}
+
+.foraging-scene > h1 {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55%;
+  margin: 0;
+  font-size: clamp(16px, 4cqw, 34px);
+  line-height: 1.2;
+  color: #fff0d4;
+  text-shadow: 0 2px 3px #291506;
+}
+
+.foraging-dialog.is-completion:not(:has(.foraging-rewards:not(:empty))) {
+  width: min(360px, calc(100% - 32px));
+  height: auto;
+}
+.foraging-dialog.is-completion .foraging-rewards:empty {
+  display: none;
+}
+.foraging-dialog.is-completion:not(:has(.foraging-rewards:not(:empty))) [data-foraging-dialog-body] {
+  display: grid;
+  place-items: center;
+  min-height: 50px;
+  text-align: center;
+}
+.foraging-dialog.is-completion [data-foraging-dialog-body] > p {
+  margin: 10px 0;
+  width: 100%;
+  text-align: center;
+}
+@media (max-width: 700px), (max-height: 800px) {
+  .foraging-dialog.is-completion:has(.foraging-rewards:not(:empty)) {
+    height: min(660px, calc(var(--completion-mobile-rows, 1) * 110px + 120px), calc(100% - 32px));
+  }
 }

@@ -308,6 +308,22 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await run(() => document.querySelector('[data-foraging-finish]').click());
   assert.equal(await run(() => !document.querySelector('.foraging-dialog').hidden), true);
   assert.equal(await run(() => document.querySelectorAll('[data-foraging-dialog-body] li').length), 0);
+  await wait(() => document.querySelector('[data-foraging-start]').textContent === 'Play Again');
+  const emptySize = await run(() => {
+    const dialog = document.querySelector('.foraging-dialog');
+    const message = dialog.querySelector('[data-foraging-dialog-body] p');
+    return {
+      width: dialog.getBoundingClientRect().width,
+      height: dialog.getBoundingClientRect().height,
+      align: getComputedStyle(message).textAlign,
+      text: message.textContent
+    };
+  });
+  assert.ok(emptySize.width <= 360 && emptySize.height < 300);
+  assert.equal(emptySize.align, 'center');
+  assert.match(emptySize.text, /No ingredients collected/);
+  await new Promise(resolve => setTimeout(resolve, 150));
+  await writeFile(join(directory, 'empty-harvest.png'), (await win.webContents.capturePage()).toPNG());
   await run(() => window.foragingTest.dispose());
   win.setSize(1280, 1000);
   await run(async () => {

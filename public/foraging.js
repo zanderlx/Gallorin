@@ -12,11 +12,11 @@ import {
 } from './foraging-engine.js';
 
 export function foragingPage() {
-  return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button primary" data-foraging-finish hidden>Finish Foraging</button>
-      <div class="foraging-layout"><div class="foraging-scene">
+  return String(html`<section class="foraging" aria-label="Wilds Foraging game"><button type="button" class="button primary" data-foraging-finish hidden>Finish Foraging</button>
+      <div class="foraging-layout"><div class="foraging-scene"><h1>Wilds Foraging</h1>
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div></div>
         <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><div class="foraging-dialog-actions"><button type="button" class="button primary" data-foraging-start>Start Foraging</button><button type="button" class="button secondary" data-foraging-exit hidden>Exit</button></div></div></div>
-        <div class="foraging-dashboard is-pending" aria-label="Collected this round" aria-hidden="true"><div aria-hidden="true"><span>&nbsp;</span><span>&nbsp;</span><strong>&nbsp;</strong></div></div>
+        <div class="foraging-dashboard is-pending" aria-label="Collected this round" aria-hidden="true"><div aria-hidden="true"><span>&nbsp;</span><strong>&nbsp;</strong></div></div>
       </div></div><p id="foraging-status" class="foraging-sr" role="status"></p>
 
     </section>`);
@@ -227,7 +227,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     foods = chooseFoods(settings.foodCount);
     setHTML(
       root.querySelector('.foraging-dashboard'),
-      html`${foods.map(food => html`<div><span aria-hidden="true">${food.emoji}</span><span>${food.name}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}`
+      html`${foods.map(food => html`<div role="group" aria-label="${food.name} collected"><span aria-hidden="true">${food.emoji}</span><strong data-foraging-count="${food.id}">0</strong></div>`)}`
     );
     root.querySelector('.foraging-dashboard').classList.remove('is-pending');
     root.querySelector('.foraging-dashboard').removeAttribute('aria-hidden');
@@ -253,6 +253,9 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
       const rewards = await complete({ ...counts }, roundId);
       if (disposed) return;
       phase = 'over';
+      dialog.style.setProperty('--reward-width', `${Math.max(360, Math.min(5, rewards.length) * 146 + 40)}px`);
+      dialog.style.setProperty('--completion-rows', String(Math.max(1, Math.ceil(rewards.length / 5))));
+      dialog.style.setProperty('--completion-mobile-rows', String(Math.max(1, Math.ceil(rewards.length / 3))));
       setHTML(
         dialogBody,
         html`<ul class="foraging-rewards" style="--reward-rows:${Math.max(1, Math.ceil(rewards.length / 5))};--reward-mobile-rows:${Math.max(1, Math.ceil(rewards.length / 3))}">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span class="foraging-reward-name">${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul>${rewards.length ? '' : html`<p>No ingredients collected this round.</p>`}`
@@ -283,10 +286,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     const dashboard = root.querySelector('.foraging-dashboard');
     dashboard.classList.add('is-pending');
     dashboard.setAttribute('aria-hidden', 'true');
-    setHTML(
-      dashboard,
-      html`<div aria-hidden="true"><span>&nbsp;</span><span>&nbsp;</span><strong>&nbsp;</strong></div>`
-    );
+    setHTML(dashboard, html`<div aria-hidden="true"><span>&nbsp;</span><strong>&nbsp;</strong></div>`);
     remaining = settings.totalSeconds;
     paintTimer();
     setHTML(
