@@ -100,10 +100,21 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
       })}`
     );
   }
-  async function drop(removed = []) {
-    const opening = !board.length;
+  async function drop(removed = [], redeal = false) {
+    const opening = !board.length || redeal;
     phase = opening ? 'intro' : 'falling';
-    const result = cascade(board, removed, Math.random, SIZE, foods);
+    const result = redeal
+      ? {
+          board,
+          moves: board.map((food, index) => ({
+            index,
+            food,
+            from: Math.floor(index / SIZE) - SIZE,
+            to: Math.floor(index / SIZE),
+            col: index % SIZE
+          }))
+        }
+      : cascade(board, removed, Math.random, SIZE, foods);
     board = result.board;
     renderTiles();
     const reduced =
@@ -130,7 +141,10 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     if (disposed) return;
     animations.forEach(animation => animation.cancel());
     animations = [];
-    if (ensurePlayable(board, Math.random, SIZE)) renderTiles();
+    if (ensurePlayable(board, Math.random, SIZE)) {
+      status.textContent = 'No trails left. Fresh ingredients are falling…';
+      return drop([], true);
+    }
     phase = 'playing';
     last = performance.now();
     status.textContent = 'Find a matching trail. Every item you gather is yours to keep.';

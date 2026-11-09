@@ -285,6 +285,79 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await new Promise(resolve => setTimeout(resolve, 150));
   assert.ok(await run(() => document.documentElement.scrollWidth <= innerWidth));
   await writeFile(join(directory, 'activities-settings-narrow.png'), (await win.webContents.capturePage()).toPNG());
+  // Clear a whole board, force a dead refill, and inspect the automatic top drop.
+  await run(async () => {
+    const { foragingPage, bindForaging } = await import('/foraging.js');
+    const { setHTML, raw } = await import('/ui.js');
+    const root = document.querySelector('#main');
+    setHTML(root, raw(foragingPage()));
+    window.stalemateTest = { random: Math.random, animate: Element.prototype.animate, drops: 0, times: [] };
+    Element.prototype.animate = function (...args) {
+      if (document.querySelector('#foraging-status').textContent.startsWith('No trails left')) {
+        window.stalemateTest.drops++;
+        window.stalemateTest.times.push(document.querySelector('.foraging-seconds').textContent);
+        if (!args[0][0].transform.includes('-')) throw Error('Redealt ingredient did not start above the board');
+      }
+      return window.stalemateTest.animate.apply(this, args);
+    };
+    Math.random = () => 0.99999;
+    window.stalemateTest.dispose = bindForaging(root, {
+      settings: { gridSize: 4, secondsPerItem: 0 },
+      complete: async () => [],
+      notify: message => {
+        throw Error(message);
+      }
+    });
+    document.querySelector('[data-foraging-start]').click();
+    Math.random = window.stalemateTest.random;
+  });
+  await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
+  await new Promise(resolve => setTimeout(resolve, 1100));
+  const snake = await run(() =>
+    Array.from({ length: 16 }, (_, i) => {
+      const row = Math.floor(i / 4),
+        col = row % 2 ? 3 - (i % 4) : i % 4;
+      const rect = document.querySelectorAll('.foraging-tile')[row * 4 + col].getBoundingClientRect();
+      return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+    })
+  );
+  await input('mouseDown', snake[0]);
+  for (const point of snake.slice(1)) await input('mouseMove', point);
+  assert.equal(await run(() => document.querySelectorAll('.is-selected').length), 16);
+  const timeBefore = await run(() => document.querySelector('.foraging-seconds').textContent);
+  await run(() => {
+    let index = 0;
+    Math.random = () => {
+      if (index >= 16) return 0.99999;
+      const row = index % 4,
+        col = Math.floor(index++ / 4);
+      return (((row + col) % 4) + 0.1) / 4;
+    };
+  });
+  await input('mouseUp', snake.at(-1));
+  await wait(() => window.stalemateTest.drops === 16);
+  assert.ok(await run(() => window.stalemateTest.times.every(time => time === window.stalemateTest.times[0])));
+  const redealTime = parseInt(await run(() => window.stalemateTest.times[0]));
+  assert.ok(redealTime <= parseInt(timeBefore) && redealTime >= parseInt(timeBefore) - 1);
+  assert.ok(redealTime < 60);
+  await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
+  assert.equal(await run(() => document.querySelector('[data-foraging-count="flower"]').textContent), '16');
+  assert.ok(
+    await run(async () => {
+      const { largestGroup } = await import('/foraging-engine.js');
+      return (
+        largestGroup(
+          [...document.querySelectorAll('.foraging-tile')].map(el => el.dataset.food),
+          4
+        ) >= 3
+      );
+    })
+  );
+  await run(() => {
+    Math.random = window.stalemateTest.random;
+    Element.prototype.animate = window.stalemateTest.animate;
+    window.stalemateTest.dispose();
+  });
   win.setSize(1600, 1200);
   await run(async () => {
     const { harvestItems } = await import('/harvest-rewards.js');
