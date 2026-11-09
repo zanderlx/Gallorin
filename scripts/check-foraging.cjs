@@ -409,6 +409,62 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     Element.prototype.animate = window.stalemateTest.animate;
     window.stalemateTest.dispose();
   });
+  win.setSize(1280, 1000);
+  await run(async () => {
+    const { foragingPage, bindForaging } = await import('/foraging.js');
+    const { harvestItems } = await import('/harvest-rewards.js');
+    const { setHTML, raw } = await import('/ui.js');
+    const root = document.querySelector('#main');
+    setHTML(root, raw(foragingPage()));
+    window.fullHarvestDispose = bindForaging(root, {
+      settings: { noTimer: true },
+      complete: async () => harvestItems.map(item => ({ ...item, count: 123 })),
+      notify: message => {
+        throw Error(message);
+      }
+    });
+    document.querySelector('[data-foraging-start]').click();
+  });
+  await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
+  await run(() => document.querySelector('[data-foraging-finish]').click());
+  await wait(() => document.querySelectorAll('.foraging-rewards li').length === 15);
+  for (const width of [1280, 1100, 420]) {
+    win.setSize(width, 1000);
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const fits = await run(() => {
+      const dialog = document.querySelector('.foraging-dialog');
+      return [
+        dialog,
+        dialog.querySelector('[data-foraging-dialog-body]'),
+        dialog.querySelector('ul'),
+        ...dialog.querySelectorAll('li, .foraging-reward-name')
+      ].every(el => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1);
+    });
+    if (!fits) {
+      console.log(
+        await run(() =>
+          [
+            document.querySelector('.foraging-dialog'),
+            ...document.querySelectorAll('.foraging-dialog li, .foraging-dialog .foraging-reward-name')
+          ]
+            .filter(el => el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)
+            .map(el => ({
+              text: el.textContent,
+              width: el.clientWidth,
+              scrollWidth: el.scrollWidth,
+              height: el.clientHeight,
+              scrollHeight: el.scrollHeight
+            }))
+        )
+      );
+      await writeFile(join(directory, 'reward-overflow.png'), (await win.webContents.capturePage()).toPNG());
+    }
+    assert.ok(fits, `Full reward list overflows at ${width}`);
+    assert.equal(await run(() => document.querySelectorAll('.foraging-rewards small').length), 15);
+    assert.equal(await run(() => document.querySelectorAll('.foraging-rewards strong').length), 15);
+    await writeFile(join(directory, `full-harvest-${width}.png`), (await win.webContents.capturePage()).toPNG());
+  }
+  await run(() => window.fullHarvestDispose());
   win.setSize(1600, 1200);
   await run(async () => {
     const { harvestItems } = await import('/harvest-rewards.js');

@@ -246,7 +246,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
       phase = 'over';
       setHTML(
         dialogBody,
-        html`<ul class="foraging-rewards">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span>${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul><p>${rewards.length ? 'Added to your Inventory.' : 'No ingredients collected this round.'}</p>`
+        html`<ul class="foraging-rewards" style="--reward-rows:${rewards.length}">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span class="foraging-reward-name">${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul>${rewards.length ? '' : html`<p>No ingredients collected this round.</p>`}`
       );
       startButton.textContent = 'Play Again';
     } catch (error) {
