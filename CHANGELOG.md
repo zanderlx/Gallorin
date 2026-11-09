@@ -6,13 +6,27 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.3.5] - Unreleased
+## [1.4.0] - Unreleased
+
+Forage for food, browse your growing inventory, and explore Gallorin with refreshed typography and layouts.
 
 ### Added
 
+- **Wilds Foraging**
+  - Play a food-chain puzzle from Activities. Connect three or more matching adjacent ingredients, collect them, and watch new ingredients fall into place.
+  - Start each round from an instructions panel, track ingredient totals in collection buckets, and review rarity-based food rewards in a responsive completion popup. Rewards are saved to Inventory, with an Exit option to return to the start screen.
+  - Configure grid size, ingredient types per round, starting time, and time restored per ingredient. Enable No Timer to play freely and end a round with Finish Foraging.
+  - Supplied frame artwork and ingredient illustrations scale with the board. Boards without a valid chain refill without resetting the remaining time.
+
 - **Inventory**
-  - View items by type using the All, Gear, Food, Potions, Materials, Equipment, and Pets tabs.
-  - Item cards show names and quantities. Search and filter by item type, or sort by name, count, rarity, or type in either direction. Rarity and type sorting group items into sections.
+  - Browse All, Gear, Food, Potions, Materials, Equipment, and Pets through tabs on the Inventory page.
+  - Item cards show names, quantities, and rarity. Search and filter by item type, or sort by name, count, rarity, or type in either direction. Rarity and type sorting group items into sections.
+
+### Updated
+
+- **Interface & Typography**
+  - Use the bundled FreeRealms font for headings and main text, and Friz Quadrata for controls and supporting text across gameplay, the title screen, splash, and app dialogs.
+  - Center page content against the window, constrain music settings to a readable width, and adapt foraging and navigation layouts to smaller screens.
 
 ### Fixed
 
