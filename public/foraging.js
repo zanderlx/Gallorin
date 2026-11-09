@@ -15,7 +15,7 @@ export function foragingPage() {
   return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button" data-foraging-finish hidden>Finish Foraging</button>
       <div class="foraging-layout"><div class="foraging-scene">
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div></div>
-        <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div></div>
+        <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><div class="foraging-dialog-actions"><button type="button" class="button primary" data-foraging-start>Start Foraging</button><button type="button" class="button secondary" data-foraging-exit hidden>Exit</button></div></div></div>
         <div class="foraging-dashboard is-pending" aria-label="Collected this round" aria-hidden="true"><div aria-hidden="true"><span>&nbsp;</span><span>&nbsp;</span><strong>&nbsp;</strong></div></div>
       </div></div><p id="foraging-status" class="foraging-sr" role="status"></p>
 
@@ -31,6 +31,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
   const dialog = root.querySelector('.foraging-dialog');
   const dialogBody = root.querySelector('[data-foraging-dialog-body]');
   const startButton = root.querySelector('[data-foraging-start]');
+  const exitButton = root.querySelector('[data-foraging-exit]');
   const finishButton = root.querySelector('[data-foraging-finish]');
   let foods = [];
   boardElement.style.setProperty('--grid-size', SIZE);
@@ -213,6 +214,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
   boardElement.addEventListener('lostpointercapture', clearPath, options);
   window.addEventListener('blur', clearPath, options);
   function start() {
+    exitButton.hidden = true;
     boardElement.append(dialog);
     dialog.classList.remove('is-completion');
     dialog.querySelector('h2').textContent = 'Wilds Foraging';
@@ -244,6 +246,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     dialog.querySelector('h2').textContent = 'Wilds Foraging Rewards';
     dialog.hidden = false;
     startButton.disabled = true;
+    exitButton.hidden = true;
     startButton.textContent = 'Saving…';
     setHTML(dialogBody, html`<p>Preparing rewards…</p>`);
     try {
@@ -255,6 +258,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
         html`<ul class="foraging-rewards" style="--reward-rows:${Math.max(1, Math.ceil(rewards.length / 5))};--reward-mobile-rows:${Math.max(1, Math.ceil(rewards.length / 3))}">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span class="foraging-reward-name">${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul>${rewards.length ? '' : html`<p>No ingredients collected this round.</p>`}`
       );
       startButton.textContent = 'Play Again';
+      exitButton.hidden = false;
     } catch (error) {
       if (disposed) return;
       phase = 'retry';
@@ -266,10 +270,44 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     }
   }
 
-  setHTML(
-    dialogBody,
-    html`<ol><li>Hold and drag through 3+ matching foods. No diagonals.</li><li>Release to collect; backtrack to undo a link.</li><li>${settings.noTimer ? 'Choose Finish Foraging when done.' : `${settings.totalSeconds}s per round. Each food adds ${settings.secondsPerItem}s (max ${settings.totalSeconds}s).`}</li></ol>`
+  function showRules() {
+    phase = 'ready';
+    clearPath();
+    board = [];
+    foods = [];
+    counts = Object.fromEntries(FOODS.map(food => [food.id, 0]));
+    tiles.replaceChildren();
+    boardElement.append(dialog);
+    dialog.classList.remove('is-completion');
+    dialog.querySelector('h2').textContent = 'Wilds Foraging';
+    const dashboard = root.querySelector('.foraging-dashboard');
+    dashboard.classList.add('is-pending');
+    dashboard.setAttribute('aria-hidden', 'true');
+    setHTML(
+      dashboard,
+      html`<div aria-hidden="true"><span>&nbsp;</span><span>&nbsp;</span><strong>&nbsp;</strong></div>`
+    );
+    remaining = settings.totalSeconds;
+    paintTimer();
+    setHTML(
+      dialogBody,
+      html`<ol><li>Hold and drag through 3+ matching foods. No diagonals.</li><li>Release to collect; backtrack to undo a link.</li><li>${settings.noTimer ? 'Choose Finish Foraging when done.' : `${settings.totalSeconds}s per round. Each food adds ${settings.secondsPerItem}s (max ${settings.totalSeconds}s).`}</li></ol>`
+    );
+    startButton.textContent = 'Start Foraging';
+    exitButton.hidden = true;
+    dialog.hidden = false;
+    status.textContent = '';
+  }
+  exitButton.addEventListener(
+    'click',
+    () => {
+      if (phase !== 'over') return;
+      showRules();
+      startButton.focus({ preventScroll: true });
+    },
+    options
   );
+  showRules();
   startButton.addEventListener('click', () => (phase === 'retry' ? void finish() : start()), options);
   finishButton.addEventListener('click', finish, options);
   dialog.hidden = false;

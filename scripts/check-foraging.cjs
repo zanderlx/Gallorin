@@ -469,6 +469,18 @@ const deadline = setTimeout(() => app.exit(1), 60000);
     assert.equal(await run(() => document.querySelectorAll('.foraging-rewards strong').length), 15);
     await writeFile(join(directory, `full-harvest-${width}.png`), (await win.webContents.capturePage()).toPNG());
   }
+  await run(() => document.querySelector('[data-foraging-exit]').click());
+  assert.equal(await run(() => document.querySelector('[data-foraging-start]').textContent), 'Start Foraging');
+  assert.equal(await run(() => document.querySelector('[data-foraging-exit]').hidden), true);
+  assert.equal(await run(() => document.querySelectorAll('.foraging-dialog ol li').length), 3);
+  assert.equal(
+    await run(() => document.querySelector('.foraging-board').contains(document.querySelector('.foraging-dialog'))),
+    true
+  );
+  assert.equal(await run(() => document.querySelectorAll('.foraging-tile, [data-foraging-count]').length), 0);
+  assert.equal(await run(() => document.querySelector('.foraging-dashboard').classList.contains('is-pending')), true);
+  await run(() => document.querySelector('[data-foraging-start]').click());
+  await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
   await run(() => window.fullHarvestDispose());
   win.setSize(1600, 1200);
   await run(async () => {
