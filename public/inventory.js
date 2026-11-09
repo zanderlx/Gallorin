@@ -42,7 +42,14 @@ export function inventoryItems(
                   familyLabels[inventoryFamily(b)] || inventoryFamily(b)
                 )
               : 0;
-      return (direction === 'desc' ? -1 : 1) * (order || a.name.localeCompare(b.name));
+      const multiplier = direction === 'desc' ? -1 : 1;
+      if (sort === 'type')
+        return (
+          multiplier * order ||
+          rarities.indexOf(rarity(a)) - rarities.indexOf(rarity(b)) ||
+          multiplier * a.name.localeCompare(b.name)
+        );
+      return multiplier * (order || a.name.localeCompare(b.name));
     });
 }
 const card = (item, category) =>

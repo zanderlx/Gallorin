@@ -2,6 +2,23 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { inventoryItems, inventoryPage, inventoryCards, inventoryFamily } from '../public/inventory.js';
 import { withInventorySamples } from '../src/inventory-samples.js';
+
+test('type sorting keeps food rarities common to epic in either type direction', () => {
+  const items = [
+    { id: 'pink-apple', name: 'Pink Apples', type: 'food', rarity: 'epic', count: 1 },
+    { id: 'green-apple', name: 'Green Apples', type: 'food', rarity: 'rare', count: 1 },
+    { id: 'apple', name: 'Red Apples', type: 'food', rarity: 'common', count: 1 },
+    { id: 'carrot', name: 'Orange Carrots', type: 'food', rarity: 'common', count: 1 }
+  ];
+  for (const direction of ['asc', 'desc']) {
+    const sorted = inventoryItems(items, 'food', 'type', direction);
+    assert.deepEqual(
+      sorted.filter(item => inventoryFamily(item) === 'apple').map(item => item.rarity),
+      ['common', 'rare', 'epic']
+    );
+    assert.equal(sorted[0].id, direction === 'asc' ? 'apple' : 'carrot');
+  }
+});
 import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
