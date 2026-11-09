@@ -30,9 +30,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - name: Lint workflows (actionlint 1.7.12)
-        run: |
-          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -color
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -color
       - name: Audit workflow security (zizmor 1.31.1)
         run: pipx run zizmor==1.31.1 --offline --min-severity medium .github
       - run: npm run release:check
