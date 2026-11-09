@@ -26,6 +26,14 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - name: Install and verify locked Electron runtime
+        shell: pwsh
+        run: |
+          node node_modules/electron/install.js
+          if ($LASTEXITCODE -ne 0) { throw 'Electron runtime installation failed.' }
+          $expected = (Get-Content node_modules/electron/package.json | ConvertFrom-Json).version
+          $actual = (Get-Content node_modules/electron/dist/version -Raw).Trim()
+          if ($actual -ne $expected) { throw 'Installed Electron runtime version differs from the locked package.' }
       - name: Verify version and changelog
         shell: pwsh
         env:
