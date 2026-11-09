@@ -13,11 +13,11 @@ import {
 
 export function foragingPage() {
   return String(html`<section class="foraging" aria-label="Wilds Foraging game"><h1>Wilds Foraging</h1><button type="button" class="button" data-foraging-finish hidden>Finish Foraging</button>
-      <div class="foraging-layout">
+      <div class="foraging-layout"><div class="foraging-scene">
         <div class="foraging-clock"><output class="foraging-seconds">60s</output><div class="foraging-timer" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="foraging-timer-fill"></div></div><span class="foraging-bonus" aria-live="polite"></span></div>
         <div class="foraging-board" aria-label="Food grid" aria-describedby="foraging-status"><div class="foraging-tiles"></div><svg class="foraging-path" viewBox="0 0 100 100" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" /></svg><div class="foraging-dialog" role="dialog" aria-modal="false" aria-labelledby="foraging-dialog-title"><h2 id="foraging-dialog-title">Wilds Foraging</h2><div data-foraging-dialog-body></div><button type="button" class="button primary" data-foraging-start>Start Foraging</button></div></div>
         <div class="foraging-dashboard is-pending" aria-label="Collected this round" aria-hidden="true"><div aria-hidden="true"><span>&nbsp;</span><span>&nbsp;</span><strong>&nbsp;</strong></div></div>
-      </div><p id="foraging-status" class="foraging-sr" role="status"></p>
+      </div></div><p id="foraging-status" class="foraging-sr" role="status"></p>
 
     </section>`);
 }
@@ -79,8 +79,8 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     root.querySelector('.foraging-seconds').textContent = `${Math.ceil(remaining)}s`;
   }
   function advance(now) {
-    if (phase === 'playing' && !settings.noTimer) remaining = Math.max(0, remaining - (now - last) / 1000);
-    last = now;
+    if (phase === 'playing' && !settings.noTimer) remaining = Math.max(0, remaining - Math.max(0, now - last) / 1000);
+    last = Math.max(last, now);
     paintTimer();
     if (remaining === 0 && phase === 'playing') {
       finish();

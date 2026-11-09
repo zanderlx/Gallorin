@@ -65,6 +65,22 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
   assert.equal(await run(() => document.querySelectorAll('.foraging-dashboard > div').length), 4);
   assert.equal(await run(() => document.querySelector('.foraging-dashboard').classList.contains('is-pending')), false);
+  assert.ok(await run(() => Number(document.querySelector('.foraging-timer').getAttribute('aria-valuenow')) <= 60));
+  assert.ok(
+    await run(() => {
+      const scene = document.querySelector('.foraging-scene').getBoundingClientRect();
+      const board = document.querySelector('.foraging-board').getBoundingClientRect();
+      const timer = document.querySelector('.foraging-timer').getBoundingClientRect();
+      return (
+        Math.abs(board.x - scene.x - scene.width * 0.245) < 1 &&
+        Math.abs(board.y - scene.y - scene.height * 0.23) < 1 &&
+        Math.abs(board.width - scene.width * 0.509) < 1 &&
+        Math.abs(timer.x - scene.x - scene.width * 0.202) < 1 &&
+        Math.abs(timer.height - scene.height * 0.352) < 1
+      );
+    })
+  );
+
   assert.equal(
     await run(() => document.querySelector('[data-group="Town"]').nextElementSibling.dataset.group),
     'Activities'

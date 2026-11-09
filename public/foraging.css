@@ -291,3 +291,107 @@
 .foraging-rewards [data-rarity='epic'] {
   border-color: #b276d1;
 }
+
+/* Supplied artwork uses a 1000 � 1000 coordinate system. Keep interactive
+   regions registered to its board (245,230,509,509) and timer (202,267,31,352). */
+.foraging-layout {
+  display: block;
+  width: min(100%, calc(100dvh - 260px), 1000px);
+}
+.foraging-scene {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 1;
+  width: 100%;
+  background: url('/assets/foraging-frame.svg') center / contain no-repeat;
+}
+.foraging-board {
+  position: absolute;
+  left: 24.5%;
+  top: 23%;
+  width: 50.9%;
+  height: 50.9%;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+}
+.foraging-tile {
+  padding: 2px;
+}
+.foraging-tile span {
+  background: #ffffff08;
+  border-color: #72523366;
+  border-radius: 5px;
+}
+.foraging-clock {
+  position: absolute;
+  left: 20.2%;
+  top: 26.7%;
+  width: 3.1%;
+  height: 35.2%;
+  display: block;
+  font-size: clamp(10px, 1.8cqw, 15px);
+}
+.foraging-seconds {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.foraging-timer {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+}
+.foraging-bonus {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: inherit;
+}
+.foraging-dashboard {
+  position: absolute;
+  left: 24.5%;
+  top: 76%;
+  width: 50.9%;
+  gap: 2%;
+}
+.foraging-dashboard > div {
+  position: relative;
+  aspect-ratio: 1.25;
+  padding: 0;
+  background: url('/assets/foraging-bucket.png') center / contain no-repeat;
+  border: 0;
+  border-radius: 0;
+  font-size: clamp(8px, 1.5cqw, 13px);
+}
+.foraging-dashboard > div > span:first-child {
+  position: absolute;
+  left: 50%;
+  top: -12%;
+  transform: translateX(-50%);
+  font-size: clamp(14px, 3.5cqw, 30px);
+  line-height: 1;
+}
+.foraging-dashboard > div > span:nth-child(2) {
+  position: absolute;
+  top: calc(100% + 2px);
+  width: 100%;
+  line-height: 1.1;
+  text-shadow: 0 1px 3px #000;
+}
+.foraging-dashboard strong {
+  position: absolute;
+  top: 41%;
+  width: 100%;
+  font-size: clamp(12px, 2.8cqw, 23px);
+  color: #fff0cb;
+  line-height: 1;
+  text-shadow: 0 1px 3px #2b1305;
+}
