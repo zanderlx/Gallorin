@@ -6,7 +6,7 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.4.0] - Hooves & Harvests - Unreleased
+## [1.4.0] - Hooves & Harvests - 2026-11-08
 
 Collect food through Wilds Foraging, organize it in Inventory, and explore refreshed typography and layouts.
 
