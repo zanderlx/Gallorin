@@ -1,9 +1,15 @@
 name: Release
 # Expressions cannot strip the gallorin- prefix, so runs show "Release gallorin-v<version>".
-run-name: Release ${{ github.ref_name }}
+run-name: Release ${{ inputs.tag || github.ref_name }}
 on:
   push:
     tags: ['gallorin-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing merged release tag to validate and publish
+        required: true
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -14,6 +20,7 @@ jobs:
     uses: ./.github/workflows/windows-validation.yml
     with:
       release: true
+      release_ref: ${{ inputs.tag || github.ref_name }}
   publish:
     name: Approve and publish validated release
     needs: validate
@@ -26,6 +33,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.tag || github.ref_name }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
@@ -40,8 +48,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          $tag = $env:GITHUB_REF_NAME
+          $tag = $env:RELEASE_TAG
           $releaseTitle = node scripts/release-notes.js --title
           if ($LASTEXITCODE -ne 0) { throw 'Could not read release title.' }
           node scripts/release-notes.js --write
