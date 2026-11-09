@@ -116,6 +116,12 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   assert.ok(await run(() => [...document.querySelectorAll('.economy-sections details')].every(el => !el.open)));
   await run(() => document.querySelectorAll('[data-music-toggle-folder]')[1].click());
   await wait(() => [...document.querySelectorAll('#item-sale-form details')].every(el => el.open));
+  assert.equal(await run(() => document.querySelectorAll('#item-sale-form details').length), 0);
+  assert.ok(
+    await run(() =>
+      document.querySelector('#economy-form [name=sellingPrice]').closest('details').matches('[data-music-group]')
+    )
+  );
   await new Promise(resolve => setTimeout(resolve, 400));
   await writeFile(join(directory, 'item-settings.png'), (await win.webContents.capturePage()).toPNG());
   win.setSize(640, 1000);

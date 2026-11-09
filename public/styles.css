@@ -397,10 +397,18 @@ nav summary .icon,
   display: none;
 }
 .economy-section-body {
-  padding: 16px;
+  padding: 22px;
+}
+.economy-sections {
+  display: grid;
+  gap: 14px;
 }
 .economy-sections .music-group {
-  margin-bottom: 12px;
+  margin: 0;
+}
+.economy-section-body > form {
+  display: grid;
+  gap: 22px;
 }
 .economy-sections .music-group > summary h2 {
   flex: 1;
