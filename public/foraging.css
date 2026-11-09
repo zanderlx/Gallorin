@@ -325,7 +325,7 @@
   width: 3.1%;
   height: 35.2%;
   display: block;
-  font-size: clamp(10px, 1.8cqw, 15px);
+  font-size: clamp(14px, 2.8cqw, 24px);
 }
 .foraging-seconds {
   position: absolute;
