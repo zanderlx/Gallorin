@@ -6,7 +6,7 @@ Gallorin uses major.minor.patch versioning. Gallorin begins at version 1.0.0.
 Legacy milestones are archived as 0.1.0–0.7.0 under Aetherion (Legacy).
 Dates for legacy entries come from their release commits.
 
-## [1.4.0] - Unreleased
+## [1.4.0] - Hooves & Harvests - Unreleased
 
 Forage for food, browse your growing inventory, and explore Gallorin with refreshed typography and layouts.
 

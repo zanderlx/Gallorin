@@ -2,7 +2,7 @@
 
 ![Gallorin v1.4.0](docs/assets/gallorin-banner.svg)
 
-# Gallorin v1.4.0
+# Gallorin v1.4.0: Hooves & Harvests
 
 **Desktop horse collection game · Windows**
 
