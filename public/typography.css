@@ -36,3 +36,18 @@
 #sidebar .nav-items a {
   font-family: var(--font-ui);
 }
+
+#sidebar nav summary,
+#sidebar .nav-section-link {
+  font-family: var(--font-main);
+  font-size: 16px;
+  white-space: nowrap;
+}
+#sidebar .nav-items a {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+#sidebar nav summary > .icon,
+#sidebar nav summary > .chevron {
+  flex-shrink: 0;
+}
