@@ -429,76 +429,139 @@
   overflow: hidden;
 }
 
-/* Fit the complete harvest in the existing board, including all fifteen variants. */
-.foraging-dialog:has(.foraging-rewards:not(:empty)) {
-  width: calc(100% - 16px);
-  height: calc(100% - 16px);
+/* Completion rewards use the play area rather than the smaller board opening. */
+.foraging-dialog.is-completion {
+  width: min(760px, calc(100% - 32px));
+  height: min(660px, calc(100% - 32px));
   max-height: none;
-  padding: clamp(4px, 2cqw, 10px);
+  padding: 20px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   justify-content: stretch;
-  gap: clamp(3px, 1.5cqw, 8px);
+  gap: 16px;
   overflow: visible;
+  font-size: 15px;
 }
-.foraging-dialog:has(.foraging-rewards:not(:empty)) h2 {
+.foraging-dialog.is-completion h2 {
   margin: 0;
-  font-size: clamp(12px, 4.5cqw, 20px);
+  font-size: 30px;
   line-height: 1.2;
 }
-.foraging-dialog:has(.foraging-rewards:not(:empty)) [data-foraging-dialog-body] {
+.foraging-dialog.is-completion [data-foraging-dialog-body] {
   min-height: 0;
 }
-.foraging-dialog:has(.foraging-rewards:not(:empty)) button {
+.foraging-dialog.is-completion button {
   margin: 0 auto;
-  padding: 4px 10px;
-  min-height: 0;
-  font-size: clamp(9px, 2.7cqw, 12px);
-  line-height: 1.2;
+  font-size: 14px;
 }
-.foraging-dialog .foraging-rewards:not(:empty) {
+.foraging-dialog.is-completion .foraging-rewards {
   height: 100%;
   margin: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: repeat(var(--reward-rows), minmax(0, 1fr));
-  gap: clamp(1px, 0.4cqw, 2px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 10px;
 }
-.foraging-dialog .foraging-rewards li {
+.foraging-dialog.is-completion .foraging-rewards li {
   min-width: 0;
   min-height: 0;
-  max-height: 32px;
-  height: 100%;
+  width: 100%;
+  max-width: 160px;
+  max-height: 150px;
+  height: min(150px, calc((100% - (var(--reward-rows) - 1) * 10px) / var(--reward-rows)));
+  flex: 0 1 calc((100% - 40px) / 5);
   align-self: center;
-  display: grid;
-  grid-template-columns: 1.5em minmax(0, 1fr) 3.5em 4.5em;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: clamp(2px, 0.7cqw, 4px);
-  padding: 0 clamp(2px, 0.7cqw, 4px);
-  border: 0;
-  box-shadow: inset 0 -1px var(--border);
-  border-radius: 0;
-  font-size: clamp(6px, 3.4cqw, 14px);
-  line-height: 1.1;
+  justify-content: center;
+  padding: 6px;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 14px;
+  line-height: 1.2;
+  background: var(--panel);
 }
-.foraging-rewards .foraging-reward-icon {
-  font-size: clamp(6px, 3cqw, 14px);
+.foraging-dialog.is-completion .foraging-reward-icon {
+  font-size: 32px;
   line-height: 1;
 }
-.foraging-rewards .foraging-reward-name {
-  white-space: nowrap;
+.foraging-dialog.is-completion .foraging-reward-name {
+  white-space: normal;
 }
-.foraging-rewards strong {
-  font-size: inherit;
+.foraging-dialog.is-completion strong {
+  font-size: 18px;
 }
-.foraging-rewards small {
-  font-size: inherit;
+.foraging-dialog.is-completion small {
+  font-size: 12px;
+}
+.foraging-dialog.is-completion [data-rarity='rare'] {
+  border-color: #6196c5;
+}
+.foraging-dialog.is-completion [data-rarity='epic'] {
+  border-color: #b276d1;
+}
+@media (max-width: 700px), (max-height: 800px) {
+  .foraging-dialog.is-completion {
+    padding: 12px;
+    gap: 10px;
+  }
+  .foraging-dialog.is-completion h2 {
+    font-size: 24px;
+  }
+  .foraging-dialog.is-completion .foraging-rewards {
+    gap: 6px;
+  }
+  .foraging-dialog.is-completion .foraging-rewards li {
+    height: min(150px, calc((100% - (var(--reward-mobile-rows) - 1) * 6px) / var(--reward-mobile-rows)));
+    flex-basis: calc((100% - 12px) / 3);
+    font-size: 12px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .foraging-dialog.is-completion .foraging-reward-icon {
+    font-size: 24px;
+  }
+  .foraging-dialog.is-completion strong {
+    font-size: 16px;
+  }
+  .foraging-dialog.is-completion small {
+    font-size: 11px;
+  }
 }
 
-.foraging-rewards [data-rarity='rare'] small {
-  color: #8bb9e2;
-}
-.foraging-rewards [data-rarity='epic'] small {
-  color: #c99ae5;
+@media (max-height: 750px) {
+  .foraging-dialog.is-completion {
+    padding: 8px;
+    gap: 6px;
+  }
+  .foraging-dialog.is-completion h2 {
+    font-size: 20px;
+  }
+  .foraging-dialog.is-completion button {
+    padding: 5px 10px;
+    min-height: 0;
+    font-size: 12px;
+  }
+  .foraging-dialog.is-completion .foraging-rewards li {
+    font-size: 11px;
+    padding: 3px;
+    gap: 1px;
+  }
+  .foraging-dialog.is-completion .foraging-reward-name {
+    white-space: nowrap;
+  }
+  .foraging-dialog.is-completion .foraging-reward-icon {
+    font-size: 18px;
+  }
+  .foraging-dialog.is-completion strong {
+    font-size: 14px;
+  }
+  .foraging-dialog.is-completion small {
+    font-size: 10px;
+  }
 }

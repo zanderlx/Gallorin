@@ -213,6 +213,8 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
   boardElement.addEventListener('lostpointercapture', clearPath, options);
   window.addEventListener('blur', clearPath, options);
   function start() {
+    boardElement.append(dialog);
+    dialog.classList.remove('is-completion');
     board = [];
     roundId = crypto.randomUUID();
     clearPath();
@@ -236,6 +238,8 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
     if (!['playing', 'retry'].includes(phase)) return;
     phase = 'saving';
     clearPath();
+    root.querySelector('.foraging').append(dialog);
+    dialog.classList.add('is-completion');
     dialog.hidden = false;
     startButton.disabled = true;
     startButton.textContent = 'Saving…';
@@ -246,7 +250,7 @@ export function bindForaging(root, { complete, notify, settings: savedSettings =
       phase = 'over';
       setHTML(
         dialogBody,
-        html`<ul class="foraging-rewards" style="--reward-rows:${rewards.length}">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span class="foraging-reward-name">${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul>${rewards.length ? '' : html`<p>No ingredients collected this round.</p>`}`
+        html`<ul class="foraging-rewards" style="--reward-rows:${Math.max(1, Math.ceil(rewards.length / 5))};--reward-mobile-rows:${Math.max(1, Math.ceil(rewards.length / 3))}">${rewards.map(item => html`<li data-rarity="${item.rarity}"><span class="foraging-reward-icon">${harvestIcon(item.id)}</span><span class="foraging-reward-name">${item.name}</span><strong>×${item.count}</strong><small>${item.rarity}</small></li>`)}</ul>${rewards.length ? '' : html`<p>No ingredients collected this round.</p>`}`
       );
       startButton.textContent = 'Play Again';
     } catch (error) {

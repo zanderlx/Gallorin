@@ -428,8 +428,13 @@ const deadline = setTimeout(() => app.exit(1), 60000);
   await wait(() => document.querySelector('#foraging-status').textContent.startsWith('Find a matching'));
   await run(() => document.querySelector('[data-foraging-finish]').click());
   await wait(() => document.querySelectorAll('.foraging-rewards li').length === 15);
-  for (const width of [1280, 1100, 420]) {
-    win.setSize(width, 1000);
+  for (const [width, height] of [
+    [1280, 1000],
+    [1100, 800],
+    [420, 900],
+    [420, 700]
+  ]) {
+    win.setSize(width, height);
     await new Promise(resolve => setTimeout(resolve, 150));
     const fits = await run(() => {
       const dialog = document.querySelector('.foraging-dialog');
