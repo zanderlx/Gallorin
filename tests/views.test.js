@@ -265,6 +265,7 @@ test('developer settings expose separate encounter, economy, and zone destinatio
   assert.deepEqual(
     new Map(developer.items),
     new Map([
+      ['dev/activities', 'Activities Settings'],
       ['dev/settings', 'Encounter & Stable Settings'],
       ['dev/economy', 'Economy Settings'],
       ['dev/zone-settings', 'Zone Settings']
