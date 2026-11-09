@@ -36,7 +36,7 @@ The installer includes everything needed. Players do not need Node.js, Git, npm,
 - Configure search cooldowns, spawning, economy, profiles, themes, and page text. Bundled FreeRealms and Friz Quadrata fonts work offline.
 - Keep saves local with exports, automatic backups, and hourly snapshots. Saved preferences override bundled defaults.
 
-Breeding, the remaining Town activities, equipment gameplay, and skill training remain planned.
+Food selling, breeding, the remaining Town activities, equipment gameplay, and skill training remain planned.
 
 ## Local development
 

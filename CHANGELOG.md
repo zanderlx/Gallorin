@@ -8,26 +8,27 @@ Dates for legacy entries come from their release commits.
 
 ## [1.4.0] - Hooves & Harvests - Unreleased
 
-Forage for food, browse your growing inventory, and explore Gallorin with refreshed typography and layouts.
+Collect food through Wilds Foraging, organize it in Inventory, and explore refreshed typography and layouts.
 
 ### Added
 
 - **Wilds Foraging**
   - Play a food-chain puzzle from Activities. Connect three or more matching adjacent ingredients, collect them, and watch new ingredients fall into place.
-  - Start each round from an instructions panel, track ingredient totals in collection buckets, and review rarity-based food rewards in a responsive completion popup. Rewards are saved to Inventory, with an Exit option to return to the start screen.
+  - Start from an instructions panel, track collected ingredients in buckets, and review Common, Rare, and Epic food rewards in a completion popup. Rewards are saved to Inventory; Exit returns to the start screen.
   - Configure grid size, ingredient types per round, starting time, and time restored per ingredient. Enable No Timer to play freely and end a round with Finish Foraging.
-  - Supplied frame artwork and ingredient illustrations scale with the board. Boards without a valid chain refill without resetting the remaining time.
+  - Supplied frame and bucket artwork scale with the board. Boards without a valid chain refill without resetting the remaining time.
 
 - **Inventory**
   - Browse All, Gear, Food, Potions, Materials, Equipment, and Pets through tabs on the Inventory page.
-  - Item cards show names, quantities, and rarity. Search and filter by item type, or sort by name, count, rarity, or type in either direction. Rarity and type sorting group items into sections.
-  - Food opens sorted by type.
-
-- **Economy Settings**
-  - Keep Current Gold above collapsible Horse Sale Settings, Item Sale Settings, and Sale History sections. Expand individual sections or all settings together.
-  - Configure food sale prices by rarity and browse food and horse sales in paginated history.
+  - Compact cards show item names, quantities, and rarity, with category labels in All. Search, filter by item type, and sort by name, count, rarity, or type. Rarity and type sorting group items into sections.
+  - Food defaults to Type sorting, keeping Common, Rare, and Epic items in that order within each food group.
 
 ### Updated
+
+- **Economy Settings**
+  - Show Current Gold above collapsible Horse Sale Settings, Item Sale Settings, and Sale History, with Show All controls for individual sections and the entire page.
+  - Organize horse bonuses and Cosmic Multipliers into subsections, group item settings by inventory category, and paginate sale history in groups of 10.
+  - Prepare configurable Common, Rare, and Epic food prices for future selling. Selling from Inventory remains planned.
 
 - **Interface & Typography**
   - Use the bundled FreeRealms font for headings and prominent titles, and Friz Quadrata for descriptions, controls, and supporting text across gameplay, the title screen, splash, and app dialogs.
